@@ -1,4 +1,4 @@
-# youtube_utilities
+# YouTube Utilities
 
 [toc]
 
@@ -66,7 +66,7 @@ El proyecto está diseñado para ser **extensible**, permitiendo añadir nuevas 
 
 ### Sistema
 
-- Windows 10 / 11
+- Windows 10 / 11.
 - [Python](https://www.python.org/downloads/) 3.10 o superior.
 
 ### Herramientas externas
