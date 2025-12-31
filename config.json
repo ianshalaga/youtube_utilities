@@ -1,0 +1,24 @@
+{
+  "dry_run": false,
+  "max_workers": 4,
+  "normalize_audio": true,
+  "lufs_target": -14,
+  "true_peak": -1.0,
+  "lra": 11,
+  "ffmpeg_path": "",
+  "mkvmerge_path": "",
+
+  "paths": {
+    "ffmpeg": "auto",
+    "mkvmerge": "auto"
+  },
+  "audio": {
+    "supported_formats": [".mp3", ".wav", ".flac", ".aac"],
+    "target_bitrate": "320k",
+    "target_samplerate": 48000,
+    "normalize": true
+  },
+  "output": {
+    "directory": "output"
+  }
+}
