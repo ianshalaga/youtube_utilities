@@ -344,16 +344,15 @@ Ejemplo futuro:
 
 ## Limitaciones conocidas
 
-- No se gestiona pausa, cancelación ni reanudación de tareas
-- La ejecución batch es directa y continua
-- Pensado para uso local (no servidor remoto)
+- No se gestiona pausa, cancelación ni reanudación de tareas.
+- La ejecución batch es directa y continua.
+- Pensado para uso local (no servidor remoto).
 
 ---
 
 ## Licencia
 
 Uso personal o interno.
-Revisa o define una licencia específica según tus necesidades.
 
 ---
 
@@ -365,5 +364,45 @@ Este proyecto está diseñado como una **herramienta de escritorio moderna**, co
 - Robustez
 - Extensibilidad
 - Flujo de trabajo profesional
+
+---
+
+## Módulos estándar de Python (internos)
+
+- [os](https://docs.python.org/3/library/os.html): este módulo ofrece una forma portátil de interactuar con el sistema operativo, como variables de entorno, rutas y procesos.
+
+- [pathlib](https://docs.python.org/3/library/pathlib.html): proporciona clases orientadas a objetos para manejar rutas de archivos y directorios de forma segura y legible.
+
+- [json](https://docs.python.org/3/library/json.html): permite serializar y deserializar datos en formato JSON, utilizado para la configuración persistente de la aplicación.
+
+- [subprocess](https://docs.python.org/3/library/subprocess.html): permite ejecutar procesos externos (como ffmpeg y mkvmerge) y capturar su salida de forma controlada.
+
+- [logging](https://docs.python.org/3/library/logging.html): proporciona un sistema flexible de logging para registrar eventos, errores y mensajes de ejecución.
+
+- [concurrent.futures](https://docs.python.org/3/library/concurrent.futures.html): ofrece una interfaz de alto nivel para la ejecución paralela mediante hilos o procesos.
+
+- [threading](https://docs.python.org/3/library/threading.html): permite la ejecución concurrente dentro de un mismo proceso, utilizado para tareas de fondo y GUI.
+
+- [tkinter](https://docs.python.org/3/library/tkinter.html): biblioteca estándar para crear interfaces gráficas nativas en Python.
+
+- [tkinter.filedialog](https://docs.python.org/3/library/dialog.html): submódulo de tkinter que proporciona cuadros de diálogo para selección de archivos y directorios.
+
+- [typing](https://docs.python.org/3/library/typing.html): proporciona soporte para anotaciones de tipos, mejorando legibilidad y mantenibilidad del código.
+
+---
+
+## Paquetes de terceros (externos)
+
+- [Flask](https://flask.palletsprojects.com/): micro-framework web ligero utilizado para exponer la interfaz gráfica vía navegador y manejar rutas HTTP.
+
+- [python-dotenv](https://pypi.org/project/python-dotenv/) (opcional): permite cargar variables de entorno desde un archivo .env durante el desarrollo local.
+
+---
+
+## Herramientas externas utilizadas vía CLI
+
+- [FFmpeg](https://ffmpeg.org/): herramienta multimedia utilizada para convertir, normalizar y procesar archivos de audio antes de integrarlos en el video.
+
+- [MKVToolNix](https://mkvtoolnix.download/?utm_source=chatgpt.com): suite de herramientas para trabajar con contenedores Matroska (MKV), utilizada para cortar y ensamblar videos.
 
 ---
