@@ -5,20 +5,20 @@
     "mkvmerge": "C:/Program Files/MKVToolNix/mkvmerge.exe"
   },
 
-  "dry_run": false,
-  "max_workers": 4,
-  "normalize_audio": true,
-  "lufs_target": -14,
-  "true_peak": -1.0,
-  "lra": 11,
-
   "audio": {
-    "supported_formats": [".mp3", ".wav", ".flac", ".aac"],
+    "target_codec": "aac",
+    "target_container": "m4a",
     "target_bitrate": "320k",
     "target_samplerate": 48000,
-    "normalize": true
+    "lufs_target": -14,
+    "true_peak": -1.0,
+    "lra": 11
   },
+
+  "dry_run": false,
+  "max_workers": 4,
+
   "output": {
-    "directory": "output"
+    "directory": "videos"
   }
 }

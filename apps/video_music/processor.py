@@ -10,3 +10,7 @@
 # - No debe modificarse la canción original.
 # - Los archivos temporales de audio deben crearse en el subdirectorio videos y luego del proceso deben ser borrados.
 # - El video final de cada canción debe mantener el nombre de la canción original. Solo que ahora con extensión .mkv.
+
+
+class VideoMusicProcessor:
+    pass

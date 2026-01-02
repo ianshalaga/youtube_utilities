@@ -17,9 +17,33 @@ class ConfigManager:
         )
 
     @property
-    def output_dir(self) -> Path:
-        return Path(self.data["output"]["directory"])
+    def audio_target_codec(self) -> str:
+        return self.data["audio"]["target_codec"]
 
     @property
-    def supported_audio(self) -> tuple[str, ...]:
-        return tuple(self.data["audio"]["supported_formats"])
+    def audio_target_container(self) -> str:
+        return self.data["audio"]["target_container"]
+
+    @property
+    def audio_target_bitrate(self) -> str:
+        return self.data["audio"]["target_bitrate"]
+
+    @property
+    def audio_target_samplerate(self) -> int:
+        return self.data["audio"]["target_samplerate"]
+
+    @property
+    def audio_lufs_target(self) -> int:
+        return self.data["audio"]["lufs_target"]
+
+    @property
+    def audio_true_peak(self) -> int:
+        return self.data["audio"]["true_peak"]
+
+    @property
+    def audio_lra(self) -> int:
+        return self.data["audio"]["lra"]
+
+    @property
+    def output_dir(self) -> Path:
+        return Path(self.data["output"]["directory"])
