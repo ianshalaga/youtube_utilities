@@ -17,6 +17,10 @@ class ConfigManager:
         )
 
     @property
+    def paths_mkvmerge(self) -> dict:
+        return self.data["paths"]["mkvmerge"]
+
+    @property
     def audio_target_codec(self) -> str:
         return self.data["audio"]["target_codec"]
 

@@ -12,8 +12,7 @@ class AudioConverter:
 
     def convert(self, src: Path, dst_dir: Path) -> Path:
         dst_dir.mkdir(exist_ok=True)
-        dst_path = os.path.join(
-            dst_dir, f"{src.stem}_tmp.{config.audio_target_container}")
+        dst_path = dst_dir / f"{src.stem}_tmp.{config.audio_target_container}"
 
         cmd = [
             "ffmpeg",
