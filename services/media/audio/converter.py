@@ -15,7 +15,7 @@ class AudioConverter:
         dst_path = dst_dir / f"{src.stem}_tmp.{config.audio_target_container}"
 
         cmd = [
-            "ffmpeg",
+            config.paths_ffmpeg,
             "-y",  # force overwrite
             "-i", str(src),  # input
             "-vn",  # audio only

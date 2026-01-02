@@ -2,6 +2,9 @@ from pathlib import Path
 import subprocess
 import json
 from domain.media.base import MediaProbeProvider
+from core.config_manager import ConfigManager
+
+config = ConfigManager()
 
 
 class FFprobeMediaProbeProvider(MediaProbeProvider):
@@ -11,7 +14,7 @@ class FFprobeMediaProbeProvider(MediaProbeProvider):
     def _probe(self, path: Path) -> dict:
         if path not in self._cache:
             cmd = [
-                "ffprobe",
+                config.paths_probe,
                 "-v", "error",
                 "-show_format",
                 "-show_streams",

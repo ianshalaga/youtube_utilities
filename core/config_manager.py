@@ -16,10 +16,20 @@ class ConfigManager:
             encoding="utf-8"
         )
 
+    # PATHS
     @property
     def paths_mkvmerge(self) -> dict:
         return self.data["paths"]["mkvmerge"]
 
+    @property
+    def paths_ffmpeg(self) -> dict:
+        return self.data["paths"]["ffmpeg"]
+
+    @property
+    def paths_probe(self) -> dict:
+        return self.data["paths"]["probe"]
+
+    # AUDIO
     @property
     def audio_target_codec(self) -> str:
         return self.data["audio"]["target_codec"]
@@ -48,6 +58,7 @@ class ConfigManager:
     def audio_lra(self) -> int:
         return self.data["audio"]["lra"]
 
+    # OUTPUT
     @property
     def output_dir(self) -> Path:
         return Path(self.data["output"]["directory"])
