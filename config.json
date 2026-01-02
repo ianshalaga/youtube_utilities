@@ -1,17 +1,17 @@
 {
+  "paths": {
+    "ffmpeg": "C:/ffmpeg/bin/ffmpeg.exe",
+    "probe": "C:/ffmpeg/bin/ffprobe.exe",
+    "mkvmerge": "C:/Program Files/MKVToolNix/mkvmerge.exe"
+  },
+
   "dry_run": false,
   "max_workers": 4,
   "normalize_audio": true,
   "lufs_target": -14,
   "true_peak": -1.0,
   "lra": 11,
-  "ffmpeg_path": "",
-  "mkvmerge_path": "",
 
-  "paths": {
-    "ffmpeg": "auto",
-    "mkvmerge": "auto"
-  },
   "audio": {
     "supported_formats": [".mp3", ".wav", ".flac", ".aac"],
     "target_bitrate": "320k",

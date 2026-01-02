@@ -16,7 +16,6 @@ class ConfigManager:
             encoding="utf-8"
         )
 
-    # Helpers semánticos (MUY recomendable)
     @property
     def output_dir(self) -> Path:
         return Path(self.data["output"]["directory"])
