@@ -6,4 +6,4 @@ path_text = "F:/DESCARGAS/Música/YouTube/Soul Saga OST/01 Soul Edge/Super Battl
 
 media = Audio(Path(path_text), FFprobeMediaProbeProvider())
 
-print(media.duration())
+print(media.duration)

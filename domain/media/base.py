@@ -15,6 +15,7 @@ class Media(ABC):
     def path(self) -> Path:
         return self._path
 
+    @property
     def duration(self) -> float:
         return self._probe_provider.duration(self.path)
 
