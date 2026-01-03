@@ -58,6 +58,11 @@ class ConfigManager:
     def audio_lra(self) -> int:
         return self.data["audio"]["lra"]
 
+    # APPS
+    @property
+    def video_music_max_items_per_dir(self) -> int:
+        return self.data["apps"]["video_music"]["max_items_per_dir"]
+
     # OUTPUT
     @property
     def output_dir(self) -> Path:
