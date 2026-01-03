@@ -1,16 +1,70 @@
-# Esta App debe:
-
-# - Recibir una lista de archivos de audios (canciones).
-# - Recibir un video base cuya duración debe ser igual a la duración de la canción más larga.
-# - En el directorio de las canciones crear un subdirectorio llamado videos.
-# - Generar un video para cada canción usando el video base.
-# - Debe cortar cada video a la duración de la canción con mkvmerge.
-# - Debe borrar las partes que no sean canción.
-# - El audio de cada canción para el video debe ser previamente convertido al formato AAC-LC @ 320 kbps, 48 kHz y normalizado por sonoridad (LUFS -14, True Peak -1.0 dBTP).
-# - No debe modificarse la canción original.
-# - Los archivos temporales de audio deben crearse en el subdirectorio videos y luego del proceso deben ser borrados.
-# - El video final de cada canción debe mantener el nombre de la canción original. Solo que ahora con extensión .mkv.
+from pathlib import Path
+from math import ceil
+from domain.media.audio import Audio
+from domain.media.video import Video
+from services.media.video.mkvmerge_runner import MKVMergeRunner
+from core.config_manager import ConfigManager
 
 
 class VideoMusicProcessor:
-    pass
+    def __init__(self, max_items_per_dir: int | None = None):
+        self.config = ConfigManager()
+        self.mkvmerge = MKVMergeRunner()
+        self.max_items_per_dir = (
+            max_items_per_dir
+            if max_items_per_dir is not None
+            else self.config.video_music_max_items_per_dir
+        )
+
+    def process(
+        self,
+        video_path: Path,
+        songs_dir: Path,
+        output_dir: Path
+    ) -> None:
+        video = Video(video_path)
+
+        audio_files = sorted(
+            p for p in songs_dir.iterdir()
+            if p.is_file()
+        )
+
+        if not audio_files:
+            raise ValueError("No se encontraron archivos de audio.")
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        total_songs = len(audio_files)
+
+        # ───────────────────────────────
+        # MODO SIN SUBDIRECTORIOS
+        # ───────────────────────────────
+        if total_songs <= self.max_items_per_dir:
+            for audio_path in audio_files:
+                audio = Audio(audio_path)
+                self.mkvmerge.cut_video(
+                    video=video,
+                    audio=audio,
+                    output_dir=output_dir
+                )
+            return
+
+        # ───────────────────────────────
+        # MODO CON SUBDIRECTORIOS
+        # ───────────────────────────────
+        total_subdirs = ceil(total_songs / self.max_items_per_dir)
+        padding = len(str(total_subdirs))
+
+        for index, audio_path in enumerate(audio_files):
+            subdir_number = (index // self.max_items_per_dir) + 1
+            subdir_name = f"{subdir_number:0{padding}d}"
+            subdir = output_dir / subdir_name
+            subdir.mkdir(exist_ok=True)
+
+            audio = Audio(audio_path)
+
+            self.mkvmerge.cut_video(
+                video=video,
+                audio=audio,
+                output_dir=subdir
+            )
