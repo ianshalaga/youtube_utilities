@@ -1,5 +1,23 @@
+"""
+NOTAS DE IMPLEMENTACIÓN (uso personal)
+
+- mkvmerge:
+    - Cada archivo agregado aporta todas sus pistas por defecto.
+    - Las opciones como --no-audio y --no-subtitles afectan solo
+      al archivo que las precede.
+    - --split parts:HH:MM:SS-HH:MM:SS genera múltiples segmentos.
+- subprocess.run(..., check=True):
+    - Lanza CalledProcessError si el comando falla.
+- try / finally:
+    - Se usa aquí exclusivamente para garantizar limpieza
+      del archivo de audio temporal.
+- Path.glob():
+    - Devuelve resultados no ordenados; se ordenan explícitamente.
+"""
+
 from pathlib import Path
 import subprocess
+
 from core.config_manager import ConfigManager
 from core.time_utils import seconds_to_hhmmss_ms
 from domain.media.audio import Audio
@@ -7,15 +25,55 @@ from domain.media.video import Video
 from services.media.audio.converter import AudioConverter
 from services.media.probe_provider import FFprobeMediaProbeProvider
 
-config = ConfigManager()
-audio_converter = AudioConverter()
-
 
 class MKVMergeRunner:
+    """
+    Ejecuta mkvmerge para generar un video final a partir de:
+    - un video base
+    - una pista de audio convertida previamente
+
+    Responsabilidades:
+    - Convertir el audio a un formato compatible
+    - Calcular la duración efectiva del audio convertido
+    - Cortar el video base a dicha duración
+    - Eliminar pistas de audio y subtítulos del video original
+    - Limpiar archivos temporales y segmentos sobrantes
+
+    Esta clase actúa como una capa de infraestructura y
+    encapsula el uso de herramientas externas (mkvmerge, ffmpeg).
+    """
+
     def __init__(self):
-        pass
+        self._config = ConfigManager()
+        self._audio_converter = AudioConverter()
 
     def cut_video(self, video: Video, audio: Audio, output_dir: Path):
+        """
+        Genera un video final combinando un video base con una pista de audio.
+
+        El proceso consiste en:
+        1. Convertir el audio a un formato temporal compatible
+        2. Obtener la duración exacta del audio convertido
+        3. Ejecutar mkvmerge para cortar el video base y muxear el audio
+        4. Eliminar segmentos extra generados por mkvmerge
+        5. Limpiar archivos temporales
+
+        Args:
+            video:
+                Objeto Video que representa el video base.
+            audio:
+                Objeto Audio que representa la pista de audio original.
+            output_dir:
+                Directorio donde se escribirá el archivo final.
+
+        Raises:
+            FileNotFoundError:
+                Si el archivo de video o audio no existe.
+            subprocess.CalledProcessError:
+                Si mkvmerge o ffmpeg fallan durante la ejecución.
+            ValueError:
+                Si ocurre un error en el formateo de la duración.
+        """
         if not video.path.exists():
             raise FileNotFoundError(video.path)
 
@@ -24,12 +82,15 @@ class MKVMergeRunner:
 
         output_dir.mkdir(exist_ok=True, parents=True)
 
-        tmp_audio_path = audio_converter.convert(
+        # Conversión del audio a un formato temporal
+        tmp_audio_path = self._audio_converter.convert(
             src=audio.path,
             dst_dir=output_dir
         )
 
         try:
+            # Se recalcula la duración usando el audio convertido,
+            # no el original, para máxima precisión.
             converted_audio = Audio(
                 tmp_audio_path,
                 FFprobeMediaProbeProvider()
@@ -40,7 +101,7 @@ class MKVMergeRunner:
             output_pattern = output_dir / f"{audio.path.stem}.mkv"
 
             cmd = [
-                config.paths_mkvmerge,
+                self._config.paths_mkvmerge,
                 "-o", str(output_pattern),
                 "--split", f"parts:00:00:00-{duration}",
                 "--no-audio",
@@ -52,13 +113,25 @@ class MKVMergeRunner:
 
             subprocess.run(cmd, check=True)
 
+            # mkvmerge genera múltiples archivos; se conserva solo el primero
             self._cleanup_segments(output_dir, audio.path.stem)
 
         finally:
+            # Limpieza garantizada del archivo temporal, incluso si falla mkvmerge
             if tmp_audio_path.exists():
                 tmp_audio_path.unlink()
 
     def _cleanup_segments(self, output_dir: Path, base_name: str):
+        """
+        Elimina segmentos sobrantes generados por mkvmerge y
+        renombra el archivo principal.
+
+        Args:
+            output_dir:
+                Directorio donde se encuentran los segmentos generados.
+            base_name:
+                Nombre base del archivo sin sufijos de segmentación.
+        """
         files = sorted(output_dir.glob(f"{base_name}-*.mkv"))
         if not files:
             return
