@@ -12,19 +12,28 @@
     "target_samplerate": 48000,
     "lufs_target": -14,
     "true_peak": -1.0,
-    "lra": 11
+    "lra": 11,
+    "supported_extensions": [
+      "mp3",
+      "wav",
+      "flac",
+      "aac",
+      "m4a",
+      "ogg",
+      "opus",
+      "wma"
+    ]
   },
 
   "apps": {
     "video_music": {
-      "max_items_per_dir": 15
+      "max_items_per_dir": 15,
+      "default_video_path": "E:/Proyectos/games/Team ICO/1 ICO/music/ico3.mp4",
+      "default_audios_dir": "F:/DESCARGAS/Nueva/Kena - Bridge of Spirits Digital Deluxe Soundtrack",
+      "default_output_dir": "videos"
     }
   },
 
   "dry_run": false,
-  "max_workers": 4,
-
-  "output": {
-    "directory": "videos"
-  }
+  "max_workers": 4
 }

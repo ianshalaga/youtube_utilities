@@ -5,7 +5,7 @@ from core.time_utils import seconds_to_hhmmss_ms
 from domain.media.audio import Audio
 from domain.media.video import Video
 from services.media.audio.converter import AudioConverter
-from services.media.probe import FFprobeMediaProbeProvider
+from services.media.probe_provider import FFprobeMediaProbeProvider
 
 config = ConfigManager()
 audio_converter = AudioConverter()

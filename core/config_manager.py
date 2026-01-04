@@ -58,12 +58,23 @@ class ConfigManager:
     def audio_lra(self) -> int:
         return self.data["audio"]["lra"]
 
+    @property
+    def audio_supported_extensions(self) -> list:
+        return self.data["audio"]["supported_extensions"]
+
     # APPS
     @property
     def video_music_max_items_per_dir(self) -> int:
         return self.data["apps"]["video_music"]["max_items_per_dir"]
 
-    # OUTPUT
     @property
-    def output_dir(self) -> Path:
-        return Path(self.data["output"]["directory"])
+    def video_music_default_video_path(self) -> str:
+        return self.data["apps"]["video_music"]["default_video_path"]
+
+    @property
+    def video_music_default_audios_dir(self) -> str:
+        return self.data["apps"]["video_music"]["default_audios_dir"]
+
+    @property
+    def video_music_default_output_dir(self) -> str:
+        return self.data["apps"]["video_music"]["default_output_dir"]
