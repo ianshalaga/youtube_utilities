@@ -92,7 +92,6 @@ class VideoMusicProcessor:
             ValueError:
                 Si no se encuentran archivos de audio en el directorio.
         """
-        video = Video(video_path, self._probe_provider)
 
         # Se asume que el directorio contiene solo audio válido;
         # esta validación es preventiva y de bajo coste.
@@ -113,10 +112,9 @@ class VideoMusicProcessor:
         # ───────────────────────────────
         if total_songs <= self._max_items_per_dir:
             for audio_path in audio_files:
-                audio = Audio(audio_path, self._probe_provider)
                 self._mkvmerge.cut_video(
-                    video=video,
-                    audio=audio,
+                    video=video_path,
+                    audio=audio_path,
                     output_dir=output_dir
                 )
             return
@@ -137,11 +135,9 @@ class VideoMusicProcessor:
             )
             subdir.mkdir(exist_ok=True)
 
-            audio = Audio(audio_path, self._probe_provider)
-
             self._mkvmerge.cut_video(
-                video=video,
-                audio=audio,
+                video=video_path,
+                audio=audio_path,
                 output_dir=subdir
             )
 
