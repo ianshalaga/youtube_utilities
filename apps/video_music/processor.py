@@ -9,10 +9,21 @@ NOTAS DE IMPLEMENTACIÓN (uso personal)
 - enumerate(iterable): devuelve pares (índice, elemento).
 - f"{value:0Nd}": formateo con padding de ceros a la izquierda.
 - raise ValueError: excepción adecuada para errores de uso/entrada.
+- ThreadPoolExecutor:
+    - Ejecuta tareas I/O-bound en paralelo.
+    - Adecuado para subprocess.run (ffmpeg / mkvmerge).
+- executor.submit():
+    - Envía una tarea al pool y devuelve un Future.
+- as_completed():
+    - Permite manejar errores tan pronto como ocurren.
+- future.result():
+    - Re-lanza la excepción si la tarea falló.
 """
 
 from pathlib import Path
 from math import ceil
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import os
 
 from core.config_manager import ConfigManager
 from core.time_utils import seconds_to_hhmmss_ms
@@ -48,6 +59,12 @@ class VideoMusicProcessor:
             max_items_per_dir
             if max_items_per_dir is not None
             else self._config.video_music_max_items_per_dir
+        )
+
+        # Evita crear más threads que trabajo real
+        self._max_workers = min(
+            max(1, os.cpu_count() - 1),
+            self._max_items_per_dir
         )
 
     def process(
@@ -98,8 +115,22 @@ class VideoMusicProcessor:
         # MODO SIN SUBDIRECTORIOS
         # ───────────────────────────────
         if total_songs <= self._max_items_per_dir:
-            for audio_path in audio_files:
-                self._process_single(video_path, audio_path, output_dir)
+            with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
+                futures = []
+
+                for audio_path in audio_files:
+                    futures.append(
+                        executor.submit(
+                            self._process_single,
+                            video_path,
+                            audio_path,
+                            output_dir
+                        )
+                    )
+
+                for future in as_completed(futures):
+                    future.result()
+
             return
 
         # ───────────────────────────────
@@ -108,11 +139,24 @@ class VideoMusicProcessor:
         total_subdirs = ceil(total_songs / self._max_items_per_dir)
         padding = len(str(total_subdirs))
 
-        for index, audio_path in enumerate(audio_files):
-            subdir = self._get_subdir_path(index, padding, output_dir)
-            subdir.mkdir(exist_ok=True)
+        with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
+            futures = []
 
-            self._process_single(video_path, audio_path, subdir)
+            for index, audio_path in enumerate(audio_files):
+                subdir = self._get_subdir_path(index, padding, output_dir)
+                subdir.mkdir(exist_ok=True)
+
+                futures.append(
+                    executor.submit(
+                        self._process_single,
+                        video_path,
+                        audio_path,
+                        subdir
+                    )
+                )
+
+            for future in as_completed(futures):
+                future.result()
 
     def _process_single(
         self,
