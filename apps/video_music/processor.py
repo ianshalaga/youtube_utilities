@@ -9,18 +9,16 @@ NOTAS DE IMPLEMENTACIÓN (uso personal)
 - enumerate(iterable): devuelve pares (índice, elemento).
 - f"{value:0Nd}": formateo con padding de ceros a la izquierda.
 - raise ValueError: excepción adecuada para errores de uso/entrada.
-- or : devuelve el primer valor truthy
 """
 
 from pathlib import Path
 from math import ceil
 
 from core.config_manager import ConfigManager
-from domain.media.base import MediaProbeProvider
-from domain.media.audio import Audio
-from domain.media.video import Video
+from core.time_utils import seconds_to_hhmmss_ms
 from services.media.video.mkvmerge_runner import MKVMergeRunner
-from services.media.probe_provider import FFprobeMediaProbeProvider
+from services.media.audio.converter import AudioConverter
+from services.media.probe_provider import FFProbeMediaProbeProvider
 
 
 class VideoMusicProcessor:
@@ -32,35 +30,20 @@ class VideoMusicProcessor:
     - Mantener el orden original de las pistas
     - Limitar la cantidad de videos por directorio de salida
     - Crear subdirectorios numerados cuando sea necesario
-    - Delegar la lógica de corte y muxeo a MKVMergeRunner
+    - Convertir audio cuando sea necesario
+    - Construir comandos mkvmerge específicos del caso de uso
+    - Delegar la ejecución a MKVMergeRunner
 
-    Esta clase no realiza procesamiento multimedia directo; actúa
-    únicamente como coordinador del flujo.
+    Esta clase contiene la lógica de dominio del caso de uso
+    "video + canciones".
     """
 
-    def __init__(
-        self,
-        max_items_per_dir: int | None = None,
-        probe_provider: MediaProbeProvider | None = None
-    ):
-        """
-        Inicializa el processor.
-
-        Args:
-            max_items_per_dir:
-                Cantidad máxima de elementos por subdirectorio.
-                Si no se especifica, se obtiene desde la configuración.
-            probe_provider:
-                Proveedor para obtener metadatos multimedia (duración).
-                Permite inyección para tests o implementaciones futuras.
-        """
+    def __init__(self, max_items_per_dir: int | None = None):
         self._config = ConfigManager()
-        self._mkvmerge = MKVMergeRunner()
+        self._mkvmerge_runner = MKVMergeRunner()
+        self._audio_converter = AudioConverter()
+        self._probe_provider = FFProbeMediaProbeProvider()
 
-        # Inyección explícita del provider para evitar dependencias ocultas
-        self._probe_provider = probe_provider or FFprobeMediaProbeProvider()
-
-        # Permite override explícito o fallback a configuración persistente
         self._max_items_per_dir = (
             max_items_per_dir
             if max_items_per_dir is not None
@@ -83,21 +66,25 @@ class VideoMusicProcessor:
         Args:
             video_path:
                 Ruta al archivo de video base.
-            songs_dir:
-                Directorio que contiene los archivos de audio a procesar.
+            audios_dir:
+                Directorio que contiene los archivos de audio.
             output_dir:
                 Directorio donde se escribirán los videos resultantes.
 
         Raises:
             ValueError:
-                Si no se encuentran archivos de audio en el directorio.
+                Si no se encuentran archivos de audio.
+            FileNotFoundError:
+                Si el video base no existe.
         """
+        if not video_path.exists():
+            raise FileNotFoundError(video_path)
 
-        # Se asume que el directorio contiene solo audio válido;
-        # esta validación es preventiva y de bajo coste.
         audio_files = sorted(
             p for p in audios_dir.iterdir()
-            if p.is_file() and p.suffix.lower().lstrip(".") in self._config.audio_supported_extensions
+            if p.is_file()
+            and p.suffix.lower().lstrip(".")
+            in self._config.audio_supported_extensions
         )
 
         if not audio_files:
@@ -112,34 +99,74 @@ class VideoMusicProcessor:
         # ───────────────────────────────
         if total_songs <= self._max_items_per_dir:
             for audio_path in audio_files:
-                self._mkvmerge.cut_video(
-                    video=video_path,
-                    audio=audio_path,
-                    output_dir=output_dir
-                )
+                self._process_single(video_path, audio_path, output_dir)
             return
 
         # ───────────────────────────────
         # MODO CON SUBDIRECTORIOS
         # ───────────────────────────────
         total_subdirs = ceil(total_songs / self._max_items_per_dir)
-
-        # Determina el padding dinámico (1 → 1..9, 01 → 10..99, etc.)
         padding = len(str(total_subdirs))
 
         for index, audio_path in enumerate(audio_files):
-            subdir = self._get_subdir_path(
-                file_index=index,
-                padding=padding,
-                output_dir=output_dir
-            )
+            subdir = self._get_subdir_path(index, padding, output_dir)
             subdir.mkdir(exist_ok=True)
 
-            self._mkvmerge.cut_video(
-                video=video_path,
-                audio=audio_path,
-                output_dir=subdir
-            )
+            self._process_single(video_path, audio_path, subdir)
+
+    def _process_single(
+        self,
+        video_path: Path,
+        audio_path: Path,
+        output_dir: Path
+    ) -> None:
+        """
+        Procesa una única pista de audio contra el video base.
+
+        Flujo:
+        1. Convierte el audio a un formato temporal
+        2. Obtiene la duración exacta del audio convertido
+        3. Construye el comando mkvmerge
+        4. Ejecuta mkvmerge
+        5. Limpia el archivo temporal
+
+        Args:
+            video_path:
+                Ruta al video base.
+            audio_path:
+                Ruta a la pista de audio.
+            output_dir:
+                Directorio de salida.
+        """
+        tmp_audio_path = self._audio_converter.convert(
+            src=audio_path,
+            dst_dir=output_dir
+        )
+
+        try:
+            duration_seconds = self._probe_provider.duration(tmp_audio_path)
+            duration = seconds_to_hhmmss_ms(duration_seconds)
+
+            output_path = output_dir / f"{audio_path.stem}.mkv"
+
+            cmd = [
+                self._config.paths_mkvmerge,
+                "-o", str(output_path),
+                "--split", f"parts:00:00:00-{duration}",
+                "--no-audio",
+                "--no-subtitles",
+                str(video_path),
+                "--audio-tracks", "0",
+                str(tmp_audio_path),
+            ]
+
+            self._mkvmerge_runner.run(cmd)
+
+            self._cleanup_segments(output_dir, audio_path.stem)
+
+        finally:
+            if tmp_audio_path.exists():
+                tmp_audio_path.unlink()
 
     def _get_subdir_path(
         self,
@@ -149,9 +176,6 @@ class VideoMusicProcessor:
     ) -> Path:
         """
         Calcula el subdirectorio de salida correspondiente a un archivo.
-
-        El cálculo se basa en bloques de tamaño `max_items_per_dir`,
-        preservando el orden global de las pistas.
 
         Args:
             file_index:
@@ -164,8 +188,27 @@ class VideoMusicProcessor:
         Returns:
             Ruta completa al subdirectorio correspondiente.
         """
-        # División entera para agrupar índices en bloques fijos
         subdir_number = (file_index // self._max_items_per_dir) + 1
+        return output_dir / f"{subdir_number:0{padding}d}"
 
-        subdir_name = f"{subdir_number:0{padding}d}"
-        return output_dir / subdir_name
+    def _cleanup_segments(self, output_dir: Path, base_name: str) -> None:
+        """
+        Elimina segmentos sobrantes generados por mkvmerge y
+        conserva únicamente el archivo principal.
+
+        Args:
+            output_dir:
+                Directorio donde se encuentran los segmentos.
+            base_name:
+                Nombre base del archivo.
+        """
+        files = sorted(output_dir.glob(f"{base_name}-*.mkv"))
+        if not files:
+            return
+
+        main_file = files[0]
+        final_path = output_dir / f"{base_name}.mkv"
+        main_file.rename(final_path)
+
+        for f in files[1:]:
+            f.unlink()
