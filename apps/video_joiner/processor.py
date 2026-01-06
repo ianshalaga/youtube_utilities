@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Iterable
 
 from core.config_manager import ConfigManager
+from services.filesystem.output_partitioner import OutputDirectoryPartitioner
 from services.media.probe_provider import FFProbeMediaProbeProvider
 from services.media.discovery.media_discovery import MediaDiscoveryService
 from services.media.video.mkvmerge_runner import MKVMergeRunner
@@ -55,7 +56,7 @@ class VideoJoinerProcessor:
     def __init__(self):
         self._config = ConfigManager()
         self._probe_provider = FFProbeMediaProbeProvider()
-        self._mkvmerge = MKVMergeRunner()
+        self._mkvmerge_runner = MKVMergeRunner()
         self._validator = VideoCompatibilityValidator(self._probe_provider)
         self._partitioner = VideoPartitioner(self._probe_provider)
         self._end_screen_selector = EndScreenSelector()
@@ -156,7 +157,7 @@ class VideoJoinerProcessor:
                 final_videos,
                 output_path
             )
-            self._mkvmerge.run(cmd)
+            self._mkvmerge_runner.run(cmd)
 
             # Generación del archivo de timestamps
             timestamps_path = output_dir / f"{output_name}.txt"

@@ -27,6 +27,7 @@ import os
 
 from core.config_manager import ConfigManager
 from core.time_utils import seconds_to_hhmmss_ms
+from services.filesystem.output_partitioner import OutputDirectoryPartitioner
 from services.media.discovery.media_discovery import MediaDiscoveryService
 from services.media.video.mkvmerge_runner import MKVMergeRunner
 from services.media.audio.converter import AudioConverter
