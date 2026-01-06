@@ -99,9 +99,33 @@ class ConfigManager:
         return self.data["apps"]["video_joiner"]["max_items_per_dir"]
 
     @property
+    def video_joiner_default_videos_dir(self) -> str:
+        return self.data["apps"]["video_joiner"]["default_videos_dir"]
+
+    @property
     def video_joiner_default_output_dir(self) -> str:
         return self.data["apps"]["video_joiner"]["default_output_dir"]
 
     @property
-    def video_joiner_default_videos_dir(self) -> str:
-        return self.data["apps"]["video_joiner"]["default_videos_dir"]
+    def video_joiner_default_video_name(self) -> str:
+        return self.data["apps"]["video_joiner"]["default_video_name"]
+
+    @property
+    def video_joiner_default_target_duration(self) -> int:
+        return self.data["apps"]["video_joiner"]["default_target_duration"]
+
+    @property
+    def video_joiner_default_end_screens_dir(self) -> str:
+        return self.data["apps"]["video_joiner"]["default_end_screens_dir"]
+
+    @property
+    def video_joiner_default_random_end_screen(self) -> bool:
+        return self.data["apps"]["video_joiner"]["default_random_end_screen"]
+
+    @property
+    def video_joiner_default_timestamps_prefix(self) -> str:
+        return self.data["apps"]["video_joiner"]["default_timestamps_prefix"]
+
+    @property
+    def video_joiner_default_extra_description(self) -> str:
+        return self.data["apps"]["video_joiner"]["default_extra_description"]

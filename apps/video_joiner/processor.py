@@ -155,6 +155,8 @@ class VideoJoinerProcessor:
                 else part_videos
             )
 
+            self._validator.validate(final_videos)
+
             output_name = (
                 f"{base_name} ({index + 1}/{total_parts})"
                 if total_parts > 1
@@ -195,20 +197,19 @@ class VideoJoinerProcessor:
         output_path: Path
     ) -> list[str]:
         """
-        Construye el comando mkvmerge para unir videos.
-
-        Args:
-            videos:
-                Lista de videos a unir.
-            output_path:
-                Ruta del archivo final.
-
-        Returns:
-            Lista de argumentos del comando mkvmerge.
+        Construye el comando mkvmerge para unir videos
+        mediante concatenación temporal correcta.
         """
+        videos = list(videos)
+        if not videos:
+            raise ValueError("No videos provided for mkvmerge.")
+
         cmd = ["mkvmerge", "-o", str(output_path)]
 
-        for video in videos:
+        cmd.append(str(videos[0]))
+
+        for video in videos[1:]:
+            cmd.append("+")
             cmd.append(str(video))
 
         return cmd
