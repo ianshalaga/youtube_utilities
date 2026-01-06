@@ -63,6 +63,10 @@ class VideoMusicProcessor:
             else self._config.video_music_max_items_per_dir
         )
 
+        self._output_partitioner = OutputDirectoryPartitioner(
+            self._max_items_per_dir
+        )
+
         # Evita crear más threads que trabajo real
         self._max_workers = min(
             max(1, os.cpu_count() - 1),
@@ -136,14 +140,16 @@ class VideoMusicProcessor:
         # ───────────────────────────────
         # MODO CON SUBDIRECTORIOS
         # ───────────────────────────────
-        total_subdirs = ceil(total_songs / self._max_items_per_dir)
-        padding = len(str(total_subdirs))
-
         with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
             futures = []
 
             for index, audio_path in enumerate(audio_files):
-                subdir = self._get_subdir_path(index, padding, output_dir)
+                subdir = self._output_partitioner.get_output_dir(
+                    index=index,
+                    total_items=total_songs,
+                    root_dir=output_dir
+                )
+
                 subdir.mkdir(exist_ok=True)
 
                 futures.append(

@@ -76,6 +76,7 @@ class ConfigManager:
     # ───────────────────────────────
     # APPS
     # ───────────────────────────────
+    # VIDEO MUSIC
     @property
     def video_music_max_items_per_dir(self) -> int:
         return self.data["apps"]["video_music"]["max_items_per_dir"]
@@ -91,3 +92,16 @@ class ConfigManager:
     @property
     def video_music_default_output_dir(self) -> str:
         return self.data["apps"]["video_music"]["default_output_dir"]
+
+    # VIDEO JOINER
+    @property
+    def video_joiner_max_items_per_dir(self) -> int:
+        return self.data["apps"]["video_joiner"]["max_items_per_dir"]
+
+    @property
+    def video_joiner_default_output_dir(self) -> str:
+        return self.data["apps"]["video_joiner"]["default_output_dir"]
+
+    @property
+    def video_joiner_default_videos_dir(self) -> str:
+        return self.data["apps"]["video_joiner"]["default_videos_dir"]

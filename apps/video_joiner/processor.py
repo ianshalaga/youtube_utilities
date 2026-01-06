@@ -53,7 +53,7 @@ class VideoJoinerProcessor:
     delega dicha responsabilidad a servicios especializados.
     """
 
-    def __init__(self):
+    def __init__(self, max_items_per_dir: int | None = None):
         self._config = ConfigManager()
         self._probe_provider = FFProbeMediaProbeProvider()
         self._mkvmerge_runner = MKVMergeRunner()
@@ -61,6 +61,16 @@ class VideoJoinerProcessor:
         self._partitioner = VideoPartitioner(self._probe_provider)
         self._end_screen_selector = EndScreenSelector()
         self._timestamp_builder = TimestampFileBuilder(self._probe_provider)
+
+        self._max_items_per_dir = (
+            max_items_per_dir
+            if max_items_per_dir is not None
+            else self._config.video_joiner_max_items_per_dir
+        )
+
+        self._output_partitioner = OutputDirectoryPartitioner(
+            self._max_items_per_dir
+        )
 
     def process(
         self,
@@ -128,7 +138,9 @@ class VideoJoinerProcessor:
 
         total_parts = len(partitions)
 
-        for index, part_videos in enumerate(partitions, start=1):
+        use_subdirs = total_parts > self._max_items_per_dir
+
+        for index, part_videos in enumerate(partitions):
             # Selección opcional de end screen
             end_screen = None
             if end_screens_dir is not None:
@@ -143,24 +155,33 @@ class VideoJoinerProcessor:
                 else part_videos
             )
 
-            # Nombre del archivo final
             output_name = (
-                f"{base_name} ({index}/{total_parts})"
+                f"{base_name} ({index + 1}/{total_parts})"
                 if total_parts > 1
                 else base_name
             )
 
-            output_path = output_dir / f"{output_name}.mkv"
+            if use_subdirs:
+                part_dir = self._output_partitioner.get_output_dir(
+                    index=index,
+                    total_items=total_parts,
+                    root_dir=output_dir
+                )
+                part_dir.mkdir(exist_ok=True)
+            else:
+                part_dir = output_dir
 
-            # Construcción y ejecución del comando mkvmerge
+            output_path = part_dir / f"{output_name}.mkv"
+
             cmd = self._build_mkvmerge_command(
                 final_videos,
                 output_path
             )
+
             self._mkvmerge_runner.run(cmd)
 
-            # Generación del archivo de timestamps
-            timestamps_path = output_dir / f"{output_name}.txt"
+            timestamps_path = part_dir / f"{output_name}.txt"
+
             self._timestamp_builder.build(
                 videos=final_videos,
                 output_path=timestamps_path,

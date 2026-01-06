@@ -35,6 +35,12 @@
       "default_video_path": "E:/Proyectos/games/Team ICO/1 ICO/music/ico3.mp4",
       "default_audios_dir": "F:/DESCARGAS/Nueva/Kena - Bridge of Spirits Digital Deluxe Soundtrack",
       "default_output_dir": "videos"
+    },
+
+    "video_joiner": {
+      "max_items_per_dir": 15,
+      "default_videos_dir": "",
+      "default_output_dir": "videos"
     }
   },
 
