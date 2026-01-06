@@ -25,6 +25,10 @@
     ]
   },
 
+  "video": {
+    "supported_extensions": ["mkv", "mp4", "mov", "webm", "avi", "m4v"]
+  },
+
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,

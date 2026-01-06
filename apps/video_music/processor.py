@@ -27,6 +27,7 @@ import os
 
 from core.config_manager import ConfigManager
 from core.time_utils import seconds_to_hhmmss_ms
+from services.media.discovery.media_discovery import MediaDiscoveryService
 from services.media.video.mkvmerge_runner import MKVMergeRunner
 from services.media.audio.converter import AudioConverter
 from services.media.probe_provider import FFProbeMediaProbeProvider
@@ -97,11 +98,9 @@ class VideoMusicProcessor:
         if not video_path.exists():
             raise FileNotFoundError(video_path)
 
-        audio_files = sorted(
-            p for p in audios_dir.iterdir()
-            if p.is_file()
-            and p.suffix.lower().lstrip(".")
-            in self._config.audio_supported_extensions
+        audio_files = MediaDiscoveryService.discover(
+            audios_dir,
+            self._config.audio_supported_extensions
         )
 
         if not audio_files:

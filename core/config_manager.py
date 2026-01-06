@@ -16,7 +16,9 @@ class ConfigManager:
             encoding="utf-8"
         )
 
+    # ───────────────────────────────
     # PATHS
+    # ───────────────────────────────
     @property
     def paths_mkvmerge(self) -> dict:
         return self.data["paths"]["mkvmerge"]
@@ -29,7 +31,9 @@ class ConfigManager:
     def paths_probe(self) -> dict:
         return self.data["paths"]["probe"]
 
+    # ───────────────────────────────
     # AUDIO
+    # ───────────────────────────────
     @property
     def audio_target_codec(self) -> str:
         return self.data["audio"]["target_codec"]
@@ -62,7 +66,16 @@ class ConfigManager:
     def audio_supported_extensions(self) -> list:
         return self.data["audio"]["supported_extensions"]
 
+    # ───────────────────────────────
+    # VIDEO
+    # ───────────────────────────────
+    @property
+    def video_supported_extensions(self) -> list:
+        return self.data["video"]["supported_extensions"]
+
+    # ───────────────────────────────
     # APPS
+    # ───────────────────────────────
     @property
     def video_music_max_items_per_dir(self) -> int:
         return self.data["apps"]["video_music"]["max_items_per_dir"]
