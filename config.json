@@ -48,6 +48,24 @@
       "default_timestamps_prefix": "",
       "default_timestamps_secuence": false,
       "default_extra_description": ""
+    },
+
+    "video_converter": {
+      "video_formats": {
+        "youtube_1080p60": {
+          "video_codec": "libx264",
+          "video_bitrate": "16000k",
+          "framerate": 60,
+          "resolution": "1920x1080",
+          "audio_codec": "aac",
+          "audio_bitrate": "320k",
+          "audio_samplerate": 48000
+        }
+      },
+      "src": "F:/@Seyfer/GRABACIONES/SOULCALIBURVI/PANTALLAS DEL FINAL/PC2/pantalla_final_1_PC.mkv",
+      "dst_dir": "F:/DESCARGAS",
+      "output_format": null,
+      "reference_video": "F:/@Seyfer/GRABACIONES/SOULCALIBURVI/PANTALLAS DEL FINAL/PS4/pantalla_final_6_PS4.mkv"
     }
   },
 

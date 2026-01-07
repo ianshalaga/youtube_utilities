@@ -2,6 +2,7 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 
 from domain.media.video.video_signature import VideoSignature
+from domain.media.video.video_encoding import VideoEncodingDescriptor
 
 
 class Media(ABC):
@@ -46,4 +47,8 @@ class MediaProbeProvider(ABC):
         """
         Devuelve la firma técnica del archivo de video.
         """
+        pass
+
+    @abstractmethod
+    def video_encoding(self, path: Path) -> VideoEncodingDescriptor:
         pass

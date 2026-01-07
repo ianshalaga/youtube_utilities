@@ -2,9 +2,10 @@ from pathlib import Path
 import subprocess
 import json
 
-from domain.media.base import MediaProbeProvider
-from domain.media.video.video_signature import VideoSignature
 from core.config_manager import ConfigManager
+from domain.media.base import MediaProbeProvider
+from domain.media.video.video_encoding import VideoEncodingDescriptor
+from domain.media.video.video_signature import VideoSignature
 
 
 class FFProbeMediaProbeProvider(MediaProbeProvider):
@@ -143,6 +144,84 @@ class FFProbeMediaProbeProvider(MediaProbeProvider):
             frame_rate=frame_rate,
             audio_codecs=tuple(a["codec_name"] for a in audios),
             audio_stream_count=len(audios),
+        )
+
+    def video_encoding(self, path: Path) -> VideoEncodingDescriptor:
+        """
+        Devuelve una descripción completa de codificación
+        del archivo de video.
+
+        A diferencia de VideoSignature, este descriptor:
+        - NO se usa para comparación
+        - NO define compatibilidad
+        - SÍ se usa para conversión o replicación de formato
+
+        Args:
+            path:
+                Ruta del archivo multimedia.
+
+        Returns:
+            VideoEncodingDescriptor:
+                Descriptor técnico de codificación.
+        """
+        data = self._probe(path)
+
+        video = self._video_stream(path)
+        audios = self._audio_streams(path)
+
+        # ───────────────────────────────
+        # Video
+        # ───────────────────────────────
+        frame_rate = self._parse_frame_rate(video["r_frame_rate"])
+
+        video_codec = video.get("codec_name")
+        pixel_format = video.get("pix_fmt")
+        width = int(video["width"])
+        height = int(video["height"])
+
+        # Bitrate de video:
+        # - Puede venir del stream
+        # - O del contenedor
+        video_bitrate = (
+            video.get("bit_rate")
+            or data.get("format", {}).get("bit_rate")
+        )
+
+        # Normalizamos a string tipo ffmpeg ("4500k")
+        if video_bitrate is not None:
+            video_bitrate = f"{int(video_bitrate) // 1000}k"
+
+        # ───────────────────────────────
+        # Audio (solo el primer stream)
+        # ───────────────────────────────
+        if audios:
+            audio = audios[0]
+
+            audio_codec = audio.get("codec_name")
+            sample_rate = int(audio.get("sample_rate"))
+            channels = int(audio.get("channels"))
+
+            audio_bitrate = audio.get("bit_rate")
+            if audio_bitrate is not None:
+                audio_bitrate = f"{int(audio_bitrate) // 1000}k"
+
+        else:
+            audio_codec = None
+            audio_bitrate = None
+            sample_rate = None
+            channels = None
+
+        return VideoEncodingDescriptor(
+            video_codec=video_codec,
+            video_bitrate=video_bitrate,
+            pixel_format=pixel_format,
+            width=width,
+            height=height,
+            frame_rate=frame_rate,
+            audio_codec=audio_codec,
+            audio_bitrate=audio_bitrate,
+            sample_rate=sample_rate,
+            channels=channels,
         )
 
     # ───────────────────────────────

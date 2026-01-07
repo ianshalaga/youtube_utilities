@@ -133,3 +133,24 @@ class ConfigManager:
     @property
     def video_joiner_default_timestamps_secuence(self) -> list:
         return self.data["apps"]["video_joiner"]["default_timestamps_secuence"]
+
+    # VIDEO CONVERTER
+    @property
+    def video_formats(self) -> dict:
+        return self.data["apps"]["video_converter"]["video_formats"]
+
+    @property
+    def video_converter_src(self) -> str:
+        return self.data["apps"]["video_converter"]["src"]
+
+    @property
+    def video_converter_dst_dir(self) -> str:
+        return self.data["apps"]["video_converter"]["dst_dir"]
+
+    @property
+    def video_converter_output_format(self) -> str:
+        return self.data["apps"]["video_converter"]["output_format"]
+
+    @property
+    def video_converter_reference_video(self) -> str:
+        return self.data["apps"]["video_converter"]["reference_video"]

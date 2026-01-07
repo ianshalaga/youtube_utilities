@@ -3,12 +3,15 @@ from pathlib import Path
 from apps.video_music.processor import VideoMusicProcessor
 from apps.video_joiner.processor import VideoJoinerProcessor
 from core.config_manager import ConfigManager
+from services.media.video.converter import VideoConverter
+from services.media.probe_provider import FFProbeMediaProbeProvider
 
 
 config = ConfigManager()
 
-video_music = True
+video_music = False
 video_joiner = False
+video_converter = True
 
 if video_music:
     video_music_processor = VideoMusicProcessor()
@@ -40,4 +43,20 @@ if video_joiner:
         timestamps_prefix=config.video_joiner_default_timestamps_prefix,
         timestamps_secuence=config.video_joiner_default_timestamps_secuence,
         extra_description=config.video_joiner_default_extra_description
+    )
+
+if video_converter:
+    probe_provider = FFProbeMediaProbeProvider()
+    video_converter = VideoConverter(probe_provider=probe_provider)
+
+    src = Path(config.video_converter_src)
+    dst_dir = Path(config.video_converter_dst_dir)
+    output_format = config.video_converter_output_format
+    reference_video = Path(config.video_converter_reference_video)
+
+    video_converter.convert(
+        src=src,
+        dst_dir=dst_dir,
+        output_format=output_format,
+        reference_video=reference_video
     )
