@@ -31,6 +31,7 @@ class TimestampFileBuilder:
         videos: Iterable[Path],
         output_path: Path,
         prefix: str = "",
+        secuence: bool = True,
         extra_description: str | None = None
     ) -> None:
         """
@@ -72,7 +73,10 @@ class TimestampFileBuilder:
             name = video.stem
 
             # Construcción de la línea
-            line = f"{timestamp} {prefix}{number} {name}".strip()
+            if secuence:
+                line = f"{timestamp} {prefix}{number} {name}".strip()
+            else:
+                line = f"{timestamp} {name}".strip()
             lines.append(line)
 
             current_time += duration

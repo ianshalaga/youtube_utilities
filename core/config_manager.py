@@ -129,3 +129,7 @@ class ConfigManager:
     @property
     def video_joiner_default_extra_description(self) -> str:
         return self.data["apps"]["video_joiner"]["default_extra_description"]
+
+    @property
+    def video_joiner_default_timestamps_secuence(self) -> list:
+        return self.data["apps"]["video_joiner"]["default_timestamps_secuence"]

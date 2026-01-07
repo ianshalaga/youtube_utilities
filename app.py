@@ -38,5 +38,6 @@ if video_joiner:
         end_screens_dir=end_screens_dir,
         random_end_screen=config.video_joiner_default_random_end_screen,
         timestamps_prefix=config.video_joiner_default_timestamps_prefix,
-        extra_description=config.video_joiner_default_extra_description,
+        timestamps_secuence=config.video_joiner_default_timestamps_secuence,
+        extra_description=config.video_joiner_default_extra_description
     )

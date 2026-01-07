@@ -66,6 +66,7 @@ class VideoJoinerProcessor:
         end_screens_dir: Path | None = None,
         random_end_screen: bool = False,
         timestamps_prefix: str = "",
+        timestamps_secuence: bool = True,
         extra_description: str | None = None
     ) -> None:
 
@@ -108,7 +109,8 @@ class VideoJoinerProcessor:
                         end_screens_dir=end_screens_dir,
                         random_end_screen=random_end_screen,
                         timestamps_prefix=timestamps_prefix,
-                        extra_description=extra_description,
+                        timestamps_secuence=timestamps_secuence,
+                        extra_description=extra_description
                     )
                 )
 
@@ -145,6 +147,7 @@ class VideoJoinerProcessor:
         end_screens_dir: Path | None,
         random_end_screen: bool,
         timestamps_prefix: str,
+        timestamps_secuence: bool,
         extra_description: str | None
     ) -> None:
 
@@ -195,6 +198,7 @@ class VideoJoinerProcessor:
                 videos=final_videos,
                 output_path=timestamps_path,
                 prefix=timestamps_prefix,
+                secuence=timestamps_secuence,
                 extra_description=extra_description
             )
 

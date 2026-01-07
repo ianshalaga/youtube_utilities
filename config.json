@@ -42,11 +42,12 @@
       "default_videos_dir": "F:/DESCARGAS/Nueva/Kena - Bridge of Spirits Digital Deluxe Soundtrack/videos",
       "default_output_dir": "compilation",
       "default_video_name": "Kena",
-      "default_target_duration": 1200,
+      "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,
       "default_timestamps_prefix": "",
-      "default_extra_description": "¡Suscríbanse!"
+      "default_timestamps_secuence": false,
+      "default_extra_description": ""
     }
   },
 
