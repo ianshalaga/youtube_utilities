@@ -7,8 +7,8 @@ from core.config_manager import ConfigManager
 
 config = ConfigManager()
 
-video_music = False
-video_joiner = True
+video_music = True
+video_joiner = False
 
 if video_music:
     video_music_processor = VideoMusicProcessor()
