@@ -32,8 +32,8 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/Dino Crisis/dino_crisis_2_ost_video.mp4",
-      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/Dino Crisis OST/2 Dino Crisis 2 OST",
+      "default_video_path": "E:/Proyectos/games/In Sound Mind/video.mp4",
+      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/In Sound Mind OST",
       "default_output_dir": "videos"
     },
 
