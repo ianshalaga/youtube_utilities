@@ -154,11 +154,7 @@ class VideoJoinerProcessor:
             else base_name
         )
 
-        # Directorio temporal determinista
-        temp_root = output_dir / ".tmp"
-        temp_root.mkdir(exist_ok=True)
-
-        temp_dir = temp_root / output_name
+        temp_dir = output_dir / output_name
         temp_dir.mkdir(exist_ok=True)
 
         try:
