@@ -21,7 +21,6 @@ NOTAS DE IMPLEMENTACIÓN (uso personal)
 """
 
 from pathlib import Path
-from math import ceil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 
