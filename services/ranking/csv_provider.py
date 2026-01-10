@@ -2,7 +2,8 @@
 Proveedor CSV de ejemplo.
 """
 
-from .data_provider import RankingDataProvider
+
+from services.ranking.data_provider import RankingDataProvider
 
 
 class CsvRankingProvider(RankingDataProvider):

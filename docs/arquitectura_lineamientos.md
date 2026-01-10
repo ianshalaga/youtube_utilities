@@ -95,7 +95,7 @@ Infraestructura es todo lo que:
 
 Ejemplos:
 
-- `FFProbeMediaProbeProvider`
+- `FFProbeProvider`
 - `MKVMergeRunner`
 - `AudioConverter`
 - `VideoConverter`

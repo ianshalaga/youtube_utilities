@@ -1,14 +1,13 @@
 from pathlib import Path
-from abc import ABC, abstractmethod
+from abc import ABC
 
-from domain.media.video.video_signature import VideoSignature
-from domain.media.video.video_encoding import VideoEncodingDescriptor
+from services.media.media_provider import MediaProvider
 
 
 class Media(ABC):
-    def __init__(self, path: Path, probe_provider: MediaProbeProvider):
+    def __init__(self, path: Path, media_provider: MediaProvider):
         self._path = path
-        self._probe_provider = probe_provider
+        self._media_provider = media_provider
 
     @property
     def name(self) -> str:
@@ -20,35 +19,4 @@ class Media(ABC):
 
     @property
     def duration(self) -> float:
-        return self._probe_provider.duration(self.path)
-
-
-class MediaProbeProvider(ABC):
-    """
-    Contrato para proveedores de metadatos multimedia.
-
-    Un MediaProbeProvider es responsable de obtener información
-    técnica sobre archivos multimedia a partir de una fuente
-    externa (ffprobe, mediainfo, etc.).
-
-    No mantiene estado asociado a un archivo concreto.
-    """
-
-    @abstractmethod
-    def duration(self, path: Path) -> float:
-        """
-        Devuelve la duración total del archivo multimedia
-        expresada en segundos.
-        """
-        pass
-
-    @abstractmethod
-    def video_signature(self, path: Path) -> VideoSignature:
-        """
-        Devuelve la firma técnica del archivo de video.
-        """
-        pass
-
-    @abstractmethod
-    def video_encoding(self, path: Path) -> VideoEncodingDescriptor:
-        pass
+        return self._media_provider.duration(self.path)

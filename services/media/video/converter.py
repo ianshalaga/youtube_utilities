@@ -8,7 +8,7 @@ NOTAS DE IMPLEMENTACIÓN (uso personal)
 - El formato de salida puede:
     - Definirse explícitamente
     - Derivarse de un video de referencia
-- ffprobe se usa indirectamente vía MediaProbeProvider
+- ffprobe se usa indirectamente vía MediaProvider
 - Esta clase NO valida compatibilidad semántica
 """
 
@@ -16,7 +16,7 @@ from pathlib import Path
 import subprocess
 
 from core.config_manager import ConfigManager
-from services.media.probe_provider import MediaProbeProvider
+from services.media.media_provider import MediaProvider
 
 
 class VideoConverter:
@@ -31,9 +31,9 @@ class VideoConverter:
     No paraleliza ni valida compatibilidad avanzada.
     """
 
-    def __init__(self, probe_provider: MediaProbeProvider):
+    def __init__(self, media_provider: MediaProvider):
         self._config = ConfigManager()
-        self._probe = probe_provider
+        self._media_provider = media_provider
 
     def convert(
         self,
@@ -110,7 +110,7 @@ class VideoConverter:
         Extrae parámetros técnicos de conversión a partir
         de un video de referencia.
         """
-        encoding = self._probe.video_encoding(reference_video)
+        encoding = self._media_provider.video_encoding(reference_video)
 
         params = [
             "-c:v", encoding.video_codec,

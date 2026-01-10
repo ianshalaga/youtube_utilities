@@ -3,7 +3,7 @@ NOTAS DE IMPLEMENTACIÓN (uso personal)
 
 - Los timestamps se generan acumulando duraciones en orden.
 - El tiempo siempre comienza en 00:00:00 por cada archivo.
-- La duración se obtiene vía MediaProbeProvider.
+- La duración se obtiene vía MediaProvider.
 - El nombre del video se toma desde Path.stem.
 - El padding numérico se calcula dinámicamente.
 - El archivo resultante es compatible con timestamps de YouTube.
@@ -12,7 +12,7 @@ NOTAS DE IMPLEMENTACIÓN (uso personal)
 from pathlib import Path
 from typing import Iterable
 
-from services.media.probe_provider import MediaProbeProvider
+from services.media.media_provider import MediaProvider
 from core.time_utils import seconds_to_youtube_timestamp
 
 
@@ -22,8 +22,8 @@ class TimestampFileBuilder:
     a partir de una lista ordenada de videos.
     """
 
-    def __init__(self, probe_provider: MediaProbeProvider):
-        self._probe = probe_provider
+    def __init__(self, media_provider: MediaProvider):
+        self.media_provider = media_provider
 
     def build(
         self,
@@ -53,7 +53,7 @@ class TimestampFileBuilder:
             raise ValueError("No hay videos para generar timestamps.")
 
         durations = [
-            self._probe.duration(video)
+            self.media_provider.duration(video)
             for video in videos
         ]
 

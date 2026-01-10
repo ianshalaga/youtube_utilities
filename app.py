@@ -4,7 +4,7 @@ from apps.video_music.processor import VideoMusicProcessor
 from apps.video_joiner.processor import VideoJoinerProcessor
 from core.config_manager import ConfigManager
 from services.media.video.converter import VideoConverter
-from services.media.probe_provider import FFProbeMediaProbeProvider
+from services.media.ffprobe_provider import FFProbeProvider
 
 
 config = ConfigManager()
@@ -46,7 +46,7 @@ if video_joiner:
     )
 
 if video_converter:
-    probe_provider = FFProbeMediaProbeProvider()
+    probe_provider = FFProbeProvider()
     video_converter = VideoConverter(probe_provider=probe_provider)
 
     src = Path(config.video_converter_src)

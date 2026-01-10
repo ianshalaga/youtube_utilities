@@ -3,12 +3,12 @@ import subprocess
 import json
 
 from core.config_manager import ConfigManager
-from domain.media.base import MediaProbeProvider
+from domain.media.base import MediaProvider
 from domain.media.video.video_encoding import VideoEncodingDescriptor
 from domain.media.video.video_signature import VideoSignature
 
 
-class FFProbeMediaProbeProvider(MediaProbeProvider):
+class FFProbeProvider(MediaProvider):
     """
     Proveedor de metadatos multimedia basado en ffprobe.
 
@@ -42,7 +42,7 @@ class FFProbeMediaProbeProvider(MediaProbeProvider):
         self._cache: dict[Path, dict] = {}
         self._config = ConfigManager()
 
-    def _probe(self, path: Path) -> dict:
+    def _ffprobe(self, path: Path) -> dict:
         """
         Ejecuta ffprobe sobre un archivo multimedia y devuelve
         el resultado completo como un diccionario Python.
@@ -107,7 +107,7 @@ class FFProbeMediaProbeProvider(MediaProbeProvider):
             float:
                 Duración total del archivo en segundos.
         """
-        data = self._probe(path)
+        data = self._ffprobe(path)
         return float(data["format"]["duration"])
 
     def video_signature(self, path: Path) -> VideoSignature:
@@ -164,7 +164,7 @@ class FFProbeMediaProbeProvider(MediaProbeProvider):
             VideoEncodingDescriptor:
                 Descriptor técnico de codificación.
         """
-        data = self._probe(path)
+        data = self._ffprobe(path)
 
         video = self._video_stream(path)
         audios = self._audio_streams(path)
@@ -243,7 +243,7 @@ class FFProbeMediaProbeProvider(MediaProbeProvider):
             dict:
                 Diccionario correspondiente al stream de video.
         """
-        data = self._probe(path)
+        data = self._ffprobe(path)
         return next(
             s for s in data["streams"]
             if s["codec_type"] == "video"
@@ -262,7 +262,7 @@ class FFProbeMediaProbeProvider(MediaProbeProvider):
             list[dict]:
                 Lista de streams de audio.
         """
-        data = self._probe(path)
+        data = self._ffprobe(path)
         return [
             s for s in data["streams"]
             if s["codec_type"] == "audio"

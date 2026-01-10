@@ -30,7 +30,7 @@ from services.filesystem.output_partitioner import OutputDirectoryPartitioner
 from services.media.discovery.media_discovery import MediaDiscoveryService
 from services.media.video.mkvmerge_runner import MKVMergeRunner
 from services.media.audio.converter import AudioConverter
-from services.media.probe_provider import FFProbeMediaProbeProvider
+from services.media.ffprobe_provider import FFProbeProvider
 
 
 class VideoMusicProcessor:
@@ -54,7 +54,7 @@ class VideoMusicProcessor:
         self._config = ConfigManager()
         self._mkvmerge_runner = MKVMergeRunner()
         self._audio_converter = AudioConverter()
-        self._probe_provider = FFProbeMediaProbeProvider()
+        self._ffprobe_provider = FFProbeProvider()
 
         self._max_items_per_dir = (
             max_items_per_dir
@@ -193,7 +193,7 @@ class VideoMusicProcessor:
         )
 
         try:
-            duration_seconds = self._probe_provider.duration(tmp_audio_path)
+            duration_seconds = self._ffprobe_provider.duration(tmp_audio_path)
             duration = seconds_to_hhmmss_ms(duration_seconds)
 
             output_path = output_dir / f"{audio_path.stem}.mkv"

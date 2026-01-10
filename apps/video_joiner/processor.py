@@ -22,7 +22,7 @@ import os
 import shutil
 
 from core.config_manager import ConfigManager
-from services.media.probe_provider import FFProbeMediaProbeProvider
+from services.media.ffprobe_provider import FFProbeProvider
 from services.media.discovery.media_discovery import MediaDiscoveryService
 from services.media.video.mkvmerge_runner import MKVMergeRunner
 from services.media.video.compatibility_validator import VideoCompatibilityValidator
@@ -38,7 +38,7 @@ class VideoJoinerProcessor:
 
     def __init__(self, max_items_per_dir: int | None = None):
         self._config = ConfigManager()
-        self._probe_provider = FFProbeMediaProbeProvider()
+        self._probe_provider = FFProbeProvider()
         self._mkvmerge_runner = MKVMergeRunner()
         self._validator = VideoCompatibilityValidator(self._probe_provider)
         self._partitioner = VideoPartitioner(self._probe_provider)

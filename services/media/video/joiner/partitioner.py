@@ -12,7 +12,7 @@ NOTAS DE IMPLEMENTACIÓN (uso personal)
 from pathlib import Path
 from typing import List
 
-from services.media.probe_provider import MediaProbeProvider
+from services.media.media_provider import MediaProvider
 
 
 class VideoPartitioner:
@@ -21,8 +21,8 @@ class VideoPartitioner:
     equilibradas en duración.
     """
 
-    def __init__(self, probe_provider: MediaProbeProvider):
-        self._probe = probe_provider
+    def __init__(self, _media_provider: MediaProvider):
+        self._media_provider = _media_provider
 
     def partition(
         self,
@@ -36,7 +36,7 @@ class VideoPartitioner:
         if target_duration <= 0:
             raise ValueError("target_duration must be > 0")
 
-        durations = [self._probe.duration(v) for v in videos]
+        durations = [self._media_provider.duration(v) for v in videos]
         total_duration = sum(durations)
 
         # Número de partes deseadas
@@ -77,7 +77,7 @@ class VideoPartitioner:
         # ───────────────────────────────
         if len(partitions) >= 2:
             last_duration = sum(
-                self._probe.duration(v) for v in partitions[-1]
+                self._media_provider.duration(v) for v in partitions[-1]
             )
 
             if last_duration < ideal_duration * 0.5:

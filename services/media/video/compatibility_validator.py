@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import Iterable
 
-from domain.media.base import MediaProbeProvider
+
 from domain.media.video.video_signature import VideoSignature
+from services.media.media_provider import MediaProvider
 
 
 class VideoCompatibilityError(Exception):
@@ -27,7 +28,7 @@ class VideoCompatibilityValidator:
     - No contiene lógica de infraestructura
     """
 
-    def __init__(self, probe: MediaProbeProvider):
+    def __init__(self, media_provider: MediaProvider):
         """
         Inicializa el validador con un proveedor de metadatos.
 
@@ -35,7 +36,7 @@ class VideoCompatibilityValidator:
             probe:
                 Proveedor de metadatos multimedia.
         """
-        self._probe = probe
+        self._media_provider = media_provider
 
     def validate(self, videos: Iterable[Path]) -> None:
         """
@@ -91,7 +92,7 @@ class VideoCompatibilityValidator:
             VideoSignature:
                 Firma técnica del video.
         """
-        return self._probe.video_signature(path)
+        return self._media_provider.video_signature(path)
 
     @staticmethod
     def _build_error_message(
