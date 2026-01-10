@@ -9,9 +9,9 @@ from services.media.probe_provider import FFProbeMediaProbeProvider
 
 config = ConfigManager()
 
-video_music = False
+video_music = True
 video_joiner = False
-video_converter = True
+video_converter = False
 
 if video_music:
     video_music_processor = VideoMusicProcessor()
