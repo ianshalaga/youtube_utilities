@@ -39,9 +39,9 @@
 
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Kena - Bridge of Spirits OST/2 Songs from Development/videos",
+      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Kena - Bridge of Spirits OST/1 Kena - Bridge of Spirits OST/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Songs from Development",
+      "default_video_name": "Kena - Bridge of Spirits OST",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,
