@@ -2,9 +2,9 @@ from sqlalchemy import Column, Integer, String
 from services.ranking.storage.base import Base
 
 
-class Country(Base):
-    __tablename__ = "countries"
+class CharacterIdentity(Base):
+    __tablename__ = "character_identities"
 
     id = Column(Integer, primary_key=True)
-    code = Column(String, unique=True, nullable=False)
     name = Column(String, nullable=False)
+    franchise = Column(String, nullable=False)

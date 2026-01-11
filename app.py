@@ -10,8 +10,9 @@ from services.media.ffprobe_provider import FFProbeProvider
 config = ConfigManager()
 
 video_music = False
-video_joiner = True
+video_joiner = False
 video_converter = False
+db = True
 
 if video_music:
     video_music_processor = VideoMusicProcessor()
@@ -60,3 +61,6 @@ if video_converter:
         output_format=output_format,
         reference_video=reference_video
     )
+
+if db:
+    pass
