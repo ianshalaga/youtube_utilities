@@ -5,6 +5,7 @@ from apps.video_joiner.processor import VideoJoinerProcessor
 from core.config_manager import ConfigManager
 from services.media.video.converter import VideoConverter
 from services.media.ffprobe_provider import FFProbeProvider
+from apps.ranking_system.create_db import create_db
 
 
 config = ConfigManager()
@@ -63,4 +64,4 @@ if video_converter:
     )
 
 if db:
-    pass
+    create_db()
