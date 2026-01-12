@@ -6,6 +6,6 @@ class Duel(Base):
     __tablename__ = "duels"
 
     id = Column(Integer, primary_key=True)
-    tournament_id = Column(Integer, ForeignKey(
-        "tournaments.id"), nullable=False)
+    event_id = Column(Integer, ForeignKey(
+        "events.id"), nullable=False)
     order = Column(Integer, nullable=False)
