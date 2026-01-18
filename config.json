@@ -33,15 +33,15 @@
     "video_music": {
       "max_items_per_dir": 15,
       "default_video_path": "E:/Proyectos/games/In Sound Mind/video.mp4",
-      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/In Sound Mind OST",
+      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/What Remains of Edith Finch OST",
       "default_output_dir": "videos"
     },
 
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Kena - Bridge of Spirits OST/1 Kena - Bridge of Spirits OST/videos",
+      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Kena - Bridge of Spirits OST/Nueva carpeta",
       "default_output_dir": "compilation",
-      "default_video_name": "Kena - Bridge of Spirits OST",
+      "default_video_name": "Kena - Bridge of Spirits Complete OST",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,

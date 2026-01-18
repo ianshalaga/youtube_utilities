@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from services.ranking.storage.base import Base
 
 
@@ -7,7 +7,22 @@ class Event(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    platform_id = Column(Integer, ForeignKey("platforms.id"))
-    game_id = Column(Integer, ForeignKey("games.id"))
+
+    event_date = Column(DateTime, nullable=False)
+
+    season_id = Column(Integer, ForeignKey("seasons.id"), nullable=True)
+
+    game_version_id = Column(
+        Integer,
+        ForeignKey("game_versions.id"),
+        nullable=False
+    )
+
+    event_type_id = Column(
+        Integer,
+        ForeignKey("event_types.id"),
+        nullable=False
+    )
+
     bracket_url = Column(String)
     playlist_url = Column(String)
