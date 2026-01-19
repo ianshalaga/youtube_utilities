@@ -1,8 +1,8 @@
-@startuml Ranking System: Modelo de Datos
+@startuml Ranking System - Modelo de Datos
 
-' =========================
-' ENTIDADES PRINCIPALES
-' =========================
+' ==================================================
+' ENTIDADES BASE
+' ==================================================
 
 entity Country {
   id
@@ -10,20 +10,9 @@ entity Country {
   name
 }
 
-entity Player {
+entity Region {
   id
-  nickname
-}
-
-entity PlayerAlias {
-  id
-  alias
-}
-
-entity PlayerSocial {
-  id
-  platform
-  handle
+  name
 }
 
 entity Platform {
@@ -51,7 +40,36 @@ entity GameCharacter {
   id
 }
 
+' ==================================================
+' JUGADORES
+' ==================================================
+
+entity Player {
+  id
+  nickname
+}
+
+entity PlayerAlias {
+  id
+  alias
+}
+
+entity PlayerSocial {
+  id
+  platform
+  handle
+}
+
+' ==================================================
+' TEMPORADAS Y EVENTOS
+' ==================================================
+
 entity Season {
+  id
+  name
+}
+
+entity EventType {
   id
   name
 }
@@ -59,21 +77,42 @@ entity Season {
 entity Event {
   id
   name
-  event_type
   event_date
-  order
   bracket_url
   playlist_url
+}
+
+' ==================================================
+' DUELOS Y EQUIPOS
+' ==================================================
+
+entity DuelType {
+  id
+  name
 }
 
 entity Duel {
   id
   order
+  video_url
 }
 
-entity DuelParticipant {
+entity Team {
+  id
+  name
+}
+
+entity DuelTeam {
   id
 }
+
+entity DuelTeamMember {
+  id
+}
+
+' ==================================================
+' BATALLAS Y ROUNDS
+' ==================================================
 
 entity Battle {
   id
@@ -94,28 +133,61 @@ entity RoundResult {
   result_code
 }
 
-' =========================
+' ==================================================
 ' RELACIONES Y CARDINALIDADES
-' =========================
+' ==================================================
 
-Player "0..*" -- "1" Country
-Player "1" -- "0..*" PlayerAlias
-Player "1" -- "0..*" PlayerSocial
-Event "0..*" -- "1" Platform
-Event "0..*" -- "1" GameVersion
-Game "1" -- "1..*" GameVersion
-CharacterIdentity "1" -- "1..*" GameCharacter
-GameVersion "1" -- "0..*" GameCharacter
-Season "1" -- "0..*" Event
-Event "1" -- "1..*" Duel
-Duel "1" -- "2..*" DuelParticipant
-DuelParticipant "0..*" -- "1" Player
-Duel "1" -- "1..*" Battle
-Battle "1" -- "2" BattleParticipant
-BattleParticipant "0..*" -- "1" Player
-BattleParticipant "0..*" -- "1" GameCharacter
-Battle "1" -- "1..*" Round
-Round "1" -- "2" RoundResult
-RoundResult "0..*" -- "1" Player
+' ──────────────
+' JUGADORES
+' ──────────────
+Country "1" <-- "0..*" Player : un jugador representa un país
+Player "1" -- "0..*" PlayerAlias : un jugador puede tener varios alias
+Player "1" -- "0..*" PlayerSocial : un jugador puede tener múltiples redes
+
+' ──────────────
+' JUEGOS
+' ──────────────
+Game "1" -- "1..*" GameVersion : un juego tiene múltiples versiones
+Platform "1" -- "1..*" GameVersion : una versión pertenece a una plataforma
+CharacterIdentity "1" -- "1..*" GameCharacter : identidad abstracta
+GameVersion "1" -- "0..*" GameCharacter : personaje específico por versión
+
+' ──────────────
+' EVENTOS
+' ──────────────
+Season "1" -- "0..*" Event : una temporada contiene eventos
+Region "1" -- "0..*" Event : un evento ocurre en una región
+EventType "1" -- "0..*" Event : torneo, liga, FT, etc
+GameVersion "1" -- "0..*" Event : evento jugado en versión concreta
+
+' ──────────────
+' DUELOS
+' ──────────────
+Event "1" -- "1..*" Duel : un evento tiene uno o más duelos
+DuelType "1" -- "0..*" Duel : FT5, FT10, triple amenaza, teams
+
+' ──────────────
+' EQUIPOS Y PARTICIPANTES
+' ──────────────
+Duel "1" -- "1..*" DuelTeam : un duelo tiene uno o más equipos
+Team "1" -- "0..*" DuelTeam : un equipo puede participar en muchos duelos
+DuelTeam "1" -- "1..*" DuelTeamMember : un equipo de duelo tiene miembros
+Player "1" -- "0..*" DuelTeamMember : jugador participa en equipos
+
+' ──────────────
+' BATALLAS
+' ──────────────
+Duel "1" -- "1..*" Battle : un duelo se compone de batallas
+Battle "1" -- "2" BattleParticipant : cada batalla enfrenta dos jugadores
+Player "1" -- "0..*" BattleParticipant : jugador participa en batallas
+GameCharacter "1" -- "0..*" BattleParticipant : personaje usado en batalla
+DuelTeam "0..1" -- "0..*" BattleParticipant : opcional (solo en team battles)
+
+' ──────────────
+' ROUNDS
+' ──────────────
+Battle "1" -- "1..*" Round : una batalla tiene rounds
+Round "1" -- "2" RoundResult : cada round tiene dos resultados
+Player "1" -- "0..*" RoundResult : resultado pertenece a un jugador
 
 @enduml

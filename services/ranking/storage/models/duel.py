@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, String
 from services.ranking.storage.base import Base
 
 
@@ -6,6 +6,8 @@ class Duel(Base):
     __tablename__ = "duels"
 
     id = Column(Integer, primary_key=True)
-    event_id = Column(Integer, ForeignKey(
-        "events.id"), nullable=False)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    duel_type_id = Column(Integer, ForeignKey("duel_types.id"), nullable=False)
+
     order = Column(Integer, nullable=False)
+    video_url = Column(String, nullable=True)

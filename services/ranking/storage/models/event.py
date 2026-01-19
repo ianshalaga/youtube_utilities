@@ -14,15 +14,17 @@ class Event(Base):
 
     order = Column(Integer, nullable=False)
 
-    game_version_id = Column(
-        Integer,
-        ForeignKey("game_versions.id"),
-        nullable=False
-    )
-
     event_type_id = Column(
         Integer,
         ForeignKey("event_types.id"),
+        nullable=False
+    )
+
+    region_id = Column(Integer, ForeignKey("regions.id"), nullable=False)
+
+    game_version_id = Column(
+        Integer,
+        ForeignKey("game_versions.id"),
         nullable=False
     )
 

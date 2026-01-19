@@ -10,3 +10,4 @@ class BattleParticipant(Base):
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
     game_character_id = Column(Integer, ForeignKey(
         "game_characters.id"), nullable=False)
+    duel_team_id = Column(Integer, ForeignKey("duel_teams.id"), nullable=True)
