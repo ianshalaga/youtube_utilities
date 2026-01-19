@@ -12,6 +12,8 @@ class Event(Base):
 
     season_id = Column(Integer, ForeignKey("seasons.id"), nullable=True)
 
+    order = Column(Integer, nullable=False)
+
     game_version_id = Column(
         Integer,
         ForeignKey("game_versions.id"),

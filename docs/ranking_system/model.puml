@@ -1,0 +1,121 @@
+@startuml Ranking System: Modelo de Datos
+
+' =========================
+' ENTIDADES PRINCIPALES
+' =========================
+
+entity Country {
+  id
+  code
+  name
+}
+
+entity Player {
+  id
+  nickname
+}
+
+entity PlayerAlias {
+  id
+  alias
+}
+
+entity PlayerSocial {
+  id
+  platform
+  handle
+}
+
+entity Platform {
+  id
+  name
+}
+
+entity Game {
+  id
+  name
+}
+
+entity GameVersion {
+  id
+  version
+}
+
+entity CharacterIdentity {
+  id
+  name
+  franchise
+}
+
+entity GameCharacter {
+  id
+}
+
+entity Season {
+  id
+  name
+}
+
+entity Event {
+  id
+  name
+  event_type
+  event_date
+  order
+  bracket_url
+  playlist_url
+}
+
+entity Duel {
+  id
+  order
+}
+
+entity DuelParticipant {
+  id
+}
+
+entity Battle {
+  id
+  order
+}
+
+entity BattleParticipant {
+  id
+}
+
+entity Round {
+  id
+  order
+}
+
+entity RoundResult {
+  id
+  result_code
+}
+
+' =========================
+' RELACIONES Y CARDINALIDADES
+' =========================
+
+Player "0..*" -- "1" Country
+Player "1" -- "0..*" PlayerAlias
+Player "1" -- "0..*" PlayerSocial
+Event "0..*" -- "1" Platform
+Event "0..*" -- "1" GameVersion
+Game "1" -- "1..*" GameVersion
+CharacterIdentity "1" -- "1..*" GameCharacter
+GameVersion "1" -- "0..*" GameCharacter
+Season "1" -- "0..*" Event
+Event "1" -- "1..*" Duel
+Duel "1" -- "2..*" DuelParticipant
+DuelParticipant "0..*" -- "1" Player
+Duel "1" -- "1..*" Battle
+Battle "1" -- "2" BattleParticipant
+BattleParticipant "0..*" -- "1" Player
+BattleParticipant "0..*" -- "1" GameCharacter
+Battle "1" -- "1..*" Round
+Round "1" -- "2" RoundResult
+RoundResult "0..*" -- "1" Player
+
+@enduml
