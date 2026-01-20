@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, Integer, ForeignKey, String
+from sqlalchemy import Column, Integer, ForeignKey, String, Index
 from services.ranking.storage.base import Base
 
 
@@ -21,3 +21,7 @@ class Duel(Base):
     order = Column(Integer, nullable=False)
 
     video_url = Column(String, nullable=True)
+
+    __table_args__ = (
+        Index("ix_duels_code", "code"),
+    )

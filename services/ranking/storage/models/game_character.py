@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, Integer, ForeignKey, String
+from sqlalchemy import Column, Integer, ForeignKey, String, Index
 from services.ranking.storage.base import Base
 
 
@@ -19,3 +19,7 @@ class GameCharacter(Base):
         "character_identities.id"), nullable=False)
     game_version_id = Column(Integer, ForeignKey(
         "game_versions.id"), nullable=False)
+
+    __table_args__ = (
+        Index("ix_game_characters_code", "code"),
+    )

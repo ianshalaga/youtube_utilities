@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Column, Integer, String, Date, Index
 from services.ranking.storage.base import Base
 
 
@@ -18,3 +18,7 @@ class Season(Base):
     name = Column(String, nullable=False)  # "2023", "Season 5", etc.
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
+
+    __table_args__ = (
+        Index("ix_seasons_code", "code"),
+    )

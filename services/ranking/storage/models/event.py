@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Index
 from services.ranking.storage.base import Base
 
 
@@ -39,3 +39,7 @@ class Event(Base):
 
     bracket_url = Column(String, nullable=True)
     playlist_url = Column(String, nullable=True)
+
+    __table_args__ = (
+        Index("ix_events_code", "code"),
+    )

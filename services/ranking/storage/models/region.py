@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Index
 from services.ranking.storage.base import Base
 
 
@@ -16,3 +16,7 @@ class Region(Base):
     )
 
     name = Column(String, unique=True, nullable=False)
+
+    __table_args__ = (
+        Index("ix_regions_code", "code"),
+    )

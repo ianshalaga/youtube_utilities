@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Index
 from services.ranking.storage.base import Base
 
 
@@ -18,3 +18,7 @@ class Player(Base):
     country_id = Column(Integer, ForeignKey("countries.id"))
 
     nickname = Column(String, unique=True, nullable=False)
+
+    __table_args__ = (
+        Index("ix_players_code", "code"),
+    )

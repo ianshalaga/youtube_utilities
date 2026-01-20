@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint, Index
 from services.ranking.storage.base import Base
 
 
@@ -27,4 +27,8 @@ class GameVersion(Base):
             "version",
             name="uq_game_platform_version"
         ),
+    )
+
+    __table_args__ = (
+        Index("ix_game_versions_code", "code"),
     )
