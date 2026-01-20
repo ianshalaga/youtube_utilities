@@ -11,9 +11,9 @@ from apps.ranking_system.create_db import create_db
 config = ConfigManager()
 
 video_music = False
-video_joiner = True
+video_joiner = False
 video_converter = False
-db = False
+db = True
 
 if video_music:
     video_music_processor = VideoMusicProcessor()
