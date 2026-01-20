@@ -1,5 +1,26 @@
 @startuml Ranking System - Modelo de Datos
 
+' ======================================================
+' El modelo soporta:
+' - Rankings por jugador, equipo, personaje, país, región, plataforma
+' - Duelos 1v1, multi-player y por equipos
+' - Torneos, ligas y temporadas
+' - Cálculo incremental y reproducible del ranking
+' 
+' Una entidad debe tener code si cumple al menos una de estas condiciones:
+' - Representa un concepto del dominio (no puramente técnico)
+' - Puede ser referenciada externamente (API, URL, UI, documentación)
+' - Puede necesitar estabilidad de identidad entre cargas, temporadas o bases
+' - Puede ser rankeada, filtrada o comparada de forma independiente
+' - Puede existir fuera del contexto inmediato de otra entidad
+
+' Una entidad NO debe tener code si:
+' - Es puramente relacional
+' - Es interna, técnica o efímera
+' - No tiene significado aislado
+' - Nunca será referenciada sola
+' ======================================================
+
 ' ==================================================
 ' ENTIDADES BASE
 ' ==================================================
@@ -8,36 +29,43 @@ entity Country {
   id
   code
   name
+  iso_code
 }
 
 entity Region {
   id
+  code
   name
 }
 
 entity Platform {
   id
+  code
   name
 }
 
 entity Game {
   id
+  code
   name
 }
 
 entity GameVersion {
   id
+  code
   version
 }
 
 entity CharacterIdentity {
   id
+  code
   name
   franchise
 }
 
 entity GameCharacter {
   id
+  code
 }
 
 ' ==================================================
@@ -46,6 +74,7 @@ entity GameCharacter {
 
 entity Player {
   id
+  code
   nickname
 }
 
@@ -66,6 +95,7 @@ entity PlayerSocial {
 
 entity Season {
   id
+  code
   name
 }
 
@@ -76,6 +106,7 @@ entity EventType {
 
 entity Event {
   id
+  code
   name
   event_date
   bracket_url
@@ -93,12 +124,14 @@ entity DuelType {
 
 entity Duel {
   id
+  code
   order
   video_url
 }
 
 entity Team {
   id
+  code
   name
 }
 
