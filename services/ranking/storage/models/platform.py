@@ -1,19 +1,12 @@
-import uuid
 from sqlalchemy import Column, Integer, String, Index
 from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
 
 
-class Platform(Base):
+class Platform(Base, WithCode):
     __tablename__ = "platforms"
 
     id = Column(Integer, primary_key=True)
-
-    code = Column(
-        String(36),
-        unique=True,
-        nullable=False,
-        default=lambda: str(uuid.uuid4())
-    )
 
     name = Column(String, unique=True, nullable=False)
 

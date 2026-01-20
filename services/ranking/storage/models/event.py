@@ -1,19 +1,12 @@
-import uuid
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Index
 from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
 
 
-class Event(Base):
+class Event(Base, WithCode):
     __tablename__ = "events"
 
     id = Column(Integer, primary_key=True)
-
-    code = Column(
-        String(36),
-        unique=True,
-        nullable=False,
-        default=lambda: str(uuid.uuid4())
-    )
 
     name = Column(String, nullable=False)
 
