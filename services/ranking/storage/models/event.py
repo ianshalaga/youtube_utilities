@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from services.ranking.storage.base import Base
 
@@ -6,6 +7,14 @@ class Event(Base):
     __tablename__ = "events"
 
     id = Column(Integer, primary_key=True)
+
+    code = Column(
+        String(36),
+        unique=True,
+        nullable=False,
+        default=lambda: str(uuid.uuid4())
+    )
+
     name = Column(String, nullable=False)
 
     event_date = Column(DateTime, nullable=False)
@@ -28,5 +37,5 @@ class Event(Base):
         nullable=False
     )
 
-    bracket_url = Column(String)
-    playlist_url = Column(String)
+    bracket_url = Column(String, nullable=True)
+    playlist_url = Column(String, nullable=True)

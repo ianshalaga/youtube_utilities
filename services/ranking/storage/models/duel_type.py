@@ -6,4 +6,5 @@ class DuelType(Base):
     __tablename__ = "duel_types"
 
     id = Column(Integer, primary_key=True)
+
     name = Column(String, unique=True, nullable=False)

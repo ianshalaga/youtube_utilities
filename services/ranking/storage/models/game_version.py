@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
 from services.ranking.storage.base import Base
 
@@ -6,6 +7,13 @@ class GameVersion(Base):
     __tablename__ = "game_versions"
 
     id = Column(Integer, primary_key=True)
+
+    code = Column(
+        String(36),
+        unique=True,
+        nullable=False,
+        default=lambda: str(uuid.uuid4())
+    )
 
     game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
     platform_id = Column(Integer, ForeignKey("platforms.id"), nullable=False)
