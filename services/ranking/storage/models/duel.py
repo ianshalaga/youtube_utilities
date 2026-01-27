@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, String, Index
+from sqlalchemy import Column, Integer, ForeignKey, String, Index, UniqueConstraint
 from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
 

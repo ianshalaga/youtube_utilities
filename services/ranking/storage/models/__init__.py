@@ -30,3 +30,4 @@ from services.ranking.storage.models.round import Round
 from services.ranking.storage.models.season import Season
 from services.ranking.storage.models.social_platform import SocialPlatform
 from services.ranking.storage.models.team import Team
+from services.ranking.storage.models.stage import Stage

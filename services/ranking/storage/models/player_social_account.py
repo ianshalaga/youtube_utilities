@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
 from services.ranking.storage.base import Base
 
 
@@ -12,3 +12,7 @@ class PlayerSocialAccount(Base):
         "social_platforms.id"), nullable=False)
 
     handle = Column(String, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("platform_id", "handle"),
+    )

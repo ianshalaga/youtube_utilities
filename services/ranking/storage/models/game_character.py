@@ -10,8 +10,9 @@ class GameCharacter(Base, WithCode):
 
     character_identity_id = Column(Integer, ForeignKey(
         "character_identities.id"), nullable=False)
-    game_version_id = Column(Integer, ForeignKey(
-        "game_versions.id"), nullable=False)
+
+    game_version_platform_id = Column(Integer, ForeignKey(
+        "game_version_platforms.id"), nullable=False)
 
     __table_args__ = (
         Index("ix_game_characters_code", "code"),

@@ -130,22 +130,19 @@ class CSVLoaderLegacy(DataLoader):
 
                 # @@@@ BATTLE
 
-                battle_key = (current_duel.id, row["combat_order"])
+                battle_key = (current_duel.id,
+                              row.combat_order, row.stage_name)
 
                 if battle_key != last_battle_key:
                     battle_order += 1
-                    current_battle = self._create_battle(
-                        session, current_duel, row)
+                    current_battle = self._get_or_create_battle(
+                        session, current_duel, row, battle_order)
                     last_battle_key = battle_key
 
-                # ───────────────────────────────────
-                # ROUNDS
-                # ───────────────────────────────────
+                # @@@@ ROUNDS
                 self._create_rounds(session, current_battle, row)
 
-    # ──────────────────────────────────────────────
     # Entity creation helpers
-    # ──────────────────────────────────────────────
 
     def _get_or_create_season(self, session, row):
         season = Season(
@@ -170,23 +167,23 @@ class CSVLoaderLegacy(DataLoader):
             session.add(player)
         return player
 
-    def _get_or_create_character(self, session, name, game_version):
+    def _get_or_create_character(self, session, name, game_version_platform):
         identity = (
             session.query(CharacterIdentity)
-            .filter_by(name=name, franchise=game_version.game.name)
+            .filter_by(name=name, franchise=game_version_platform.game.name)
             .one_or_none()
         )
 
         if identity is None:
             identity = CharacterIdentity(
-                name=name, franchise=game_version.game.name)
+                name=name, franchise=game_version_platform.game.name)
             session.add(identity)
 
         game_character = (
             session.query(GameCharacter)
             .filter_by(
                 character_identity_id=identity.id,
-                game_version_id=game_version.id,
+                game_version_platform_id=game_version_platform.id,
             )
             .one_or_none()
         )
@@ -194,7 +191,7 @@ class CSVLoaderLegacy(DataLoader):
         if game_character is None:
             game_character = GameCharacter(
                 character_identity_id=identity.id,
-                game_version_id=game_version.id,
+                game_version_platform_id=game_version_platform.id,
             )
             session.add(game_character)
 
@@ -231,6 +228,22 @@ class CSVLoaderLegacy(DataLoader):
 
         session.add(event)
         return event
+
+    def _get_or_create_game_version_platform(self, session, game, platform, version):
+        '''
+        Las versiones viven dentro de un juego, no son globales.
+        '''
+        gvp = (
+            session.query(GameVersionPlatform)
+            .filter_by(game_id=game.id, platform_id=platform.id, version=version)
+            .one_or_none()
+        )
+
+        if gvp is None:
+            gvp = GameVersionPlatform(
+                game_id=game.id, platform_id=platform.id, version=version)
+            session.add(gvp)
+        return gvp
 
     def _get_or_create_duel(self, session, event, row):
         duel_type = self._get_or_create_simple(
@@ -279,57 +292,80 @@ class CSVLoaderLegacy(DataLoader):
 
         return duel
 
-    def _create_battle(self, session, duel, row):
+    def _get_or_create_battle(self, session, duel, row, battle_order):
         battle = Battle(
             duel_id=duel.id,
-            order=int(row["combat_order"]),
+            order=battle_order,
         )
         session.add(battle)
 
-        gv = (
+        gvp = (
             session.query(GameVersionPlatform)
             .join(Game)
-            .filter(Game.name == row["game"], GameVersionPlatform.version == row["version"])
+            .filter(Game.name == row.game_name, GameVersionPlatform.version == row.game_version)
             .one()
         )
 
-        p1 = session.query(Player).filter_by(nickname=row["player_1"]).one()
-        p2 = session.query(Player).filter_by(nickname=row["player_2"]).one()
+        c1 = self._get_or_create_character(session, row.character_1_name, gvp)
+        c2 = self._get_or_create_character(session, row.character_2_name, gvp)
 
-        c1 = self._get_or_create_character(session, row["character_1"], gv)
-        c2 = self._get_or_create_character(session, row["character_2"], gv)
+        p1 = session.query(Player).filter_by(nickname=row.player_1_name).one()
+        p2 = session.query(Player).filter_by(nickname=row.player_2_name).one()
 
-        session.add(BattleParticipant(battle_id=battle.id,
-                    player_id=p1.id, game_character_id=c1.id))
-        session.add(BattleParticipant(battle_id=battle.id,
-                    player_id=p2.id, game_character_id=c2.id))
+        duel_team = session.query(DuelTeam).filter_by(duel_id=duel.id).one()
+
+        session.add(BattleParticipant(
+            battle_id=battle.id,
+            player_id=p1.id,
+            game_character_id=c1.id,
+            duel_team_id=duel_team.id
+        ))
+
+        session.add(BattleParticipant(
+            battle_id=battle.id,
+            player_id=p2.id,
+            game_character_id=c2.id,
+            duel_team_id=duel_team.id
+        ))
 
         return battle
 
-    def _create_rounds(self, session, battle, row):
-        for i in range(1, 6):
-            r1 = row.get(f"p1_r{i}")
-            r2 = row.get(f"p2_r{i}")
+    def _create_rounds(self, session, battle, row: RowLegacyMapper):
+        """
+        Crea rounds y resultados a partir del mapper legacy.
+        """
+        p1 = session.query(Player).filter_by(nickname=row.player_1_name).one()
+        p2 = session.query(Player).filter_by(nickname=row.player_2_name).one()
 
-            if not r1 or not r2:
+        for i in range(1, 6):
+            r1 = row.round_result(i, player=1)
+            r2 = row.round_result(i, player=2)
+
+            # No hubo round
+            if r1 == "0" or r2 == "0":
                 continue
 
-            round_ = Round(battle_id=battle.id, order=i)
-            session.add(round_)
+            round = Round(
+                battle_id=battle.id,
+                order=i,
+            )
+            session.add(round)
+            session.flush()  # asegura round.id
 
-            p1 = session.query(Player).filter_by(
-                nickname=row["player_1"]).one()
-            p2 = session.query(Player).filter_by(
-                nickname=row["player_2"]).one()
+            session.add_all([
+                RoundResult(
+                    round_id=round.id,
+                    player_id=p1.id,
+                    result_code=r1,
+                ),
+                RoundResult(
+                    round_id=round.id,
+                    player_id=p2.id,
+                    result_code=r2,
+                ),
+            ])
 
-            session.add(RoundResult(round_id=round_.id,
-                        player_id=p1.id, result_code=r1))
-            session.add(RoundResult(round_id=round_.id,
-                        player_id=p2.id, result_code=r2))
-
-    # ──────────────────────────────────────────────
     # Utilities
-    # ──────────────────────────────────────────────
 
     def _get_or_create_simple(self, session, model, name):
         '''
@@ -352,22 +388,6 @@ class CSVLoaderLegacy(DataLoader):
             obj = model(name=name)
             session.add(obj)
         return obj
-
-    def _get_or_create_game_version_platform(self, session, game, platform, version):
-        '''
-        Las versiones viven dentro de un juego, no son globales.
-        '''
-        gvp = (
-            session.query(GameVersionPlatform)
-            .filter_by(game_id=game.id, platform_id=platform.id, version=version)
-            .one_or_none()
-        )
-
-        if gvp is None:
-            gvp = GameVersionPlatform(
-                game_id=game.id, platform_id=platform.id, version=version)
-            session.add(gvp)
-        return gvp
 
     @staticmethod
     def _parse_date(value: str | None):

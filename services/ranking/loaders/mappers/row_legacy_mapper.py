@@ -124,12 +124,12 @@ class RowLegacyMapper:
         return self._get("character_2_name")
 
     @property
-    def country_player_1(self):
-        return self._get("country_player_1")
+    def player_1_country(self):
+        return self._get("player_1_country")
 
     @property
-    def country_player_2(self):
-        return self._get("country_player_2")
+    def player_2_country(self):
+        return self._get("player_2_country")
 
     @property
     def team_player_1(self):
@@ -143,42 +143,12 @@ class RowLegacyMapper:
     def stage_name(self):
         return self._get("stage_name")
 
-    @property
-    def round_1_p1(self):
-        return self._get("round_1_p1")
+    def round_result(self, round_number: int, player: int) -> str | None:
+        """
+        Devuelve el resultado de un round para un jugador.
 
-    @property
-    def round_2_p1(self):
-        return self._get("round_2_p1")
-
-    @property
-    def round_3_p1(self):
-        return self._get("round_3_p1")
-
-    @property
-    def round_4_p1(self):
-        return self._get("round_4_p1")
-
-    @property
-    def round_5_p1(self):
-        return self._get("round_5_p1")
-
-    @property
-    def round_1_p2(self):
-        return self._get("round_1_p2")
-
-    @property
-    def round_2_p2(self):
-        return self._get("round_2_p2")
-
-    @property
-    def round_3_p2(self):
-        return self._get("round_3_p2")
-
-    @property
-    def round_4_p2(self):
-        return self._get("round_4_p2")
-
-    @property
-    def round_5_p2(self):
-        return self._get("round_5_p2")
+        player: 1 o 2
+        round_number: 1..5
+        """
+        key = f"round_{round_number}_p{player}"
+        return self._get(key)

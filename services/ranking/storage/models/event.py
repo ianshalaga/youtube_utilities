@@ -35,4 +35,6 @@ class Event(Base, WithCode):
 
     __table_args__ = (
         Index("ix_events_code", "code"),
+        Index("ix_events_season_id", "season_id"),
+        Index("ix_events_game_version_platform_id", "game_version_platform_id"),
     )

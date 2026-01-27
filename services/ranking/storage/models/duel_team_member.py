@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, Index, UniqueConstraint
 from services.ranking.storage.base import Base
 
 
@@ -9,3 +9,9 @@ class DuelTeamMember(Base):
 
     duel_team_id = Column(Integer, ForeignKey("duel_teams.id"), nullable=False)
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+
+    __table_args__ = (
+        Index("ix_duel_team_members_player_id", "player_id"),
+        Index("ix_duel_team_members_duel_team_id", "duel_team_id"),
+        UniqueConstraint("duel_team_id", "player_id"),
+    )

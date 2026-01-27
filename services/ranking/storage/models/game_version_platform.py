@@ -20,8 +20,5 @@ class GameVersionPlatform(Base, WithCode):
             "version",
             name="uq_game_platform_version"
         ),
-    )
-
-    __table_args__ = (
         Index("ix_game_versions_code", "code"),
     )
