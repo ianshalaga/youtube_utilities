@@ -15,27 +15,11 @@ import csv
 from pathlib import Path
 from datetime import datetime
 
-from services.ranking.loaders.base import DataLoader
 from services.ranking.storage.session import SessionLocal
 from services.ranking.storage.models import *
-# from services.ranking.storage.models import (
-#     Country,
-#     Player,
-#     PlayerAlias,
-#     Platform,
-#     Game,
-#     GameVersion,
-#     Season,
-#     Event,
-#     Duel,
-#     DuelParticipant,
-#     Battle,
-#     BattleParticipant,
-#     Round,
-#     RoundResult,
-#     CharacterIdentity,
-#     GameCharacter,
-# )
+from services.ranking.loaders.base import DataLoader
+from services.ranking.loaders.mappers.row_legacy_mapper import RowLegacyMapper
+from services.ranking.loaders.mappers.event_type_mapper import resolve_event_type
 
 
 class CSVLoaderLegacy(DataLoader):
@@ -79,46 +63,70 @@ class CSVLoaderLegacy(DataLoader):
         with self._csv_path.open(encoding="utf-8") as f:
             reader = csv.DictReader(f)
 
+            current_season = None
             current_event = None
             current_duel = None
             current_battle = None
 
+            last_season_key = None
             last_event_key = None
             last_duel_key = None
             last_battle_key = None
 
-            for row_index, row in enumerate(reader, start=1):
-                # ───────────────────────────────────
-                # EVENT
-                # ───────────────────────────────────
+            event_order = 0
+
+            for row_index, raw_row in enumerate(reader, start=1):
+                row = RowLegacyMapper(raw_row)
+
+                # @@@@ SEASON
+
+                season_key = (row.season_name)
+
+                if season_key != last_season_key:
+                    current_season = self._get_or_create_season(session, row)
+                    last_season_key = season_key
+                    event_order = 0
+
+                # @@@@ EVENT
+
                 event_key = (
-                    row["event_name"],
-                    row["platform"],
-                    row["game"],
-                    row["version"],
+                    current_season.id,
+                    row.event_name,
+                    row.event_date,
+                    row.region_name,
+                    row.game_name,
+                    row.game_version,
+                    row.event_platform,
+                    row.event_brackets,
+                    row.event_playlist
                 )
 
                 if event_key != last_event_key:
-                    current_event = self._get_or_create_event(session, row)
+                    event_order += 1
+                    current_event = self._get_or_create_event(
+                        session, row, current_season, event_order)
                     last_event_key = event_key
                     current_duel = None
                     last_duel_key = None
 
-                # ───────────────────────────────────
-                # DUEL
-                # ───────────────────────────────────
-                duel_key = (current_event.id, row["duel_order"])
+                # @@@@ DUEL
+
+                duel_key = (
+                    current_event.id,
+                    row.duel_order,
+                    row.duel_type,
+                    row.duel_video
+                )
 
                 if duel_key != last_duel_key:
-                    current_duel = self._create_duel(
+                    current_duel = self._get_or_create_duel(
                         session, current_event, row)
                     last_duel_key = duel_key
                     current_battle = None
                     last_battle_key = None
 
-                # ───────────────────────────────────
-                # BATTLE
-                # ───────────────────────────────────
+                # @@@@ BATTLE
+
                 battle_key = (current_duel.id, row["combat_order"])
 
                 if battle_key != last_battle_key:
@@ -134,6 +142,14 @@ class CSVLoaderLegacy(DataLoader):
     # ──────────────────────────────────────────────
     # Entity creation helpers
     # ──────────────────────────────────────────────
+
+    def _get_or_create_season(self, session, row):
+        season = Season(
+            name=row.season_name,
+            start_date=self._parse_date(row.event_date)
+        )
+        session.add(season)
+        return season
 
     def _get_or_create_country(self, session, code, name):
         country = session.query(Country).filter_by(code=code).one_or_none()
@@ -185,26 +201,39 @@ class CSVLoaderLegacy(DataLoader):
 
         return game_character
 
-    def _get_or_create_event(self, session, row):
+    def _get_or_create_event(self, session, row, season, event_order):
+        event_type_name = resolve_event_type(row.event_name)
+
+        event_type = self._get_or_create_simple(
+            session, EventType, event_type_name)
+
+        region = self._get_or_create_simple(
+            session, Region, row.region_name)
+
+        game = self._get_or_create_simple(session, Game, row.game_name)
+
         platform = self._get_or_create_simple(
-            session, Platform, row["platform"])
-        game = self._get_or_create_simple(session, Game, row["game"])
-        game_version = self._get_or_create_game_version(
-            session, game, row["version"])
+            session, Platform, row.event_platform)
+
+        game_version_platform = self._get_or_create_game_version_platform(
+            session, game, platform, row.game_version)
 
         event = Event(
-            name=row["event_name"],
-            platform_id=platform.id,
-            game_version_id=game_version.id,
-            bracket_url=row.get("event_bracket"),
-            playlist_url=row.get("event_playlist"),
-            event_type=row.get("event_type"),
-            event_date=self._parse_date(row.get("event_date")),
+            name=row.event_name,
+            event_date=self._parse_date(row.event_date),
+            season_id=season.id,
+            order=event_order,
+            event_type_id=event_type.id,
+            region_id=region.id,
+            game_version_platform_id=game_version_platform.id,
+            bracket_url=row.event_brackets,
+            playlist_url=row.event_playlist,
         )
+
         session.add(event)
         return event
 
-    def _create_duel(self, session, event, row):
+    def _get_or_create_duel(self, session, event, row):
         duel = Duel(
             event_id=event.id,
             order=int(row["duel_order"]),
@@ -233,9 +262,9 @@ class CSVLoaderLegacy(DataLoader):
         session.add(battle)
 
         gv = (
-            session.query(GameVersion)
+            session.query(GameVersionPlatform)
             .join(Game)
-            .filter(Game.name == row["game"], GameVersion.version == row["version"])
+            .filter(Game.name == row["game"], GameVersionPlatform.version == row["version"])
             .one()
         )
 
@@ -278,25 +307,64 @@ class CSVLoaderLegacy(DataLoader):
     # ──────────────────────────────────────────────
 
     def _get_or_create_simple(self, session, model, name):
+        '''
+        Una entidad simple existe una sola vez por nombre.
+
+        Evita duplicar entidades simples identificadas únicamente por name:
+            Country
+            Platform
+            Game
+            Region
+            EventType
+
+        Todas estas entidades cumplen el mismo patrón:
+            Tienen un name
+            El name es único a nivel conceptual
+            No dependen de ningún otro campo para existir
+        '''
         obj = session.query(model).filter_by(name=name).one_or_none()
         if obj is None:
             obj = model(name=name)
             session.add(obj)
         return obj
 
-    def _get_or_create_game_version(self, session, game, version):
-        gv = (
-            session.query(GameVersion)
-            .filter_by(game_id=game.id, version=version)
+    def _get_or_create_game_version_platform(self, session, game, platform, version):
+        '''
+        Las versiones viven dentro de un juego, no son globales.
+        '''
+        gvp = (
+            session.query(GameVersionPlatform)
+            .filter_by(game_id=game.id, platform_id=platform.id, version=version)
             .one_or_none()
         )
-        if gv is None:
-            gv = GameVersion(game_id=game.id, version=version)
-            session.add(gv)
-        return gv
+
+        if gvp is None:
+            gvp = GameVersionPlatform(
+                game_id=game.id, platform_id=platform.id, version=version)
+            session.add(gvp)
+        return gvp
 
     @staticmethod
-    def _parse_date(value):
+    def _parse_date(value: str | None):
+        '''
+        Las fechas son datos estructurales, no texto libre.
+        '''
         if not value:
             return None
-        return datetime.strptime(value, "%Y-%m-%d").date()
+
+        value = value.strip()
+
+        formats = (
+            "%Y-%m-%d",     # YYYY-MM-DD (ISO 8601) Preferido
+            "%Y/%m/%d",     # YYYY/MM/DD
+            "%d/%m/%Y",     # DD/MM/YYYY
+            "%d-%m-%Y",     # DD-MM-YYYY
+        )
+
+        for fmt in formats:
+            try:
+                return datetime.strptime(value, fmt).date()
+            except ValueError:
+                continue
+
+        raise ValueError(f"Formato de fecha no reconocido: {value}")

@@ -3,8 +3,8 @@ from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
 
 
-class GameVersion(Base, WithCode):
-    __tablename__ = "game_versions"
+class GameVersionPlatform(Base, WithCode):
+    __tablename__ = "game_version_platforms"
 
     id = Column(Integer, primary_key=True)
 

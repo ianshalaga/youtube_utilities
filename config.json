@@ -32,16 +32,16 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/In Sound Mind/video.mp4",
-      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/What Remains of Edith Finch OST",
+      "default_video_path": "E:/Proyectos/games/Super Smash Bros/1 Super Smash Bros/2 Gamerip Tracks/disc.mp4",
+      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/Super Smash Bros. OST/1 Super Smash Bros/2 Gamerip Tracks",
       "default_output_dir": "videos"
     },
 
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Kena - Bridge of Spirits OST/Nueva carpeta",
+      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Super Smash Bros. OST/1 Super Smash Bros/2 Gamerip Tracks/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Kena - Bridge of Spirits Complete OST",
+      "default_video_name": "Super Smash Bros. OST - Gamerip Tracks",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,

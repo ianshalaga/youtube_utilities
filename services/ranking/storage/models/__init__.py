@@ -18,7 +18,7 @@ from services.ranking.storage.models.duel import Duel
 from services.ranking.storage.models.event_type import EventType
 from services.ranking.storage.models.event import Event
 from services.ranking.storage.models.game_character import GameCharacter
-from services.ranking.storage.models.game_version import GameVersion
+from services.ranking.storage.models.game_version_platform import GameVersionPlatform
 from services.ranking.storage.models.game import Game
 from services.ranking.storage.models.platform import Platform
 from services.ranking.storage.models.player_alias import PlayerAlias

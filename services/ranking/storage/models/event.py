@@ -24,9 +24,9 @@ class Event(Base, WithCode):
 
     region_id = Column(Integer, ForeignKey("regions.id"), nullable=False)
 
-    game_version_id = Column(
+    game_version_platform_id = Column(
         Integer,
-        ForeignKey("game_versions.id"),
+        ForeignKey("game_version_platforms.id"),
         nullable=False
     )
 
