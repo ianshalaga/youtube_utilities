@@ -20,6 +20,7 @@ from services.ranking.storage.models import *
 from services.ranking.loaders.base import DataLoader
 from services.ranking.loaders.mappers.row_legacy_mapper import RowLegacyMapper
 from services.ranking.loaders.mappers.event_type_mapper import resolve_event_type
+from services.ranking.loaders.mappers.country_mapper import country_name_to_iso
 
 
 class CSVLoaderLegacy(DataLoader):
@@ -74,6 +75,7 @@ class CSVLoaderLegacy(DataLoader):
             last_battle_key = None
 
             event_order = 0
+            battle_order = 0
 
             for row_index, raw_row in enumerate(reader, start=1):
                 row = RowLegacyMapper(raw_row)
@@ -124,12 +126,14 @@ class CSVLoaderLegacy(DataLoader):
                     last_duel_key = duel_key
                     current_battle = None
                     last_battle_key = None
+                    battle_order = 0
 
                 # @@@@ BATTLE
 
                 battle_key = (current_duel.id, row["combat_order"])
 
                 if battle_key != last_battle_key:
+                    battle_order += 1
                     current_battle = self._create_battle(
                         session, current_duel, row)
                     last_battle_key = battle_key
@@ -151,19 +155,14 @@ class CSVLoaderLegacy(DataLoader):
         session.add(season)
         return season
 
-    def _get_or_create_country(self, session, code, name):
-        country = session.query(Country).filter_by(code=code).one_or_none()
+    def _get_or_create_country(self, session, name):
+        country = session.query(Country).filter_by(name=name).one_or_none()
         if country is None:
-            country = Country(code=code, name=name)
+            country = Country(iso_code=country_name_to_iso(name), name=name)
             session.add(country)
         return country
 
-    def _get_or_create_player(self, session, nickname, country_code):
-        country = session.query(Country).filter_by(
-            code=country_code).one_or_none()
-        if country is None:
-            raise ValueError(f"Country not found: {country_code}")
-
+    def _get_or_create_player(self, session, nickname, country):
         player = session.query(Player).filter_by(
             nickname=nickname).one_or_none()
         if player is None:
@@ -234,23 +233,49 @@ class CSVLoaderLegacy(DataLoader):
         return event
 
     def _get_or_create_duel(self, session, event, row):
+        duel_type = self._get_or_create_simple(
+            session, DuelType, row.duel_type
+        )
+
         duel = Duel(
             event_id=event.id,
-            order=int(row["duel_order"]),
-            video_url=row.get("duel_video"),
+            duel_type_id=duel_type.id,
+            order=int(row.duel_order),
+            video_url=row.duel_video,
         )
+
         session.add(duel)
 
-        # participants
-        p1 = self._get_or_create_player(
-            session, row["player_1"], row["p1_country"]
-        )
-        p2 = self._get_or_create_player(
-            session, row["player_2"], row["p2_country"]
-        )
+        # Countries
+        p1_country = self._get_or_create_country(session, row.player_1_country)
+        p2_country = self._get_or_create_country(session, row.player_2_country)
+
+        # Participants
+        p1 = self._get_or_create_player(session, row.player_1_name, p1_country)
+        p2 = self._get_or_create_player(session, row.player_2_name, p2_country)
 
         session.add(DuelParticipant(duel_id=duel.id, player_id=p1.id))
         session.add(DuelParticipant(duel_id=duel.id, player_id=p2.id))
+
+        if row.player_1_team is not None:
+            p1_team = self._get_or_create_simple(
+                session, Team, row.player_1_team)
+
+            duel_team_p1 = DuelTeam(duel_id=duel.id, team_id=p1_team.id)
+            session.add(duel_team_p1)
+
+            session.add(DuelTeamMember(
+                duel_team_id=duel_team_p1.id, player_id=p1.id))
+
+        if row.player_2_team is not None:
+            p2_team = self._get_or_create_simple(
+                session, Team, row.player_2_team)
+
+            duel_team_p2 = DuelTeam(duel_id=duel.id, team_id=p2_team.id)
+            session.add(duel_team_p2)
+
+            session.add(DuelTeamMember(
+                duel_team_id=duel_team_p2.id, player_id=p2.id))
 
         return duel
 
