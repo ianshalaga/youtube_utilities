@@ -14,10 +14,11 @@ Este loader:
 import csv
 from pathlib import Path
 from datetime import datetime
+from sqlalchemy.orm import sessionmaker
 
 from services.ranking.storage.session import SessionLocal
 from services.ranking.storage.models import *
-from services.ranking.loaders.base import DataLoader
+from services.ranking.loaders.base import Base, DataLoader
 from services.ranking.loaders.mappers.row_legacy_mapper import RowLegacyMapper
 from services.ranking.loaders.mappers.event_type_mapper import resolve_event_type
 from services.ranking.loaders.mappers.country_mapper import country_name_to_iso
@@ -60,7 +61,7 @@ class CSVLoaderLegacy(DataLoader):
     # Core loader
     # ──────────────────────────────────────────────
 
-    def _load_csv(self, session):
+    def _load_csv(self, session: sessionmaker):
         with self._csv_path.open(encoding="utf-8") as f:
             reader = csv.DictReader(f)
 
@@ -144,60 +145,33 @@ class CSVLoaderLegacy(DataLoader):
 
     # Entity creation helpers
 
-    def _get_or_create_season(self, session, row):
-        season = Season(
-            name=row.season_name,
-            start_date=self._parse_date(row.event_date)
-        )
-        session.add(season)
+    # @@@@ Externos (Season > Event > Duel > Battle > Round)
+
+    def _get_or_create_season(self,
+                              session: sessionmaker,
+                              row: RowLegacyMapper
+                              ):
+
+        season = session.query(Season).filter_by(
+            name=row.season_name).one_or_none()
+
+        if season is None:
+            season = Season(
+                name=row.season_name,
+                start_date=self._parse_date(row.event_date)
+            )
+
+            session.add(season)
+
         return season
 
-    def _get_or_create_country(self, session, name):
-        country = session.query(Country).filter_by(name=name).one_or_none()
-        if country is None:
-            country = Country(iso_code=country_name_to_iso(name), name=name)
-            session.add(country)
-        return country
+    def _get_or_create_event(self,
+                             session: sessionmaker,
+                             row: RowLegacyMapper,
+                             season: Season,
+                             event_order: int
+                             ):
 
-    def _get_or_create_player(self, session, nickname, country):
-        player = session.query(Player).filter_by(
-            nickname=nickname).one_or_none()
-        if player is None:
-            player = Player(nickname=nickname, country_id=country.id)
-            session.add(player)
-        return player
-
-    def _get_or_create_character(self, session, name, game_version_platform):
-        identity = (
-            session.query(CharacterIdentity)
-            .filter_by(name=name, franchise=game_version_platform.game.name)
-            .one_or_none()
-        )
-
-        if identity is None:
-            identity = CharacterIdentity(
-                name=name, franchise=game_version_platform.game.name)
-            session.add(identity)
-
-        game_character = (
-            session.query(GameCharacter)
-            .filter_by(
-                character_identity_id=identity.id,
-                game_version_platform_id=game_version_platform.id,
-            )
-            .one_or_none()
-        )
-
-        if game_character is None:
-            game_character = GameCharacter(
-                character_identity_id=identity.id,
-                game_version_platform_id=game_version_platform.id,
-            )
-            session.add(game_character)
-
-        return game_character
-
-    def _get_or_create_event(self, session, row, season, event_order):
         event_type_name = resolve_event_type(row.event_name)
 
         event_type = self._get_or_create_simple(
@@ -229,23 +203,12 @@ class CSVLoaderLegacy(DataLoader):
         session.add(event)
         return event
 
-    def _get_or_create_game_version_platform(self, session, game, platform, version):
-        '''
-        Las versiones viven dentro de un juego, no son globales.
-        '''
-        gvp = (
-            session.query(GameVersionPlatform)
-            .filter_by(game_id=game.id, platform_id=platform.id, version=version)
-            .one_or_none()
-        )
+    def _get_or_create_duel(self,
+                            session: sessionmaker,
+                            event: Event,
+                            row: RowLegacyMapper
+                            ):
 
-        if gvp is None:
-            gvp = GameVersionPlatform(
-                game_id=game.id, platform_id=platform.id, version=version)
-            session.add(gvp)
-        return gvp
-
-    def _get_or_create_duel(self, session, event, row):
         duel_type = self._get_or_create_simple(
             session, DuelType, row.duel_type
         )
@@ -292,12 +255,12 @@ class CSVLoaderLegacy(DataLoader):
 
         return duel
 
-    def _get_or_create_battle(self, session, duel, row, battle_order):
-        battle = Battle(
-            duel_id=duel.id,
-            order=battle_order,
-        )
-        session.add(battle)
+    def _get_or_create_battle(self,
+                              session: sessionmaker,
+                              duel: Duel,
+                              row: RowLegacyMapper,
+                              battle_order: int
+                              ):
 
         gvp = (
             session.query(GameVersionPlatform)
@@ -305,6 +268,16 @@ class CSVLoaderLegacy(DataLoader):
             .filter(Game.name == row.game_name, GameVersionPlatform.version == row.game_version)
             .one()
         )
+
+        stage = self._get_or_create_stage(session, row.stage_name, gvp)
+
+        battle = Battle(
+            duel_id=duel.id,
+            stage_id=stage.id,
+            order=battle_order,
+        )
+
+        session.add(battle)
 
         c1 = self._get_or_create_character(session, row.character_1_name, gvp)
         c2 = self._get_or_create_character(session, row.character_2_name, gvp)
@@ -330,7 +303,11 @@ class CSVLoaderLegacy(DataLoader):
 
         return battle
 
-    def _create_rounds(self, session, battle, row: RowLegacyMapper):
+    def _create_rounds(self,
+                       session: sessionmaker,
+                       battle: Battle,
+                       row: RowLegacyMapper
+                       ):
         """
         Crea rounds y resultados a partir del mapper legacy.
         """
@@ -365,9 +342,119 @@ class CSVLoaderLegacy(DataLoader):
                 ),
             ])
 
-    # Utilities
+    # @@@@ Internos
 
-    def _get_or_create_simple(self, session, model, name):
+    def _get_or_create_player(self,
+                              session: sessionmaker,
+                              nickname: str,
+                              country: Country
+                              ):
+
+        player = session.query(Player).filter_by(
+            nickname=nickname).one_or_none()
+
+        if player is None:
+            player = Player(nickname=nickname, country_id=country.id)
+            session.add(player)
+
+        return player
+
+    def _get_or_create_character(self,
+                                 session: sessionmaker,
+                                 name: str,
+                                 game_version_platform: GameVersionPlatform
+                                 ):
+
+        identity = (
+            session.query(CharacterIdentity)
+            .filter_by(name=name, franchise=game_version_platform.game.name)
+            .one_or_none()
+        )
+
+        if identity is None:
+            identity = CharacterIdentity(
+                name=name, franchise=game_version_platform.game.name)
+            session.add(identity)
+
+        game_character = (
+            session.query(GameCharacter)
+            .filter_by(
+                character_identity_id=identity.id,
+                game_version_platform_id=game_version_platform.id,
+            )
+            .one_or_none()
+        )
+
+        if game_character is None:
+            game_character = GameCharacter(
+                character_identity_id=identity.id,
+                game_version_platform_id=game_version_platform.id,
+            )
+            session.add(game_character)
+
+        return game_character
+
+    def _get_or_create_country(self,
+                               session: sessionmaker,
+                               name: str
+                               ):
+
+        country = session.query(Country).filter_by(name=name).one_or_none()
+
+        if country is None:
+            country = Country(iso_code=country_name_to_iso(name), name=name)
+            session.add(country)
+
+        return country
+
+    def _get_or_create_game_version_platform(self,
+                                             session: sessionmaker,
+                                             game: Game,
+                                             platform: Platform,
+                                             version: str
+                                             ):
+        '''
+        Las versiones viven dentro de un juego, no son globales.
+        '''
+        gvp = (
+            session.query(GameVersionPlatform)
+            .filter_by(game_id=game.id, platform_id=platform.id, version=version)
+            .one_or_none()
+        )
+
+        if gvp is None:
+            gvp = GameVersionPlatform(
+                game_id=game.id, platform_id=platform.id, version=version)
+            session.add(gvp)
+        return gvp
+
+    def _get_or_create_stage(self,
+                             session: sessionmaker,
+                             name: str,
+                             game_version_platform: GameVersionPlatform
+                             ):
+
+        stage = session.query(Stage).filter_by(
+            name=name,
+            game_version_platform_id=game_version_platform.id
+        ).one_or_none()
+
+        if stage is None:
+            stage = Stage(
+                name=name,
+                game_version_platform_id=game_version_platform.id
+            )
+            session.add(stage)
+
+        return stage
+
+    # @@@@ Utilidades
+
+    def _get_or_create_simple(self,
+                              session: sessionmaker,
+                              model: Base,
+                              name: str
+                              ):
         '''
         Una entidad simple existe una sola vez por nombre.
 
@@ -384,9 +471,11 @@ class CSVLoaderLegacy(DataLoader):
             No dependen de ningún otro campo para existir
         '''
         obj = session.query(model).filter_by(name=name).one_or_none()
+
         if obj is None:
             obj = model(name=name)
             session.add(obj)
+
         return obj
 
     @staticmethod

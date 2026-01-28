@@ -3,13 +3,13 @@ from enum import Enum
 
 class EventType(Enum):
     TOURNAMENT = "tournament"
-    LEAGUE = "league"
     TEAM_TOURNAMENT = "team_tournament"
-    TOURNAMENT_SPECIAL = "tournament_special"
+    SPECIAL_TOURNAMENT = "special_tournament"
+    LEAGUE = "league"
 
 
 EVENT_TYPE_PREFIX_MAP = {
-    "SSLTSE": EventType.TOURNAMENT_SPECIAL,
+    "SSLTSE": EventType.SPECIAL_TOURNAMENT,
     "SSLTT": EventType.TEAM_TOURNAMENT,
     "SSLL": EventType.LEAGUE,
     "SSLT": EventType.TOURNAMENT,
@@ -31,6 +31,6 @@ def resolve_event_type(event_name: str) -> EventType:
 
     for prefix, event_type in EVENT_TYPE_PREFIX_MAP.items():
         if event_name.startswith(prefix):
-            return event_type
+            return event_type.value
 
     raise ValueError(f"Tipo de evento desconocido: {event_name}")
