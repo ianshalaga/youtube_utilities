@@ -78,7 +78,7 @@ class CSVLoaderLegacy(DataLoader):
             event_order = 0
             battle_order = 0
 
-            for row_index, raw_row in enumerate(reader, start=1):
+            for _, raw_row in enumerate(reader, start=1):
                 row = RowLegacyMapper(raw_row)
 
                 # @@@@ SEASON
@@ -122,7 +122,7 @@ class CSVLoaderLegacy(DataLoader):
                 )
 
                 if duel_key != last_duel_key:
-                    current_duel = self._get_or_create_duel(
+                    current_duel, duel_teams = self._get_or_create_duel(
                         session, current_event, row)
                     last_duel_key = duel_key
                     current_battle = None
@@ -137,7 +137,7 @@ class CSVLoaderLegacy(DataLoader):
                 if battle_key != last_battle_key:
                     battle_order += 1
                     current_battle = self._get_or_create_battle(
-                        session, current_duel, row, battle_order)
+                        session, current_duel, row, battle_order, duel_teams)
                     last_battle_key = battle_key
 
                 # @@@@ ROUNDS
@@ -151,7 +151,10 @@ class CSVLoaderLegacy(DataLoader):
                               session: sessionmaker,
                               row: RowLegacyMapper
                               ):
-
+        '''
+        La fecha de inicio de la temporada se deduce
+        de la fecha del primer evento de la misma.
+        '''
         season = session.query(Season).filter_by(
             name=row.season_name).one_or_none()
 
@@ -233,33 +236,40 @@ class CSVLoaderLegacy(DataLoader):
         session.add(DuelParticipant(duel_id=duel.id, player_id=p1.id))
         session.add(DuelParticipant(duel_id=duel.id, player_id=p2.id))
 
-        if row.player_1_team is not None:
-            p1_team = self._get_or_create_simple(
+        duel_teams = {}
+
+        if row.player_1_team:
+            team = self._get_or_create_simple(
                 session, Team, row.player_1_team)
 
-            duel_team_p1 = DuelTeam(duel_id=duel.id, team_id=p1_team.id)
-            session.add(duel_team_p1)
+            duel_team = DuelTeam(duel_id=duel.id, team_id=team.id)
+            session.add(duel_team)
+
+            duel_teams["p1"] = duel_team
 
             session.add(DuelTeamMember(
-                duel_team_id=duel_team_p1.id, player_id=p1.id))
+                duel_team_id=duel_team.id, player_id=p1.id))
 
-        if row.player_2_team is not None:
-            p2_team = self._get_or_create_simple(
+        if row.player_2_team:
+            team = self._get_or_create_simple(
                 session, Team, row.player_2_team)
 
-            duel_team_p2 = DuelTeam(duel_id=duel.id, team_id=p2_team.id)
-            session.add(duel_team_p2)
+            duel_team = DuelTeam(duel_id=duel.id, team_id=team.id)
+            session.add(duel_team)
+
+            duel_teams["p2"] = duel_team
 
             session.add(DuelTeamMember(
-                duel_team_id=duel_team_p2.id, player_id=p2.id))
+                duel_team_id=duel_team.id, player_id=p2.id))
 
-        return duel
+        return (duel, duel_teams)
 
     def _get_or_create_battle(self,
                               session: sessionmaker,
                               duel: Duel,
                               row: RowLegacyMapper,
-                              battle_order: int
+                              battle_order: int,
+                              duel_teams: dict[str, DuelTeam]
                               ):
 
         gvp = (
@@ -285,20 +295,21 @@ class CSVLoaderLegacy(DataLoader):
         p1 = session.query(Player).filter_by(nickname=row.player_1_name).one()
         p2 = session.query(Player).filter_by(nickname=row.player_2_name).one()
 
-        duel_team = session.query(DuelTeam).filter_by(duel_id=duel.id).one()
+        duel_team_p1 = duel_teams.get("p1")
+        duel_team_p2 = duel_teams.get("p2")
 
         session.add(BattleParticipant(
             battle_id=battle.id,
             player_id=p1.id,
             game_character_id=c1.id,
-            duel_team_id=duel_team.id
+            duel_team_id=duel_team_p1.id if duel_team_p1 else None
         ))
 
         session.add(BattleParticipant(
             battle_id=battle.id,
             player_id=p2.id,
             game_character_id=c2.id,
-            duel_team_id=duel_team.id
+            duel_team_id=duel_team_p2.id if duel_team_p2 else None
         ))
 
         return battle
