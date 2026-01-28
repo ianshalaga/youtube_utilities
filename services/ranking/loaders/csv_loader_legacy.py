@@ -14,7 +14,7 @@ Este loader:
 import csv
 from pathlib import Path
 from datetime import datetime
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
 
 from services.ranking.storage.session import SessionLocal
 from services.ranking.storage.models import *
@@ -61,7 +61,7 @@ class CSVLoaderLegacy(DataLoader):
     # Core loader
     # ──────────────────────────────────────────────
 
-    def _load_csv(self, session: sessionmaker):
+    def _load_csv(self, session: Session):
         with self._csv_path.open(encoding="utf-8") as f:
             reader = csv.DictReader(f)
 
@@ -78,7 +78,7 @@ class CSVLoaderLegacy(DataLoader):
             event_order = 0
             battle_order = 0
 
-            for _, raw_row in enumerate(reader, start=1):
+            for raw_row in reader:
                 row = RowLegacyMapper(raw_row)
 
                 # @@@@ SEASON
@@ -148,7 +148,7 @@ class CSVLoaderLegacy(DataLoader):
     # @@@@ Externos (Season > Event > Duel > Battle > Round)
 
     def _get_or_create_season(self,
-                              session: sessionmaker,
+                              session: Session,
                               row: RowLegacyMapper
                               ):
         '''
@@ -169,7 +169,7 @@ class CSVLoaderLegacy(DataLoader):
         return season
 
     def _get_or_create_event(self,
-                             session: sessionmaker,
+                             session: Session,
                              row: RowLegacyMapper,
                              season: Season,
                              event_order: int
@@ -207,7 +207,7 @@ class CSVLoaderLegacy(DataLoader):
         return event
 
     def _get_or_create_duel(self,
-                            session: sessionmaker,
+                            session: Session,
                             event: Event,
                             row: RowLegacyMapper
                             ):
@@ -242,8 +242,15 @@ class CSVLoaderLegacy(DataLoader):
             team = self._get_or_create_simple(
                 session, Team, row.player_1_team)
 
-            duel_team = DuelTeam(duel_id=duel.id, team_id=team.id)
-            session.add(duel_team)
+            duel_team = (
+                session.query(DuelTeam)
+                .filter_by(duel_id=duel.id, team_id=team.id)
+                .one_or_none()
+            )
+
+            if duel_team is None:
+                duel_team = DuelTeam(duel_id=duel.id, team_id=team.id)
+                session.add(duel_team)
 
             duel_teams["p1"] = duel_team
 
@@ -254,8 +261,15 @@ class CSVLoaderLegacy(DataLoader):
             team = self._get_or_create_simple(
                 session, Team, row.player_2_team)
 
-            duel_team = DuelTeam(duel_id=duel.id, team_id=team.id)
-            session.add(duel_team)
+            duel_team = (
+                session.query(DuelTeam)
+                .filter_by(duel_id=duel.id, team_id=team.id)
+                .one_or_none()
+            )
+
+            if duel_team is None:
+                duel_team = DuelTeam(duel_id=duel.id, team_id=team.id)
+                session.add(duel_team)
 
             duel_teams["p2"] = duel_team
 
@@ -265,7 +279,7 @@ class CSVLoaderLegacy(DataLoader):
         return (duel, duel_teams)
 
     def _get_or_create_battle(self,
-                              session: sessionmaker,
+                              session: Session,
                               duel: Duel,
                               row: RowLegacyMapper,
                               battle_order: int,
@@ -315,7 +329,7 @@ class CSVLoaderLegacy(DataLoader):
         return battle
 
     def _create_rounds(self,
-                       session: sessionmaker,
+                       session: Session,
                        battle: Battle,
                        row: RowLegacyMapper
                        ):
@@ -356,7 +370,7 @@ class CSVLoaderLegacy(DataLoader):
     # @@@@ Internos
 
     def _get_or_create_player(self,
-                              session: sessionmaker,
+                              session: Session,
                               nickname: str,
                               country: Country
                               ):
@@ -371,7 +385,7 @@ class CSVLoaderLegacy(DataLoader):
         return player
 
     def _get_or_create_character(self,
-                                 session: sessionmaker,
+                                 session: Session,
                                  name: str,
                                  game_version_platform: GameVersionPlatform
                                  ):
@@ -406,7 +420,7 @@ class CSVLoaderLegacy(DataLoader):
         return game_character
 
     def _get_or_create_country(self,
-                               session: sessionmaker,
+                               session: Session,
                                name: str
                                ):
 
@@ -419,7 +433,7 @@ class CSVLoaderLegacy(DataLoader):
         return country
 
     def _get_or_create_game_version_platform(self,
-                                             session: sessionmaker,
+                                             session: Session,
                                              game: Game,
                                              platform: Platform,
                                              version: str
@@ -440,7 +454,7 @@ class CSVLoaderLegacy(DataLoader):
         return gvp
 
     def _get_or_create_stage(self,
-                             session: sessionmaker,
+                             session: Session,
                              name: str,
                              game_version_platform: GameVersionPlatform
                              ):
@@ -462,7 +476,7 @@ class CSVLoaderLegacy(DataLoader):
     # @@@@ Utilidades
 
     def _get_or_create_simple(self,
-                              session: sessionmaker,
+                              session: Session,
                               model: Base,
                               name: str
                               ):
