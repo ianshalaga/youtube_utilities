@@ -18,7 +18,8 @@ from sqlalchemy.orm import Session
 
 from services.ranking.storage.session import SessionLocal
 from services.ranking.storage.models import *
-from services.ranking.loaders.base import Base, DataLoader
+from services.ranking.loaders.base import DataLoader
+from services.ranking.storage.base import Base
 from services.ranking.loaders.mappers.row_legacy_mapper import RowLegacyMapper
 from services.ranking.loaders.mappers.event_type_mapper import resolve_event_type
 from services.ranking.loaders.mappers.country_mapper import country_name_to_iso
@@ -62,6 +63,10 @@ class CSVLoaderLegacy(DataLoader):
     # ──────────────────────────────────────────────
 
     def _load_csv(self, session: Session):
+        '''
+        CSV perfectamente ordenado.
+        No existen rounds parciales (un solo "0").
+        '''
         with self._csv_path.open(encoding="utf-8") as f:
             reader = csv.DictReader(f)
 
@@ -106,7 +111,7 @@ class CSVLoaderLegacy(DataLoader):
 
                 if event_key != last_event_key:
                     event_order += 1
-                    current_event = self._get_or_create_event(
+                    current_event, game_version_platform = self._get_or_create_event(
                         session, row, current_season, event_order)
                     last_event_key = event_key
                     current_duel = None
@@ -137,7 +142,7 @@ class CSVLoaderLegacy(DataLoader):
                 if battle_key != last_battle_key:
                     battle_order += 1
                     current_battle = self._get_or_create_battle(
-                        session, current_duel, row, battle_order, duel_teams)
+                        session, current_duel, row, battle_order, duel_teams, game_version_platform)
                     last_battle_key = battle_key
 
                 # @@@@ ROUNDS
@@ -204,7 +209,7 @@ class CSVLoaderLegacy(DataLoader):
         )
 
         session.add(event)
-        return event
+        return (event, game_version_platform)
 
     def _get_or_create_duel(self,
                             session: Session,
@@ -283,17 +288,19 @@ class CSVLoaderLegacy(DataLoader):
                               duel: Duel,
                               row: RowLegacyMapper,
                               battle_order: int,
-                              duel_teams: dict[str, DuelTeam]
+                              duel_teams: dict[str, DuelTeam],
+                              game_version_platform: GameVersionPlatform
                               ):
 
-        gvp = (
-            session.query(GameVersionPlatform)
-            .join(Game)
-            .filter(Game.name == row.game_name, GameVersionPlatform.version == row.game_version)
-            .one()
-        )
+        # game_version_platform = (
+        #     session.query(GameVersionPlatform)
+        #     .join(Game)
+        #     .filter(Game.name == row.game_name, GameVersionPlatform.version == row.game_version)
+        #     .one()
+        # )
 
-        stage = self._get_or_create_stage(session, row.stage_name, gvp)
+        stage = self._get_or_create_stage(
+            session, row.stage_name, game_version_platform)
 
         battle = Battle(
             duel_id=duel.id,
@@ -303,8 +310,10 @@ class CSVLoaderLegacy(DataLoader):
 
         session.add(battle)
 
-        c1 = self._get_or_create_character(session, row.character_1_name, gvp)
-        c2 = self._get_or_create_character(session, row.character_2_name, gvp)
+        c1 = self._get_or_create_character(
+            session, row.character_1_name, game_version_platform)
+        c2 = self._get_or_create_character(
+            session, row.character_2_name, game_version_platform)
 
         p1 = session.query(Player).filter_by(nickname=row.player_1_name).one()
         p2 = session.query(Player).filter_by(nickname=row.player_2_name).one()

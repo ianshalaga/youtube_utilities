@@ -6,14 +6,20 @@ from core.config_manager import ConfigManager
 from services.media.video.converter import VideoConverter
 from services.media.ffprobe_provider import FFProbeProvider
 from apps.ranking_system.create_db import create_db
+from apps.ranking_system.loaders.load_legacy import run as load_legacy_data
 
 
 config = ConfigManager()
 
 video_music = False
-video_joiner = True
+video_joiner = False
 video_converter = False
 db = False
+load_legacy = True
+
+
+csv_legacy_path = Path("F:/DESCARGAS/SSLEdb - SSLT.csv")
+
 
 if video_music:
     video_music_processor = VideoMusicProcessor()
@@ -65,3 +71,6 @@ if video_converter:
 
 if db:
     create_db()
+
+if load_legacy:
+    load_legacy_data(csv_legacy_path)

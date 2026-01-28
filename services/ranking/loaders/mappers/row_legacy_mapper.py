@@ -132,12 +132,12 @@ class RowLegacyMapper:
         return self._get("player_2_country")
 
     @property
-    def team_player_1(self):
-        return self._get("team_player_1")
+    def player_1_team(self):
+        return self._get("player_1_team")
 
     @property
-    def team_player_2(self):
-        return self._get("team_player_2")
+    def player_2_team(self):
+        return self._get("player_2_team")
 
     @property
     def stage_name(self):
