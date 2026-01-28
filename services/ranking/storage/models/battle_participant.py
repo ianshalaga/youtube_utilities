@@ -1,17 +1,10 @@
 from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint, Index
+from sqlalchemy.orm import relationship
 from services.ranking.storage.base import Base
 
 
 class BattleParticipant(Base):
     __tablename__ = "battle_participants"
-
-    id = Column(Integer, primary_key=True)
-
-    battle_id = Column(Integer, ForeignKey("battles.id"), nullable=False)
-    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
-    game_character_id = Column(Integer, ForeignKey(
-        "game_characters.id"), nullable=False)
-    duel_team_id = Column(Integer, ForeignKey("duel_teams.id"), nullable=True)
 
     __table_args__ = (
         Index("ix_battle_participants_battle_id", "battle_id"),
@@ -22,3 +15,18 @@ class BattleParticipant(Base):
             name="uq_battle_player"
         )
     )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Keys
+    battle_id = Column(Integer, ForeignKey("battles.id"), nullable=False)
+    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    game_character_id = Column(Integer, ForeignKey(
+        "game_characters.id"), nullable=False)
+    duel_team_id = Column(Integer, ForeignKey("duel_teams.id"), nullable=True)
+
+    # Relationships
+    battle = relationship("Battle")
+    player = relationship("Player")
+    game_character = relationship("GameCharacter")
+    duel_team = relationship("DuelTeam")

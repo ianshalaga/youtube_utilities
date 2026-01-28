@@ -17,12 +17,21 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from services.ranking.storage.session import SessionLocal
-from services.ranking.storage.models import *
 from services.ranking.loaders.base import DataLoader
 from services.ranking.storage.base import Base
 from services.ranking.loaders.mappers.row_legacy_mapper import RowLegacyMapper
 from services.ranking.loaders.mappers.event_type_mapper import resolve_event_type
 from services.ranking.loaders.mappers.country_mapper import country_name_to_iso
+
+from services.ranking.storage.models import (
+    Season, Event, Duel, Battle, Round,
+    Player, Country, Team,
+    DuelParticipant, DuelTeam, DuelTeamMember,
+    BattleParticipant, RoundResult,
+    Game, Platform, GameVersionPlatform,
+    GameCharacter, CharacterIdentity,
+    EventType, Region, DuelType, Stage,
+)
 
 
 class CSVLoaderLegacy(DataLoader):
@@ -127,7 +136,7 @@ class CSVLoaderLegacy(DataLoader):
                 )
 
                 if duel_key != last_duel_key:
-                    current_duel, duel_teams = self._get_or_create_duel(
+                    current_duel, duel_teams, player_1, player_2 = self._get_or_create_duel(
                         session, current_event, row)
                     last_duel_key = duel_key
                     current_battle = None
@@ -142,11 +151,25 @@ class CSVLoaderLegacy(DataLoader):
                 if battle_key != last_battle_key:
                     battle_order += 1
                     current_battle = self._get_or_create_battle(
-                        session, current_duel, row, battle_order, duel_teams, game_version_platform)
+                        session,
+                        current_duel,
+                        row,
+                        battle_order,
+                        duel_teams,
+                        game_version_platform,
+                        player_1,
+                        player_2
+                    )
                     last_battle_key = battle_key
 
                 # @@@@ ROUNDS
-                self._create_rounds(session, current_battle, row)
+                self._create_rounds(
+                    session,
+                    current_battle,
+                    row,
+                    player_1,
+                    player_2
+                )
 
     # Entity creation helpers
 
@@ -199,11 +222,11 @@ class CSVLoaderLegacy(DataLoader):
         event = Event(
             name=row.event_name,
             event_date=self._parse_date(row.event_date),
-            season_id=season.id,
+            season=season,
             order=event_order,
-            event_type_id=event_type.id,
-            region_id=region.id,
-            game_version_platform_id=game_version_platform.id,
+            event_type=event_type,
+            region=region,
+            game_version_platform=game_version_platform,
             bracket_url=row.event_brackets,
             playlist_url=row.event_playlist,
         )
@@ -222,8 +245,8 @@ class CSVLoaderLegacy(DataLoader):
         )
 
         duel = Duel(
-            event_id=event.id,
-            duel_type_id=duel_type.id,
+            event=event,
+            duel_type=duel_type,
             order=int(row.duel_order),
             video_url=row.duel_video,
         )
@@ -238,8 +261,8 @@ class CSVLoaderLegacy(DataLoader):
         p1 = self._get_or_create_player(session, row.player_1_name, p1_country)
         p2 = self._get_or_create_player(session, row.player_2_name, p2_country)
 
-        session.add(DuelParticipant(duel_id=duel.id, player_id=p1.id))
-        session.add(DuelParticipant(duel_id=duel.id, player_id=p2.id))
+        session.add(DuelParticipant(duel=duel, player=p1))
+        session.add(DuelParticipant(duel=duel, player=p2))
 
         duel_teams = {}
 
@@ -249,18 +272,17 @@ class CSVLoaderLegacy(DataLoader):
 
             duel_team = (
                 session.query(DuelTeam)
-                .filter_by(duel_id=duel.id, team_id=team.id)
+                .filter_by(duel=duel, team=team)
                 .one_or_none()
             )
 
             if duel_team is None:
-                duel_team = DuelTeam(duel_id=duel.id, team_id=team.id)
+                duel_team = DuelTeam(duel=duel, team=team)
                 session.add(duel_team)
 
             duel_teams["p1"] = duel_team
 
-            session.add(DuelTeamMember(
-                duel_team_id=duel_team.id, player_id=p1.id))
+            session.add(DuelTeamMember(duel_team=duel_team, player=p1))
 
         if row.player_2_team:
             team = self._get_or_create_simple(
@@ -268,20 +290,19 @@ class CSVLoaderLegacy(DataLoader):
 
             duel_team = (
                 session.query(DuelTeam)
-                .filter_by(duel_id=duel.id, team_id=team.id)
+                .filter_by(duel=duel, team=team)
                 .one_or_none()
             )
 
             if duel_team is None:
-                duel_team = DuelTeam(duel_id=duel.id, team_id=team.id)
+                duel_team = DuelTeam(duel=duel, team=team)
                 session.add(duel_team)
 
             duel_teams["p2"] = duel_team
 
-            session.add(DuelTeamMember(
-                duel_team_id=duel_team.id, player_id=p2.id))
+            session.add(DuelTeamMember(duel_team=duel_team, player=p2))
 
-        return (duel, duel_teams)
+        return (duel, duel_teams, p1, p2)
 
     def _get_or_create_battle(self,
                               session: Session,
@@ -289,22 +310,17 @@ class CSVLoaderLegacy(DataLoader):
                               row: RowLegacyMapper,
                               battle_order: int,
                               duel_teams: dict[str, DuelTeam],
-                              game_version_platform: GameVersionPlatform
+                              game_version_platform: GameVersionPlatform,
+                              p1: Player,
+                              p2: Player
                               ):
-
-        # game_version_platform = (
-        #     session.query(GameVersionPlatform)
-        #     .join(Game)
-        #     .filter(Game.name == row.game_name, GameVersionPlatform.version == row.game_version)
-        #     .one()
-        # )
 
         stage = self._get_or_create_stage(
             session, row.stage_name, game_version_platform)
 
         battle = Battle(
-            duel_id=duel.id,
-            stage_id=stage.id,
+            duel=duel,
+            stage=stage,
             order=battle_order,
         )
 
@@ -315,24 +331,21 @@ class CSVLoaderLegacy(DataLoader):
         c2 = self._get_or_create_character(
             session, row.character_2_name, game_version_platform)
 
-        p1 = session.query(Player).filter_by(nickname=row.player_1_name).one()
-        p2 = session.query(Player).filter_by(nickname=row.player_2_name).one()
-
         duel_team_p1 = duel_teams.get("p1")
         duel_team_p2 = duel_teams.get("p2")
 
         session.add(BattleParticipant(
-            battle_id=battle.id,
-            player_id=p1.id,
-            game_character_id=c1.id,
-            duel_team_id=duel_team_p1.id if duel_team_p1 else None
+            battle=battle,
+            player=p1,
+            game_character=c1,
+            duel_team=duel_team_p1
         ))
 
         session.add(BattleParticipant(
-            battle_id=battle.id,
-            player_id=p2.id,
-            game_character_id=c2.id,
-            duel_team_id=duel_team_p2.id if duel_team_p2 else None
+            battle=battle,
+            player=p2,
+            game_character=c2,
+            duel_team=duel_team_p2
         ))
 
         return battle
@@ -340,13 +353,15 @@ class CSVLoaderLegacy(DataLoader):
     def _create_rounds(self,
                        session: Session,
                        battle: Battle,
-                       row: RowLegacyMapper
+                       row: RowLegacyMapper,
+                       p1: Player,
+                       p2: Player
                        ):
         """
         Crea rounds y resultados a partir del mapper legacy.
         """
-        p1 = session.query(Player).filter_by(nickname=row.player_1_name).one()
-        p2 = session.query(Player).filter_by(nickname=row.player_2_name).one()
+        # p1 = session.query(Player).filter_by(nickname=row.player_1_name).one()
+        # p2 = session.query(Player).filter_by(nickname=row.player_2_name).one()
 
         for i in range(1, 6):
             r1 = row.round_result(i, player=1)
@@ -357,21 +372,21 @@ class CSVLoaderLegacy(DataLoader):
                 continue
 
             round = Round(
-                battle_id=battle.id,
+                battle=battle,
                 order=i,
             )
+
             session.add(round)
-            session.flush()  # asegura round.id
 
             session.add_all([
                 RoundResult(
-                    round_id=round.id,
-                    player_id=p1.id,
+                    round=round,
+                    player=p1,
                     result_code=r1,
                 ),
                 RoundResult(
-                    round_id=round.id,
-                    player_id=p2.id,
+                    round=round,
+                    player=p2,
                     result_code=r2,
                 ),
             ])
@@ -388,7 +403,7 @@ class CSVLoaderLegacy(DataLoader):
             nickname=nickname).one_or_none()
 
         if player is None:
-            player = Player(nickname=nickname, country_id=country.id)
+            player = Player(nickname=nickname, country=country)
             session.add(player)
 
         return player
@@ -413,16 +428,16 @@ class CSVLoaderLegacy(DataLoader):
         game_character = (
             session.query(GameCharacter)
             .filter_by(
-                character_identity_id=identity.id,
-                game_version_platform_id=game_version_platform.id,
+                character_identity=identity,
+                game_version_platform=game_version_platform,
             )
             .one_or_none()
         )
 
         if game_character is None:
             game_character = GameCharacter(
-                character_identity_id=identity.id,
-                game_version_platform_id=game_version_platform.id,
+                character_identity=identity,
+                game_version_platform=game_version_platform,
             )
             session.add(game_character)
 
@@ -452,13 +467,16 @@ class CSVLoaderLegacy(DataLoader):
         '''
         gvp = (
             session.query(GameVersionPlatform)
-            .filter_by(game_id=game.id, platform_id=platform.id, version=version)
+            .filter_by(game=game, platform=platform, version=version)
             .one_or_none()
         )
 
         if gvp is None:
             gvp = GameVersionPlatform(
-                game_id=game.id, platform_id=platform.id, version=version)
+                game=game,
+                platform=platform,
+                version=version
+            )
             session.add(gvp)
         return gvp
 
@@ -470,13 +488,13 @@ class CSVLoaderLegacy(DataLoader):
 
         stage = session.query(Stage).filter_by(
             name=name,
-            game_version_platform_id=game_version_platform.id
+            game_version_platform=game_version_platform
         ).one_or_none()
 
         if stage is None:
             stage = Stage(
                 name=name,
-                game_version_platform_id=game_version_platform.id
+                game_version_platform=game_version_platform
             )
             session.add(stage)
 

@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint, Index
+from sqlalchemy.orm import relationship
 from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
 
@@ -12,6 +13,9 @@ class GameVersionPlatform(Base, WithCode):
     platform_id = Column(Integer, ForeignKey("platforms.id"), nullable=False)
 
     version = Column(String, nullable=False)
+
+    game = relationship("Game")
+    platform = relationship("Platform")
 
     __table_args__ = (
         UniqueConstraint(

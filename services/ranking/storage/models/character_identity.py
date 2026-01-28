@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Index
+from sqlalchemy import Column, Integer, String, Index, UniqueConstraint
 from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
 
@@ -13,4 +13,9 @@ class CharacterIdentity(Base, WithCode):
 
     __table_args__ = (
         Index("ix_character_identities_code", "code"),
+        UniqueConstraint(
+            "name",
+            "franchise",
+            name="uq_character_identity_name_franchise"
+        ),
     )
