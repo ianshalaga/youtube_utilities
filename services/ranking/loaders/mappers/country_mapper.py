@@ -6,6 +6,7 @@ COUNTRY_NAME_TO_ISO: Dict[str, str] = {
     "chile": "CL",
     "uruguay": "UY",
     "brasil": "BR",
+    "paraguay": "PY",
 }
 
 ISO_TO_COUNTRY_NAME: Dict[str, str] = {

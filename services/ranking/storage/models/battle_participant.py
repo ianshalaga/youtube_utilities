@@ -13,7 +13,12 @@ class BattleParticipant(Base):
             "battle_id",
             "player_id",
             name="uq_battle_player"
-        )
+        ),
+        UniqueConstraint(
+            "battle_id",
+            "position",
+            name="uq_battle_position"
+        ),
     )
 
     id = Column(Integer, primary_key=True)
@@ -21,9 +26,14 @@ class BattleParticipant(Base):
     # Foreign Keys
     battle_id = Column(Integer, ForeignKey("battles.id"), nullable=False)
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
-    game_character_id = Column(Integer, ForeignKey(
-        "game_characters.id"), nullable=False)
-    duel_team_id = Column(Integer, ForeignKey("duel_teams.id"), nullable=True)
+    game_character_id = Column(
+        Integer, ForeignKey("game_characters.id"), nullable=False
+    )
+    duel_team_id = Column(
+        Integer, ForeignKey("duel_teams.id"), nullable=True
+    )
+
+    position = Column(Integer, nullable=False)
 
     # Relationships
     battle = relationship("Battle")
