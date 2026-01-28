@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, Index
+from sqlalchemy import Column, Integer, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
@@ -9,6 +9,10 @@ class GameCharacter(Base, WithCode):
 
     __table_args__ = (
         Index("ix_game_characters_code", "code"),
+        UniqueConstraint(
+            "character_identity_id",
+            "game_version_platform_id"
+        )
     )
 
     id = Column(Integer, primary_key=True)
