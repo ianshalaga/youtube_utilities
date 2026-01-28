@@ -39,6 +39,7 @@ class CSVLoaderLegacy(DataLoader):
         if not csv_path.exists():
             raise FileNotFoundError(csv_path)
         self._csv_path = csv_path
+        self._country_cache: dict[str, Country] = {}
 
     # ──────────────────────────────────────────────
     # Public API
@@ -254,8 +255,10 @@ class CSVLoaderLegacy(DataLoader):
         session.add(duel)
 
         # Countries
-        p1_country = self._get_or_create_country(session, row.player_1_country)
-        p2_country = self._get_or_create_country(session, row.player_2_country)
+        p1_country = self._get_or_create_country(
+            session, country_name_to_iso(row.player_1_country), row.player_1_country)
+        p2_country = self._get_or_create_country(
+            session, country_name_to_iso(row.player_2_country), row.player_2_country)
 
         # Participants
         p1 = self._get_or_create_player(session, row.player_1_name, p1_country)
@@ -443,17 +446,30 @@ class CSVLoaderLegacy(DataLoader):
 
         return game_character
 
-    def _get_or_create_country(self,
-                               session: Session,
-                               name: str
-                               ):
+    def _get_or_create_country(
+        self,
+        session: Session,
+        iso_code: str,
+        name: str,
+    ) -> Country:
 
-        country = session.query(Country).filter_by(name=name).one_or_none()
+        if iso_code in self._country_cache:
+            return self._country_cache[iso_code]
+
+        country = (
+            session.query(Country)
+            .filter_by(iso_code=iso_code)
+            .one_or_none()
+        )
 
         if country is None:
-            country = Country(iso_code=country_name_to_iso(name), name=name)
+            country = Country(
+                iso_code=iso_code,
+                name=name,
+            )
             session.add(country)
 
+        self._country_cache[iso_code] = country
         return country
 
     def _get_or_create_game_version_platform(self,
@@ -465,9 +481,15 @@ class CSVLoaderLegacy(DataLoader):
         '''
         Las versiones viven dentro de un juego, no son globales.
         '''
+        session.flush()  # asegura game.id y platform.id
+
         gvp = (
             session.query(GameVersionPlatform)
-            .filter_by(game=game, platform=platform, version=version)
+            .filter_by(
+                game_id=game.id,
+                platform_id=platform.id,
+                version=version
+            )
             .one_or_none()
         )
 
@@ -486,10 +508,16 @@ class CSVLoaderLegacy(DataLoader):
                              game_version_platform: GameVersionPlatform
                              ):
 
-        stage = session.query(Stage).filter_by(
-            name=name,
-            game_version_platform=game_version_platform
-        ).one_or_none()
+        session.flush()
+
+        stage = (
+            session.query(Stage)
+            .filter_by(
+                name=name,
+                game_version_platform_id=game_version_platform.id
+            )
+            .one_or_none()
+        )
 
         if stage is None:
             stage = Stage(
