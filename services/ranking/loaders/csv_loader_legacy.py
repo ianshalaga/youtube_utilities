@@ -573,7 +573,6 @@ class CSVLoaderLegacy(DataLoader):
         Evita duplicar entidades simples identificadas únicamente por name:
             Country
             Platform
-            Game
             Region
             EventType
 
