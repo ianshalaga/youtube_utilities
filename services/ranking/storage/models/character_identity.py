@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, Index, UniqueConstraint
+from sqlalchemy import Column, Integer, String, UniqueConstraint, ForeignKey
+from sqlalchemy.orm import relationship
+
 from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
 
@@ -9,13 +11,28 @@ class CharacterIdentity(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     name = Column(String, nullable=False)
-    franchise = Column(String, nullable=False)
+
+    franchise_id = Column(
+        Integer,
+        ForeignKey("franchises.id"),
+        nullable=False
+    )
+
+    franchise = relationship(
+        "Franchise",
+        back_populates="character_identities"
+    )
 
     __table_args__ = (
-        Index("ix_character_identities_code", "code"),
         UniqueConstraint(
             "name",
-            "franchise",
-            name="uq_character_identity_name_franchise"
+            "franchise_id",
+            name="uq_character_identity"
         ),
+    )
+
+    # Relationships
+    game_characters = relationship(
+        "GameCharacter",
+        back_populates="character_identity"
     )

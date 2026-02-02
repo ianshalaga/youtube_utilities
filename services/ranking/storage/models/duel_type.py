@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+
 from services.ranking.storage.base import Base
 
 

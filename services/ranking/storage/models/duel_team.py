@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
+
 from services.ranking.storage.base import Base
 
 

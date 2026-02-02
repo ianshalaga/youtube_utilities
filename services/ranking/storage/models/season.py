@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, Index
+
 from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
 

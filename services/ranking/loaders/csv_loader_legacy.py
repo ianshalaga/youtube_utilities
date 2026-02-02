@@ -31,6 +31,7 @@ from services.ranking.storage.models import (
     Game, Platform, GameVersionPlatform,
     GameCharacter, CharacterIdentity,
     EventType, Region, DuelType, Stage,
+    Franchise
 )
 
 
@@ -114,7 +115,7 @@ class CSVLoaderLegacy(DataLoader):
 
                 if event_key != last_event_key:
                     event_order += 1
-                    current_event, game_version_platform = self._get_or_create_event(
+                    current_event, game_version_platform, franchise = self._get_or_create_event(
                         session, row, current_season, event_order)
                     last_event_key = event_key
                     current_duel = None
@@ -153,7 +154,8 @@ class CSVLoaderLegacy(DataLoader):
                         duel_teams,
                         game_version_platform,
                         player_1,
-                        player_2
+                        player_2,
+                        franchise
                     )
                     last_battle_key = battle_key
 
@@ -206,7 +208,21 @@ class CSVLoaderLegacy(DataLoader):
         region = self._get_or_create_simple(
             session, Region, row.region_name)
 
-        game = self._get_or_create_simple(session, Game, row.game_name)
+        franchise = self._get_or_create_simple(
+            session, Franchise, "Soulcalibur")
+
+        game = (
+            session.query(Game)
+            .filter_by(name=row.game_name)
+            .one_or_none()
+        )
+
+        if game is None:
+            game = Game(
+                name=row.game_name,
+                franchise=franchise
+            )
+            session.add(game)
 
         platform = self._get_or_create_simple(
             session, Platform, row.event_platform)
@@ -227,7 +243,7 @@ class CSVLoaderLegacy(DataLoader):
         )
 
         session.add(event)
-        return (event, game_version_platform)
+        return (event, game_version_platform, franchise)
 
     def _get_or_create_duel(self,
                             session: Session,
@@ -319,7 +335,8 @@ class CSVLoaderLegacy(DataLoader):
                               duel_teams: dict[str, DuelTeam],
                               game_version_platform: GameVersionPlatform,
                               p1: Player,
-                              p2: Player
+                              p2: Player,
+                              franchise: Franchise
                               ):
 
         stage = self._get_or_create_stage(
@@ -334,9 +351,9 @@ class CSVLoaderLegacy(DataLoader):
         session.add(battle)
 
         c1 = self._get_or_create_character(
-            session, row.character_1_name, game_version_platform)
+            session, row.character_1_name, franchise, game_version_platform)
         c2 = self._get_or_create_character(
-            session, row.character_2_name, game_version_platform)
+            session, row.character_2_name, franchise, game_version_platform)
 
         duel_team_p1 = duel_teams.get("p1")
         duel_team_p2 = duel_teams.get("p2")
@@ -420,18 +437,24 @@ class CSVLoaderLegacy(DataLoader):
     def _get_or_create_character(self,
                                  session: Session,
                                  name: str,
+                                 franchise: Franchise,
                                  game_version_platform: GameVersionPlatform
                                  ):
 
         identity = (
             session.query(CharacterIdentity)
-            .filter_by(name=name, franchise=game_version_platform.game.name)
+            .filter_by(
+                name=name,
+                franchise_id=franchise.id
+            )
             .one_or_none()
         )
 
         if identity is None:
             identity = CharacterIdentity(
-                name=name, franchise=game_version_platform.game.name)
+                name=name,
+                franchise=franchise
+            )
             session.add(identity)
 
         # Asegura PKs
