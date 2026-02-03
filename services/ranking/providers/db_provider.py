@@ -19,7 +19,7 @@ from domain.ranking.models.battle_event import BattleEvent
 from domain.ranking.models.duel_event import DuelEvent
 
 
-class DBProvider(DataProvider):
+class RankingDBProvider(DataProvider):
     """
     Proveedor de datos de ranking desde base SQL.
 

@@ -16,8 +16,45 @@ from typing import Optional
 
 
 # ─────────────────────────────────────────────────────────────
+# Objeto raíz de consulta de ranking
+# ─────────────────────────────────────────────────────────────
+
+@dataclass(frozen=True, slots=True)
+class RankingQuery:
+    """
+    Objeto raíz que describe una consulta completa de ranking.
+
+    Este es el ÚNICO objeto que debe viajar entre:
+        app → provider → repository
+    """
+
+    scope: RankingScopeFilter
+
+    duel: Optional[DuelFilter] = None
+    participant: Optional[ParticipantFilter] = None
+    battle: Optional[BattleContextFilter] = None
+    player_meta: Optional[PlayerMetaFilter] = None
+
+    def validate(self) -> None:
+        """
+        Validación semántica opcional.
+        Llamar explícitamente si se desea validar la coherencia del query.
+        """
+
+        if self.participant and not self.duel:
+            raise ValueError(
+                "ParticipantFilter requiere que DuelFilter esté definido."
+            )
+
+        if self.battle and not self.duel:
+            raise ValueError(
+                "BattleContextFilter requiere que DuelFilter esté definido."
+            )
+
+# ─────────────────────────────────────────────────────────────
 # Scope / Contexto competitivo
 # ─────────────────────────────────────────────────────────────
+
 
 @dataclass(frozen=True, slots=True)
 class RankingScopeFilter:
@@ -97,40 +134,3 @@ class PlayerMetaFilter:
     """
 
     country_id: Optional[int] = None
-
-
-# ─────────────────────────────────────────────────────────────
-# Objeto raíz de consulta de ranking
-# ─────────────────────────────────────────────────────────────
-
-@dataclass(frozen=True, slots=True)
-class RankingQuery:
-    """
-    Objeto raíz que describe una consulta completa de ranking.
-
-    Este es el ÚNICO objeto que debe viajar entre:
-        app → provider → repository
-    """
-
-    scope: RankingScopeFilter
-
-    duel: Optional[DuelFilter] = None
-    participant: Optional[ParticipantFilter] = None
-    battle: Optional[BattleContextFilter] = None
-    player_meta: Optional[PlayerMetaFilter] = None
-
-    def validate(self) -> None:
-        """
-        Validación semántica opcional.
-        Llamar explícitamente si se desea validar la coherencia del query.
-        """
-
-        if self.participant and not self.duel:
-            raise ValueError(
-                "ParticipantFilter requiere que DuelFilter esté definido."
-            )
-
-        if self.battle and not self.duel:
-            raise ValueError(
-                "BattleContextFilter requiere que DuelFilter esté definido."
-            )
