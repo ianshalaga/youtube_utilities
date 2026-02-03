@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from services.ranking.storage.models.round_result import RoundResult
+from domain.ranking.rules.round_scoring import ROUND_RESULT_POINTS
 
 
 # ─────────────────────────────────────────────────────────────
@@ -97,28 +98,25 @@ class BattleEvent:
                 },
             )
 
-            # Interpretación del resultado del round
-            if rr.result_code in ("W", "PW"):
+            # ─── Interpretación del resultado del round ───
+            result = rr.result_code
+
+            if result in ("W", "PW"):
                 entry["rounds_won"] += 1
-                entry["raw_points"] += 240
-
-            elif rr.result_code == "D":
+            elif result == "D":
                 entry["rounds_draw"] += 1
-                entry["raw_points"] += 240
-
-            elif rr.result_code in ("LB", "LY"):
+            else:
                 entry["rounds_lost"] += 1
 
-            elif rr.result_code == "PL":
-                entry["rounds_lost"] += 1
-                # 0 puntos
+            # ─── Puntos según regla de dominio ───
+            entry["raw_points"] += ROUND_RESULT_POINTS.get(result, 0)
 
         participants = tuple(
             BattleParticipantResult(**values)
             for values in data.values()
         )
 
-        # Determinar ganador / perdedor / empate
+        # ─── Determinar ganador / perdedor / empate ───
         p1, p2 = participants
 
         if p1.rounds_won > p2.rounds_won:
