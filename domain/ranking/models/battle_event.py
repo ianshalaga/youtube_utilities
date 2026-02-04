@@ -25,6 +25,7 @@ class BattleParticipantResult:
     player_id: int
     game_character_id: int
     position: int
+    duel_team_id: int | None
 
     rounds_won: int
     rounds_lost: int
@@ -91,6 +92,7 @@ class BattleEvent:
                     "player_id": rr.player_id,
                     "game_character_id": bp.game_character_id,
                     "position": bp.position,
+                    "duel_team_id": bp.duel_team_id,
                     "rounds_won": 0,
                     "rounds_lost": 0,
                     "rounds_draw": 0,
@@ -117,6 +119,11 @@ class BattleEvent:
         )
 
         # ─── Determinar ganador / perdedor / empate ───
+        if len(participants) != 2:
+            raise ValueError(
+                f"BattleEvent espera exactamente 2 participantes, recibió {len(participants)}"
+            )
+
         p1, p2 = participants
 
         if p1.rounds_won > p2.rounds_won:

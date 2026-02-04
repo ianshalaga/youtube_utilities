@@ -1,10 +1,3 @@
-"""
-RankingDBProvider
-
-Proveedor de datos de ranking basado en base de datos.
-Convierte datos persistidos (ORM) en eventos de dominio.
-"""
-
 from collections import defaultdict
 from typing import Iterable
 
@@ -22,10 +15,6 @@ from domain.ranking.models.duel_event import DuelEvent
 class RankingDBProvider(DataProvider):
     """
     Proveedor de datos de ranking desde base SQL.
-
-    Produce:
-    - BattleEvent  → ranking por Character / Player+Character
-    - DuelEvent    → ranking por Player / Team
     """
 
     def __init__(
@@ -33,6 +22,10 @@ class RankingDBProvider(DataProvider):
         repository: RankingRepository | None = None,
     ) -> None:
         self._repository = repository or RankingRepository()
+
+        # Cache interno por instancia
+        self._battle_cache: dict[int, list[BattleEvent]] = {}
+        self._duel_cache: dict[int, list[DuelEvent]] = {}
 
     # ─────────────────────────────────────────────────────────
     # API pública
@@ -42,26 +35,34 @@ class RankingDBProvider(DataProvider):
         self,
         query: RankingQuery,
     ) -> Iterable[BattleEvent]:
-        """
-        Devuelve BattleEvent para cálculos de ranking
-        basados en battles.
-        """
-        with SessionLocal() as session:
-            return self._build_battle_events(session, query)
+        query_key = id(query)
+
+        if query_key not in self._battle_cache:
+            with SessionLocal() as session:
+                self._battle_cache[query_key] = self._build_battle_events(
+                    session, query
+                )
+
+        return self._battle_cache[query_key]
 
     def iter_duels(
         self,
         query: RankingQuery,
     ) -> Iterable[DuelEvent]:
-        """
-        Devuelve DuelEvent para cálculos de ranking
-        basados en duelos.
-        """
-        with SessionLocal() as session:
-            return self._build_duel_events(session, query)
+        query_key = id(query)
+
+        if query_key not in self._duel_cache:
+            # Reutilizamos battles si ya existen
+            battles = self.iter_battles(query)
+
+            self._duel_cache[query_key] = self._build_duel_events_from_battles(
+                battles
+            )
+
+        return self._duel_cache[query_key]
 
     # ─────────────────────────────────────────────────────────
-    # Implementación interna
+    # Construcción interna
     # ─────────────────────────────────────────────────────────
 
     def _build_battle_events(
@@ -69,10 +70,6 @@ class RankingDBProvider(DataProvider):
         session: Session,
         query: RankingQuery,
     ) -> list[BattleEvent]:
-        """
-        Construye BattleEvent agrupando RoundResult por battle.
-        """
-
         round_results = self._repository.fetch_round_results(
             session=session,
             ranking_query=query,
@@ -81,39 +78,35 @@ class RankingDBProvider(DataProvider):
         battles: dict[int, list] = defaultdict(list)
 
         for rr in round_results:
-            battle_id = rr.round.battle.id
-            battles[battle_id].append(rr)
+            battles[rr.round.battle.id].append(rr)
 
-        battle_events: list[BattleEvent] = []
+        return [
+            BattleEvent.from_round_results(battle_rounds)
+            for battle_rounds in battles.values()
+        ]
 
-        for battle_rounds in battles.values():
-            battle_events.append(
-                BattleEvent.from_round_results(battle_rounds)
-            )
-
-        return battle_events
-
-    def _build_duel_events(
+    def _build_duel_events_from_battles(
         self,
-        session: Session,
-        query: RankingQuery,
+        battle_events: list[BattleEvent],
     ) -> list[DuelEvent]:
-        """
-        Construye DuelEvent agrupando BattleEvent por duelo.
-        """
-
-        battle_events = self._build_battle_events(session, query)
-
         duels: dict[int, list[BattleEvent]] = defaultdict(list)
 
-        for battle_event in battle_events:
-            duels[battle_event.duel_id].append(battle_event)
+        for battle in battle_events:
+            duels[battle.duel_id].append(battle)
 
         duel_events: list[DuelEvent] = []
 
-        for battle_list in duels.values():
+        for battles in duels.values():
+            competitive_level, player_affiliations = (
+                self._resolve_duel_competitive_context(battles)
+            )
+
             duel_events.append(
-                DuelEvent.from_battle_events(battle_list)
+                DuelEvent.from_battle_events(
+                    battles,
+                    competitive_level=competitive_level,
+                    player_affiliations=player_affiliations,
+                )
             )
 
         return duel_events
