@@ -57,6 +57,31 @@ class BattleEvent:
     is_draw: bool
 
     # ─────────────────────────────────────────────────────────
+    # Helpers de dominio (NUEVO)
+    # ─────────────────────────────────────────────────────────
+
+    def get_participant(self, player_id: int) -> BattleParticipantResult:
+        """
+        Devuelve el participante correspondiente al player_id.
+
+        Lanza KeyError si el jugador no participó en esta battle.
+        """
+        for participant in self.participants:
+            if participant.player_id == player_id:
+                return participant
+
+        raise KeyError(
+            f"Player {player_id} no participa en battle {self.battle_id}"
+        )
+
+    @property
+    def participant_ids(self) -> tuple[int, ...]:
+        """
+        Devuelve los player_id de los participantes de la battle.
+        """
+        return tuple(p.player_id for p in self.participants)
+
+    # ─────────────────────────────────────────────────────────
     # Construcción
     # ─────────────────────────────────────────────────────────
 
@@ -72,7 +97,8 @@ class BattleEvent:
         round_results = list(round_results)
         if not round_results:
             raise ValueError(
-                "No se puede construir BattleEvent sin RoundResult")
+                "No se puede construir BattleEvent sin RoundResult"
+            )
 
         first_rr = round_results[0]
         battle = first_rr.round.battle

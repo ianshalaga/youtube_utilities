@@ -12,6 +12,35 @@ from domain.ranking.engine.state import CompetitiveState
 from domain.ranking.models.battle_event import BattleEvent
 
 
+def compute_battle_points(
+    *,
+    raw_points: float,
+    rounds_won: int,
+    rounds_draw: int,
+    rounds_played: int,
+    wr_self: float,
+    wr_opponent: float,
+    lvl_params: dict,
+) -> float:
+    """
+    Calcula los puntos de una battle para un participante.
+    No muta estado.
+    """
+    bf = beating_factor(
+        wins=rounds_won,
+        draws=rounds_draw,
+        total=rounds_played,
+    )
+
+    lf = lvl_factor(
+        wr_self=wr_self,
+        wr_opponent=wr_opponent,
+        **lvl_params,
+    )
+
+    return raw_points * bf * lf
+
+
 def apply_battle_event(
     *,
     battle: BattleEvent,
@@ -34,7 +63,8 @@ def apply_battle_event(
     for participant in battle.participants:
         key = entity_key_fn(participant)
         state: CompetitiveState = state_by_entity.setdefault(
-            key, CompetitiveState())
+            key, CompetitiveState()
+        )
 
         # ── estado previo ────────────────────────────────────
         effective_wins = state.wins + 0.5 * state.draws
@@ -60,20 +90,16 @@ def apply_battle_event(
             losses=opp_effective_losses,
         )
 
-        # ── factores ─────────────────────────────────────────
-        bf = beating_factor(
-            wins=participant.rounds_won,
-            draws=participant.rounds_draw,
-            total=battle.rounds_played,
-        )
-
-        lf = lvl_factor(
+        # ── calcular battle points ────────────────
+        battle_points = compute_battle_points(
+            raw_points=participant.raw_points,
+            rounds_won=participant.rounds_won,
+            rounds_draw=participant.rounds_draw,
+            rounds_played=battle.rounds_played,
             wr_self=wr_self,
             wr_opponent=wr_opponent,
-            **lvl_params,
+            lvl_params=lvl_params,
         )
-
-        battle_points = participant.raw_points * bf * lf
 
         # ── actualizar estado ────────────────────────────────
         state.events_played += 1
