@@ -32,16 +32,16 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/Super Smash Bros/1 Super Smash Bros/2 Gamerip Tracks/disc.mp4",
-      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/Super Smash Bros. OST/1 Super Smash Bros/2 Gamerip Tracks",
+      "default_video_path": "E:/Proyectos/games/Tenchu/01 Tenchu - Stealth Assassins/1 Tenchu - Stealth Assassins OST/video.mp4",
+      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/Tenchu OST/01 Tenchu - Stealth Assassins/1 Tenchu - Stealth Assassins OST",
       "default_output_dir": "videos"
     },
 
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Super Smash Bros. OST/1 Super Smash Bros/2 Gamerip Tracks/videos",
+      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Tenchu OST/01 Tenchu - Stealth Assassins/1 Tenchu - Stealth Assassins OST/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Super Smash Bros. OST - Gamerip Tracks",
+      "default_video_name": "Tenchu - Stealth Assassins OST",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,

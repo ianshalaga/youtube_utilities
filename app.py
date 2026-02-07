@@ -12,10 +12,10 @@ from apps.ranking_system.loaders.load_legacy import run as load_legacy_data
 config = ConfigManager()
 
 video_music = False
-video_joiner = False
+video_joiner = True
 video_converter = False
 db = False
-load_legacy = True
+load_legacy = False
 
 
 csv_legacy_path = Path("F:/DESCARGAS/SSLEdb - SSLT.csv")
