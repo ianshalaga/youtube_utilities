@@ -18,9 +18,17 @@ class EventResolver:
     def by_name(
         self,
         *,
-        name: str,
+        name: str | None,
         season_id: int | None = None,
-    ) -> int:
+    ) -> int | None:
+        """
+        Devuelve el event_id correspondiente al nombre.
+
+        - Si name es None, devuelve None (no se filtra).
+        - Si name no existe, lanza EntityNotFoundError.
+        """
+        if name is None:
+            return None
         query = self._session.query(Event).filter(Event.name == name)
 
         if season_id is not None:

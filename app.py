@@ -1,25 +1,40 @@
 from pathlib import Path
 
+from core.config_manager import ConfigManager
+
 from apps.video_music.processor import VideoMusicProcessor
 from apps.video_joiner.processor import VideoJoinerProcessor
-from core.config_manager import ConfigManager
 from services.media.video.converter import VideoConverter
 from services.media.ffprobe_provider import FFProbeProvider
+
 from apps.ranking_system.create_db import create_db
 from apps.ranking_system.loaders.load_legacy import run as load_legacy_data
+
+from apps.ranking_system.processor import run_ranking
+from apps.ranking_system.queries.season_platform_query import (
+    SeasonPlatformRankingQuery,
+)
+from apps.ranking_system.resolvers.season_resolver import SeasonResolver
+from apps.ranking_system.resolvers.platform_resolver import PlatformResolver
+from services.ranking.storage.session import SessionLocal
 
 
 config = ConfigManager()
 
 video_music = False
-video_joiner = True
+video_joiner = False
 video_converter = False
 db = False
 load_legacy = False
+ranking_system = True
 
 
 csv_legacy_path = Path("F:/DESCARGAS/SSLEdb - SSLT.csv")
 
+
+# ───────────────────────────────
+# VIDEO MUSIC
+# ───────────────────────────────
 
 if video_music:
     video_music_processor = VideoMusicProcessor()
@@ -32,6 +47,11 @@ if video_music:
         output_dir=Path(audios_dir) /
         Path(config.video_music_default_output_dir)
     )
+
+
+# ───────────────────────────────
+# VIDEO JOINER
+# ───────────────────────────────
 
 if video_joiner:
     video_joiner_processor = VideoJoinerProcessor()
@@ -53,6 +73,11 @@ if video_joiner:
         extra_description=config.video_joiner_default_extra_description
     )
 
+
+# ───────────────────────────────
+# VIDEO CONVERTER
+# ───────────────────────────────
+
 if video_converter:
     probe_provider = FFProbeProvider()
     video_converter = VideoConverter(probe_provider=probe_provider)
@@ -69,8 +94,38 @@ if video_converter:
         reference_video=reference_video
     )
 
+
+# ───────────────────────────────
+# RANKING SYSTEM
+# ───────────────────────────────
+
 if db:
     create_db()
 
 if load_legacy:
     load_legacy_data(csv_legacy_path)
+
+if ranking_system:
+    session = SessionLocal()
+
+    season_id = SeasonResolver(session).by_name(
+        config.ranking_season
+    )
+    platform_id = PlatformResolver(session).by_name(
+        config.ranking_platform
+    )
+
+    preset = SeasonPlatformRankingQuery(
+        season_id=season_id,
+        platform_id=platform_id,
+    )
+
+    results = run_ranking(
+        session=session,
+        entity=config.ranking_entity,
+        query=preset.build(),
+    )
+
+    # export simple (luego se refina)
+    for _, stats in results.items():
+        print(stats)

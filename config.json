@@ -66,6 +66,19 @@
       "dst_dir": "F:/DESCARGAS",
       "output_format": null,
       "reference_video": "F:/@Seyfer/GRABACIONES/SOULCALIBURVI/PANTALLAS DEL FINAL/PS4/pantalla_final_6_PS4.mkv"
+    },
+
+    "ranking_system": {
+      "entity": "player",
+      "preset": "season_platform",
+
+      "season": null,
+      "platform": "PS4",
+
+      "export": {
+        "format": "csv",
+        "output": "rankings/player_season3_pc.csv"
+      }
     }
   },
 

@@ -76,7 +76,10 @@ class ConfigManager:
     # ───────────────────────────────
     # APPS
     # ───────────────────────────────
+
+    # ───────────────────────────────
     # VIDEO MUSIC
+    # ───────────────────────────────
     @property
     def video_music_max_items_per_dir(self) -> int:
         return self.data["apps"]["video_music"]["max_items_per_dir"]
@@ -93,7 +96,10 @@ class ConfigManager:
     def video_music_default_output_dir(self) -> str:
         return self.data["apps"]["video_music"]["default_output_dir"]
 
+    # ───────────────────────────────
     # VIDEO JOINER
+    # ───────────────────────────────
+
     @property
     def video_joiner_max_items_per_dir(self) -> int:
         return self.data["apps"]["video_joiner"]["max_items_per_dir"]
@@ -134,7 +140,10 @@ class ConfigManager:
     def video_joiner_default_timestamps_secuence(self) -> list:
         return self.data["apps"]["video_joiner"]["default_timestamps_secuence"]
 
+    # ───────────────────────────────
     # VIDEO CONVERTER
+    # ───────────────────────────────
+
     @property
     def video_formats(self) -> dict:
         return self.data["apps"]["video_converter"]["video_formats"]
@@ -154,3 +163,31 @@ class ConfigManager:
     @property
     def video_converter_reference_video(self) -> str:
         return self.data["apps"]["video_converter"]["reference_video"]
+
+    # ───────────────────────────────
+    # RANKING SYSTEM
+    # ───────────────────────────────
+
+    @property
+    def ranking_enabled(self) -> bool:
+        return "ranking_system" in self.data["apps"]
+
+    @property
+    def ranking_entity(self) -> str:
+        return self.data["apps"]["ranking_system"]["entity"]
+
+    @property
+    def ranking_preset(self) -> str:
+        return self.data["apps"]["ranking_system"]["preset"]
+
+    @property
+    def ranking_season(self) -> str | None:
+        return self.data["apps"]["ranking_system"].get("season")
+
+    @property
+    def ranking_platform(self) -> str | None:
+        return self.data["apps"]["ranking_system"].get("platform")
+
+    @property
+    def ranking_export(self) -> dict:
+        return self.data["apps"]["ranking_system"]["export"]

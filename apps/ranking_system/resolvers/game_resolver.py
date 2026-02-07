@@ -24,7 +24,16 @@ class GameResolver:
     # Game
     # ─────────────────────────────────────────────────────────
 
-    def game_by_name(self, name: str) -> int:
+    def by_name(self, name: str | None) -> int | None:
+        """
+        Devuelve el season_id correspondiente al nombre.
+
+        - Si name es None, devuelve None (no se filtra).
+        - Si name no existe, lanza EntityNotFoundError.
+        """
+        if name is None:
+            return None
+
         game = (
             self._session.query(Game)
             .filter(Game.name == name)
