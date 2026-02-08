@@ -139,3 +139,15 @@ class BattleEvent:
     @property
     def participant_ids(self) -> set[int]:
         return {p.player_id for p in self.participants}
+
+    def get_participant(self, player_id: int):
+        """
+        Devuelve el BattleParticipantResult correspondiente al player_id.
+        Lanza error si el player no participó en la battle.
+        """
+        for p in self.participants:
+            if p.player_id == player_id:
+                return p
+        raise KeyError(
+            f"Player {player_id} no participó en battle {self.battle_id}"
+        )
