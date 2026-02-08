@@ -62,6 +62,8 @@ class DuelEvent:
     # En duelos por equipos:  player_id → team_id
     player_affiliations: Dict[int, int]
 
+    battles: Tuple[BattleEvent, ...]
+
     # ─────────────────────────────────────────────────────────
     # Construcción
     # ─────────────────────────────────────────────────────────
@@ -139,5 +141,6 @@ class DuelEvent:
             duel_id=duel_id,
             competitive_level=competitive_level,
             participants=participants,
+            battles=tuple(battle_events),
             player_affiliations=dict(player_affiliations),
         )
