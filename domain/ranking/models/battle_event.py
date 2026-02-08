@@ -3,6 +3,7 @@ from typing import Iterable
 
 from services.ranking.storage.models.round_result import RoundResult
 from domain.ranking.rules.round_scoring import ROUND_RESULT_POINTS
+from services.ranking.loaders.mappers.event_type_mapper import EventType
 
 
 @dataclass(frozen=True)
@@ -24,6 +25,7 @@ class BattleEvent:
     battle_id: int
     duel_id: int
     stage_id: int
+    event_type: EventType
 
     rounds_played: int
     participants: tuple[BattleParticipantResult, ...]
@@ -31,39 +33,6 @@ class BattleEvent:
     winner_player_id: int | None
     loser_player_id: int | None
     is_draw: bool
-
-    # ─────────────────────────────────────────
-    # NUEVO: filtrado por dominio
-    # ─────────────────────────────────────────
-
-    def with_filtered_participants(
-        self,
-        valid_player_ids: set[int],
-    ) -> "BattleEvent":
-        participants = tuple(
-            p for p in self.participants
-            if p.player_id in valid_player_ids
-        )
-
-        if len(participants) < 2:
-            raise RuntimeError(
-                f"Battle {self.battle_id} inválida tras filtrar participantes"
-            )
-
-        return BattleEvent(
-            battle_id=self.battle_id,
-            duel_id=self.duel_id,
-            stage_id=self.stage_id,
-            rounds_played=self.rounds_played,
-            participants=participants,
-            winner_player_id=self.winner_player_id,
-            loser_player_id=self.loser_player_id,
-            is_draw=self.is_draw,
-        )
-
-    # ─────────────────────────────────────────
-    # Construcción
-    # ─────────────────────────────────────────
 
     @classmethod
     def from_round_results(
@@ -75,7 +44,10 @@ class BattleEvent:
         if not round_results:
             raise ValueError("BattleEvent sin rounds")
 
-        battle = round_results[0].round.battle
+        rr0 = round_results[0]
+        battle = rr0.round.battle
+        event_type = battle.duel.event.event_type
+
         data: dict[int, dict] = {}
 
         for rr in round_results:
@@ -129,6 +101,7 @@ class BattleEvent:
             battle_id=battle.id,
             duel_id=battle.duel_id,
             stage_id=battle.stage_id,
+            event_type=event_type,
             rounds_played=len(round_results),
             participants=participants,
             winner_player_id=winner,
@@ -140,14 +113,37 @@ class BattleEvent:
     def participant_ids(self) -> set[int]:
         return {p.player_id for p in self.participants}
 
-    def get_participant(self, player_id: int):
-        """
-        Devuelve el BattleParticipantResult correspondiente al player_id.
-        Lanza error si el player no participó en la battle.
-        """
+    def get_participant(self, player_id: int) -> BattleParticipantResult:
         for p in self.participants:
             if p.player_id == player_id:
                 return p
         raise KeyError(
             f"Player {player_id} no participó en battle {self.battle_id}"
+        )
+
+    def with_filtered_participants(
+        self,
+        valid_player_ids: set[int],
+    ) -> "BattleEvent":
+
+        participants = tuple(
+            p for p in self.participants
+            if p.player_id in valid_player_ids
+        )
+
+        if len(participants) < 2:
+            raise RuntimeError(
+                f"Battle {self.battle_id} inválida tras filtrar participantes"
+            )
+
+        return BattleEvent(
+            battle_id=self.battle_id,
+            duel_id=self.duel_id,
+            stage_id=self.stage_id,
+            event_type=self.event_type,
+            rounds_played=self.rounds_played,
+            participants=participants,
+            winner_player_id=self.winner_player_id,
+            loser_player_id=self.loser_player_id,
+            is_draw=self.is_draw,
         )
