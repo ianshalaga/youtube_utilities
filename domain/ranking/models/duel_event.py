@@ -12,7 +12,7 @@ Solo agrega hechos competitivos derivados de BattleEvent.
 """
 
 from dataclasses import dataclass
-from typing import Iterable, Literal, Dict, Tuple
+from typing import Iterable, Dict, Tuple
 from collections import defaultdict
 
 from domain.ranking.models.battle_event import BattleEvent
@@ -27,10 +27,7 @@ from domain.ranking.entities.ranking_entity import RankingEntity
 class DuelParticipantResult:
     """
     Resultado agregado de una entidad competitiva dentro de un duelo.
-
-    La entidad competitiva puede ser:
-    - un jugador (participant_type = "player")
-    - un equipo  (participant_type = "team")
+    La entidad competitiva está determinada por DuelEvent.competitive_level.
     """
     participant_id: int
 
