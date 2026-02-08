@@ -27,10 +27,6 @@ class RankingDBProvider(DataProvider):
         self._battle_cache: dict[int, list[BattleEvent]] = {}
         self._duel_cache: dict[int, list[DuelEvent]] = {}
 
-    # ─────────────────────────────────────────
-    # API pública
-    # ─────────────────────────────────────────
-
     def iter_battles(self, query: RankingQuery) -> Iterable[BattleEvent]:
         key = id(query)
         if key not in self._battle_cache:
@@ -44,10 +40,6 @@ class RankingDBProvider(DataProvider):
             self._duel_cache[key] = self._build_duel_events_from_battles(
                 battles)
         return self._duel_cache[key]
-
-    # ─────────────────────────────────────────
-    # Construcción interna
-    # ─────────────────────────────────────────
 
     def _build_battle_events(self, query: RankingQuery) -> list[BattleEvent]:
         round_results = self._repository.fetch_round_results(
@@ -80,7 +72,6 @@ class RankingDBProvider(DataProvider):
                 self._resolve_duel_competitive_context(battles)
             )
 
-            # ── FILTRADO CLAVE ───────────────────
             if competitive_level is RankingEntity.TEAM:
                 valid_players = {
                     pid for pid, tid in player_affiliations.items()
@@ -88,8 +79,8 @@ class RankingDBProvider(DataProvider):
                 }
 
                 battles = [
-                    battle.with_filtered_participants(valid_players)
-                    for battle in battles
+                    b.with_filtered_participants(valid_players)
+                    for b in battles
                 ]
 
             duel_events.append(
@@ -114,13 +105,8 @@ class RankingDBProvider(DataProvider):
             duel_id=duel_id,
         )
 
-        # Obtener el tipo de evento desde DB
-        duel = self._repository.fetch_duel(
-            session=self._session,
-            duel_id=duel_id,
-        )
-
-        event_type = duel.event.event_type
+        # 🔑 FUENTE DE VERDAD
+        event_type = battles[0].event_type
 
         if event_type == EventType.TEAM_TOURNAMENT:
             competitive_level = RankingEntity.TEAM
