@@ -72,8 +72,35 @@
       "entity": "player",
       "preset": "season_platform",
 
-      "season": null,
-      "platform": "PS4",
+      "filters": {
+        "scope": {
+          "season_name": "S1",
+          "event_name": null,
+          "event_type_name": null,
+          "region_name": null,
+          "game_name": null,
+          "game_version": null,
+          "event_platform": "PS4",
+          "game_franchise_name": null
+        },
+        "duel": {
+          "duel_id": null,
+          "duel_type_name": null
+        },
+        "participant": {
+          "player_name": null,
+          "team_name": null,
+          "participant_position": null
+        },
+        "battle": {
+          "stage_name": null,
+          "game_character_name": null,
+          "character_identity_name": null
+        },
+        "player": {
+          "country_iso_code": null
+        }
+      },
 
       "export": {
         "format": "csv",

@@ -60,21 +60,21 @@ def run_ranking(
     )
 
     if entity == "player":
-        duels = provider.get_duel_events(query)
+        duels = provider.iter_duels(query)
         return engine.rank_duels(
             duel_events=duels,
             stats_factory=_player_stats_factory,
         )
 
     if entity == "team":
-        duels = provider.get_duel_events(query)
+        duels = provider.iter_duels(query)
         return engine.rank_duels(
             duel_events=duels,
             stats_factory=_team_stats_factory,
         )
 
     if entity == "character":
-        battles = provider.get_battle_events(query)
+        battles = provider.iter_battles(query)
         return engine.rank_battles(
             battle_events=battles,
             entity_key_fn=lambda p: p.game_character_id,
@@ -82,7 +82,7 @@ def run_ranking(
         )
 
     if entity == "player_character":
-        battles = provider.get_battle_events(query)
+        battles = provider.iter_battles(query)
         return engine.rank_battles(
             battle_events=battles,
             entity_key_fn=lambda p: (p.player_id, p.game_character_id),

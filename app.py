@@ -109,10 +109,10 @@ if ranking_system:
     session = SessionLocal()
 
     season_id = SeasonResolver(session).by_name(
-        config.ranking_season
+        config.ranking_season_name
     )
     platform_id = PlatformResolver(session).by_name(
-        config.ranking_platform
+        config.ranking_event_platform
     )
 
     preset = SeasonPlatformRankingQuery(
