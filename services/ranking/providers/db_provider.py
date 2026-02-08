@@ -126,16 +126,14 @@ class RankingDBProvider(DataProvider):
         no a nivel de battle.
         """
 
-        # Todos los BattleEvent del grupo pertenecen al mismo duelo
         duel_id = battles[0].duel_id
 
-        # Consultamos explícitamente al repository
         player_affiliations = self._repository.fetch_duel_player_affiliations(
             session=self._session,
             duel_id=duel_id,
         )
 
-        # Determinar si hay equipos reales
+        # ── determinar si hay equipos reales ───────────────────
         teams = {
             team_id
             for team_id in player_affiliations.values()
@@ -145,5 +143,19 @@ class RankingDBProvider(DataProvider):
         competitive_level = (
             RankingEntity.TEAM if len(teams) >= 2 else RankingEntity.PLAYER
         )
+
+        # ── VALIDACIÓN CLAVE ───────────────────────────────────
+        if competitive_level is RankingEntity.TEAM:
+            invalid_players = [
+                pid
+                for pid, tid in player_affiliations.items()
+                if tid is None
+            ]
+
+            if invalid_players:
+                raise RuntimeError(
+                    f"Duelo {duel_id} marcado como TEAM pero players sin team: "
+                    f"{invalid_players}"
+                )
 
         return competitive_level, player_affiliations
