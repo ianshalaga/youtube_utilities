@@ -16,6 +16,7 @@ from typing import Iterable, Literal, Dict, Tuple
 from collections import defaultdict
 
 from domain.ranking.models.battle_event import BattleEvent
+from domain.ranking.entities.ranking_entity import RankingEntity
 
 
 # ─────────────────────────────────────────────────────────────
@@ -31,9 +32,7 @@ class DuelParticipantResult:
     - un jugador (participant_type = "player")
     - un equipo  (participant_type = "team")
     """
-
     participant_id: int
-    participant_type: Literal["player", "team"]
 
     battles_played: int
     battles_won: int
@@ -56,7 +55,7 @@ class DuelEvent:
     # Nivel competitivo del duelo:
     # - "player" → duelos individuales
     # - "team"   → duelos por equipos
-    competitive_level: Literal["player", "team"]
+    competitive_level: RankingEntity
 
     # Resultados agregados por entidad competitiva
     participants: Tuple[DuelParticipantResult, ...]
@@ -75,21 +74,9 @@ class DuelEvent:
         cls,
         battle_events: Iterable[BattleEvent],
         *,
-        competitive_level: Literal["player", "team"],
+        competitive_level: RankingEntity,
         player_affiliations: Dict[int, int],
     ) -> "DuelEvent":
-        """
-        Construye un DuelEvent a partir de BattleEvent.
-
-        Parámetros:
-        - battle_events:
-            Lista de BattleEvent pertenecientes al mismo duelo.
-        - competitive_level:
-            "player" o "team".
-        - player_affiliations:
-            Mapeo player_id → entidad competitiva (player_id o team_id).
-            Este mapeo DEBE ser resuelto por el provider.
-        """
 
         battle_events = list(battle_events)
         if not battle_events:
@@ -97,7 +84,6 @@ class DuelEvent:
 
         duel_id = battle_events[0].duel_id
 
-        # Acumulador por entidad competitiva
         stats: Dict[int, dict] = defaultdict(
             lambda: {
                 "battles_played": 0,
@@ -116,23 +102,34 @@ class DuelEvent:
                         f"Player {player_id} no tiene afiliación definida para el duelo"
                     )
 
-                entity_id = player_affiliations[player_id]
+                if competitive_level is RankingEntity.PLAYER:
+                    entity_id = player_id
+
+                elif competitive_level is RankingEntity.TEAM:
+                    entity_id = player_affiliations[player_id]
+                    if entity_id is None:
+                        raise ValueError(
+                            f"Duelo por equipos con player {player_id} sin team asignado"
+                        )
+                else:
+                    raise ValueError(
+                        f"Competitive level no soportado: {competitive_level}"
+                    )
+
                 entry = stats[entity_id]
 
                 entry["battles_played"] += 1
 
                 if battle.is_draw:
                     entry["battles_draw"] += 1
-                elif battle.winner_player_id == player_id:
+                elif participant.player_id == battle.winner_player_id:
                     entry["battles_won"] += 1
                 else:
                     entry["battles_lost"] += 1
 
-        # Los participantes no están ordenados por resultado del duelo
         participants = tuple(
             DuelParticipantResult(
                 participant_id=entity_id,
-                participant_type=competitive_level,
                 battles_played=data["battles_played"],
                 battles_won=data["battles_won"],
                 battles_lost=data["battles_lost"],

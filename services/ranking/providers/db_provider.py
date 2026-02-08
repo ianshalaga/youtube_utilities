@@ -136,11 +136,14 @@ class RankingDBProvider(DataProvider):
         )
 
         # Determinar si hay equipos reales
-        has_teams = any(
-            team_id is not None for team_id in player_affiliations.values())
+        teams = {
+            team_id
+            for team_id in player_affiliations.values()
+            if team_id is not None
+        }
 
         competitive_level = (
-            RankingEntity.TEAM if has_teams else RankingEntity.PLAYER
+            RankingEntity.TEAM if len(teams) >= 2 else RankingEntity.PLAYER
         )
 
         return competitive_level, player_affiliations
