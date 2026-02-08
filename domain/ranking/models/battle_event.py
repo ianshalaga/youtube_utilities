@@ -135,3 +135,7 @@ class BattleEvent:
             loser_player_id=loser,
             is_draw=draw,
         )
+
+    @property
+    def participant_ids(self) -> set[int]:
+        return {p.player_id for p in self.participants}

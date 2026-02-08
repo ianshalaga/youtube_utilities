@@ -1,8 +1,8 @@
 """
 CSV Loader Legacy
 
-La carga es transaccional y debe ejecutarse dentro de
-una sesión controlada por la capa de aplicación.
+Carga histórica de datos desde el CSV legacy original.
+La carga es ATÓMICA: o se carga todo o no se carga nada.
 
 Este loader:
 - NO persiste datos calculados
@@ -15,7 +15,6 @@ import csv
 from pathlib import Path
 from datetime import datetime
 from sqlalchemy.orm import Session
-from dataclasses import dataclass
 
 from services.ranking.storage.session import SessionLocal
 from services.ranking.loaders.base import DataLoader
@@ -36,20 +35,6 @@ from services.ranking.storage.models import (
 )
 
 
-@dataclass
-class _LoaderState:
-    season = None
-    event = None
-    duel = None
-    battle = None
-
-    last_event_key: str | None = None
-    last_duel_order: int | None = None
-    last_combat_order: int | None = None
-
-    duel_has_teams: bool = False
-
-
 class CSVLoaderLegacy(DataLoader):
     def __init__(self, csv_path: Path):
         if not csv_path.exists():
@@ -61,78 +46,127 @@ class CSVLoaderLegacy(DataLoader):
     # Public API
     # ──────────────────────────────────────────────
 
-    def load(self, session, csv_path):
-        state = _LoaderState()
+    def load(self) -> None:
+        """
+        Ejecuta la carga completa del CSV legacy.
 
-        for row in self._iter_rows(csv_path):
-            self._process_row(session, row, state)
+        La operación es transaccional:
+        - commit si todo es válido
+        - rollback si ocurre cualquier error
+        """
+        session = SessionLocal()
 
-        session.commit()
+        try:
+            with session.begin():
+                self._load_csv(session)
+
+            print("Carga legacy completada correctamente.")
+
+        except Exception:
+            print("Error durante la carga legacy. Rollback aplicado.")
+            raise
+
+        finally:
+            session.close()
 
     # ──────────────────────────────────────────────
     # Core loader
     # ──────────────────────────────────────────────
 
-    def _process_row(self, session: Session, row: RowLegacyMapper, state: _LoaderState) -> None:
-        # ──────────────────────────────────────
-        # SEASON
-        # ──────────────────────────────────────
-        if state.season is None or row.season_name != state.season.name:
-            state.season = self._get_or_create_season(session, row)
-            state.event = None
-            state.duel = None
-            state.battle = None
-            state.last_event_key = None
-            state.last_duel_order = None
-            state.last_combat_order = None
+    def _load_csv(self, session: Session):
+        '''
+        CSV perfectamente ordenado.
+        No existen rounds parciales (un solo "0").
+        '''
+        with self._csv_path.open(encoding="utf-8") as f:
+            reader = csv.DictReader(f)
 
-        # ──────────────────────────────────────
-        # EVENT (clave REAL, no solo nombre)
-        # ──────────────────────────────────────
-        event_key = (
-            state.season.id,
-            row.event_name.strip(),
-        )
+            current_season = None
+            current_event = None
+            current_duel = None
+            current_battle = None
 
-        if event_key != state.last_event_key:
-            state.event = self._get_or_create_event(session, state.season, row)
-            state.last_event_key = event_key
-            state.duel = None
-            state.battle = None
-            state.last_duel_order = None
-            state.last_combat_order = None
+            last_season_key = None
+            last_event_key = None
+            last_duel_key = None
+            last_battle_key = None
 
-        # ──────────────────────────────────────
-        # DUEL (ORDINAL LOCAL AL EVENTO)
-        # ──────────────────────────────────────
-        if row.duel_order != state.last_duel_order:
-            state.duel = self._create_duel(session, state.event, row)
-            state.last_duel_order = row.duel_order
-            state.battle = None
-            state.last_combat_order = None
-            state.duel_has_teams = False
+            event_order = 0
+            battle_order = 0
 
-        # ──────────────────────────────────────
-        # DETECCIÓN DE TEAMS (INCREMENTAL)
-        # ──────────────────────────────────────
-        if row.player_1_team or row.player_2_team:
-            self._assign_teams_to_duel(session, state.duel, row)
+            for raw_row in reader:
+                row = RowLegacyMapper(raw_row)
 
-        # ──────────────────────────────────────
-        # BATTLE (ORDINAL LOCAL AL DUEL)
-        # ──────────────────────────────────────
-        if row.combat_order != state.last_combat_order:
-            state.battle = self._create_battle(session, state.duel, row)
-            state.last_combat_order = row.combat_order
+                # @@@@ SEASON
 
-        # ──────────────────────────────────────
-        # ROUND + PARTICIPANTS
-        # ──────────────────────────────────────
-        self._create_round_and_participants(
-            session=session,
-            battle=state.battle,
-            row=row,
-        )
+                season_key = (row.season_name)
+
+                if season_key != last_season_key:
+                    current_season = self._get_or_create_season(session, row)
+                    last_season_key = season_key
+                    event_order = 0
+
+                # @@@@ EVENT
+
+                event_key = (
+                    row.season_name.strip(),
+                    row.event_name.strip(),
+                )
+
+                if event_key != last_event_key:
+                    event_order += 1
+                    current_event, game_version_platform, franchise = self._get_or_create_event(
+                        session, row, current_season, event_order)
+                    last_event_key = event_key
+                    current_duel = None
+                    last_duel_key = None
+
+                # @@@@ DUEL
+
+                duel_key = (
+                    last_event_key,      # identidad REAL del evento
+                    row.duel_order,      # ordinal local al evento
+                )
+
+                if duel_key != last_duel_key:
+                    current_duel, duel_teams, player_1, player_2 = self._get_or_create_duel(
+                        session, current_event, row)
+                    last_duel_key = duel_key
+                    current_battle = None
+                    last_battle_key = None
+                    battle_order = 0
+
+                # @@@@ BATTLE
+
+                battle_key = (
+                    last_event_key,
+                    row.duel_order,
+                    row.combat_order,
+                )
+
+                if battle_key != last_battle_key:
+                    battle_order += 1
+                    current_battle = self._get_or_create_battle(
+                        session,
+                        current_duel,
+                        row,
+                        battle_order,
+                        duel_teams,
+                        game_version_platform,
+                        player_1,
+                        player_2,
+                        franchise
+                    )
+                    last_battle_key = battle_key
+
+                # @@@@ ROUNDS
+                self._create_rounds(
+                    session,
+                    current_battle,
+                    row,
+                    player_1,
+                    player_2
+                )
 
     # Entity creation helpers
 
@@ -159,12 +193,12 @@ class CSVLoaderLegacy(DataLoader):
 
         return season
 
-    def _get_or_create_event(
-        self,
-        session: Session,
-        season: Season,
-        row: RowLegacyMapper,
-    ):
+    def _get_or_create_event(self,
+                             session: Session,
+                             row: RowLegacyMapper,
+                             season: Season,
+                             event_order: int
+                             ):
 
         event_type_name = resolve_event_type(row.event_name)
 
@@ -200,7 +234,7 @@ class CSVLoaderLegacy(DataLoader):
             name=row.event_name,
             event_date=self._parse_date(row.event_date),
             season=season,
-            order=row.event_order,
+            order=event_order,
             event_type=event_type,
             region=region,
             game_version_platform=game_version_platform,
@@ -211,29 +245,135 @@ class CSVLoaderLegacy(DataLoader):
         session.add(event)
         return (event, game_version_platform, franchise)
 
-    def _create_duel(self, session: Session, event: Event, row: RowLegacyMapper):
+    def _get_or_create_duel(self,
+                            session: Session,
+                            event: Event,
+                            row: RowLegacyMapper
+                            ):
+
+        duel_type = self._get_or_create_simple(
+            session, DuelType, row.duel_type
+        )
+
         duel = Duel(
             event=event,
-            order=row.duel_order,
+            duel_type=duel_type,
+            order=int(row.duel_order),
+            video_url=row.duel_video,
         )
-        session.add(duel)
-        session.flush()
-        return duel
 
-    def _assign_teams_to_duel(self, session: Session, duel: Duel, row: RowLegacyMapper):
+        session.add(duel)
+
+        # Countries
+        p1_country = self._get_or_create_country(
+            session, country_name_to_iso(row.player_1_country), row.player_1_country)
+        p2_country = self._get_or_create_country(
+            session, country_name_to_iso(row.player_2_country), row.player_2_country)
+
+        # Participants
+        p1 = self._get_or_create_player(session, row.player_1_name, p1_country)
+        p2 = self._get_or_create_player(session, row.player_2_name, p2_country)
+
+        session.add(DuelParticipant(duel=duel, player=p1))
+        session.add(DuelParticipant(duel=duel, player=p2))
+
+        duel_teams = {}
+
         if row.player_1_team:
-            team = self._get_or_create_team(session, row.player_1_team)
-            self._add_player_to_team(session, duel, row.player_1_name, team)
+            team = self._get_or_create_simple(
+                session, Team, row.player_1_team)
+
+            session.flush()
+
+            duel_team = (
+                session.query(DuelTeam)
+                .filter_by(
+                    duel_id=duel.id,
+                    team_id=team.id,
+                )
+                .one_or_none()
+            )
+
+            if duel_team is None:
+                duel_team = DuelTeam(duel=duel, team=team)
+                session.add(duel_team)
+
+            duel_teams["p1"] = duel_team
+
+            session.add(DuelTeamMember(duel_team=duel_team, player=p1))
 
         if row.player_2_team:
-            team = self._get_or_create_team(session, row.player_2_team)
-            self._add_player_to_team(session, duel, row.player_2_name, team)
+            team = self._get_or_create_simple(
+                session, Team, row.player_2_team)
 
-    def _create_battle(self, session: Session, duel: Duel, row: RowLegacyMapper):
-        stage = self._get_or_create_stage(...)
-        battle = Battle(duel=duel, order=row.combat_order, stage=stage)
+            session.flush()
+
+            duel_team = (
+                session.query(DuelTeam)
+                .filter_by(
+                    duel_id=duel.id,
+                    team_id=team.id,
+                )
+                .one_or_none()
+            )
+
+            if duel_team is None:
+                duel_team = DuelTeam(duel=duel, team=team)
+                session.add(duel_team)
+
+            duel_teams["p2"] = duel_team
+
+            session.add(DuelTeamMember(duel_team=duel_team, player=p2))
+
+        return (duel, duel_teams, p1, p2)
+
+    def _get_or_create_battle(self,
+                              session: Session,
+                              duel: Duel,
+                              row: RowLegacyMapper,
+                              battle_order: int,
+                              duel_teams: dict[str, DuelTeam],
+                              game_version_platform: GameVersionPlatform,
+                              p1: Player,
+                              p2: Player,
+                              franchise: Franchise
+                              ):
+
+        stage = self._get_or_create_stage(
+            session, row.stage_name, game_version_platform)
+
+        battle = Battle(
+            duel=duel,
+            stage=stage,
+            order=battle_order,
+        )
+
         session.add(battle)
-        session.flush()
+
+        c1 = self._get_or_create_character(
+            session, row.character_1_name, franchise, game_version_platform)
+        c2 = self._get_or_create_character(
+            session, row.character_2_name, franchise, game_version_platform)
+
+        duel_team_p1 = duel_teams.get("p1")
+        duel_team_p2 = duel_teams.get("p2")
+
+        session.add(BattleParticipant(
+            battle=battle,
+            player=p1,
+            game_character=c1,
+            duel_team=duel_team_p1,
+            position=1
+        ))
+
+        session.add(BattleParticipant(
+            battle=battle,
+            player=p2,
+            game_character=c2,
+            duel_team=duel_team_p2,
+            position=2
+        ))
+
         return battle
 
     def _create_rounds(self,
