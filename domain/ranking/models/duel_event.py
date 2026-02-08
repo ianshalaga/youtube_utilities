@@ -20,7 +20,7 @@ class DuelEvent:
     duel_id: int
     competitive_level: RankingEntity
     participants: Tuple[DuelParticipantResult, ...]
-    player_affiliations: Dict[int, int]
+    player_affiliations: Dict[int, int | None]
     battles: Tuple[BattleEvent, ...]
 
     @classmethod
@@ -29,7 +29,7 @@ class DuelEvent:
         battle_events: Iterable[BattleEvent],
         *,
         competitive_level: RankingEntity,
-        player_affiliations: Dict[int, int],
+        player_affiliations: Dict[int, int | None],
     ) -> "DuelEvent":
 
         battle_events = list(battle_events)
@@ -45,13 +45,14 @@ class DuelEvent:
         )
 
         for battle in battle_events:
-            for participant in battle.participants:
-                pid = participant.player_id
+            for p in battle.participants:
+                pid = p.player_id
 
-                if competitive_level is RankingEntity.PLAYER:
-                    entity_id = pid
-                else:
-                    entity_id = player_affiliations[pid]
+                entity_id = (
+                    pid
+                    if competitive_level is RankingEntity.PLAYER
+                    else player_affiliations[pid]
+                )
 
                 entry = stats[entity_id]
                 entry["battles_played"] += 1
@@ -64,10 +65,7 @@ class DuelEvent:
                     entry["battles_lost"] += 1
 
         participants = tuple(
-            DuelParticipantResult(
-                participant_id=eid,
-                **values,
-            )
+            DuelParticipantResult(participant_id=eid, **values)
             for eid, values in stats.items()
         )
 
@@ -75,6 +73,6 @@ class DuelEvent:
             duel_id=duel_id,
             competitive_level=competitive_level,
             participants=participants,
-            battles=tuple(battle_events),
             player_affiliations=dict(player_affiliations),
+            battles=tuple(battle_events),
         )
