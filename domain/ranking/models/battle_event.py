@@ -1,10 +1,3 @@
-"""
-BattleEvent
-
-Evento competitivo de nivel battle.
-Representa una battle completa derivada de RoundResult.
-"""
-
 from dataclasses import dataclass
 from typing import Iterable
 
@@ -12,16 +5,8 @@ from services.ranking.storage.models.round_result import RoundResult
 from domain.ranking.rules.round_scoring import ROUND_RESULT_POINTS
 
 
-# ─────────────────────────────────────────────────────────────
-# Resultados individuales dentro de una battle
-# ─────────────────────────────────────────────────────────────
-
 @dataclass(frozen=True)
 class BattleParticipantResult:
-    """
-    Resultado agregado de un jugador dentro de una battle.
-    """
-
     player_id: int
     game_character_id: int
     position: int
@@ -34,81 +19,68 @@ class BattleParticipantResult:
     raw_points: int
 
 
-# ─────────────────────────────────────────────────────────────
-# BattleEvent
-# ─────────────────────────────────────────────────────────────
-
 @dataclass(frozen=True)
 class BattleEvent:
-    """
-    Evento competitivo correspondiente a una battle completa.
-    """
-
     battle_id: int
     duel_id: int
     stage_id: int
 
     rounds_played: int
-
     participants: tuple[BattleParticipantResult, ...]
 
     winner_player_id: int | None
     loser_player_id: int | None
     is_draw: bool
 
-    # ─────────────────────────────────────────────────────────
-    # Helpers de dominio (NUEVO)
-    # ─────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────
+    # NUEVO: filtrado por dominio
+    # ─────────────────────────────────────────
 
-    def get_participant(self, player_id: int) -> BattleParticipantResult:
-        """
-        Devuelve el participante correspondiente al player_id.
-
-        Lanza KeyError si el jugador no participó en esta battle.
-        """
-        for participant in self.participants:
-            if participant.player_id == player_id:
-                return participant
-
-        raise KeyError(
-            f"Player {player_id} no participa en battle {self.battle_id}"
+    def with_filtered_participants(
+        self,
+        valid_player_ids: set[int],
+    ) -> "BattleEvent":
+        participants = tuple(
+            p for p in self.participants
+            if p.player_id in valid_player_ids
         )
 
-    @property
-    def participant_ids(self) -> tuple[int, ...]:
-        """
-        Devuelve los player_id de los participantes de la battle.
-        """
-        return tuple(p.player_id for p in self.participants)
+        if len(participants) < 2:
+            raise RuntimeError(
+                f"Battle {self.battle_id} inválida tras filtrar participantes"
+            )
 
-    # ─────────────────────────────────────────────────────────
+        return BattleEvent(
+            battle_id=self.battle_id,
+            duel_id=self.duel_id,
+            stage_id=self.stage_id,
+            rounds_played=self.rounds_played,
+            participants=participants,
+            winner_player_id=self.winner_player_id,
+            loser_player_id=self.loser_player_id,
+            is_draw=self.is_draw,
+        )
+
+    # ─────────────────────────────────────────
     # Construcción
-    # ─────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────
 
     @classmethod
     def from_round_results(
         cls,
         round_results: Iterable[RoundResult],
     ) -> "BattleEvent":
-        """
-        Construye un BattleEvent a partir de RoundResult ORM.
-        """
 
         round_results = list(round_results)
         if not round_results:
-            raise ValueError(
-                "No se puede construir BattleEvent sin RoundResult"
-            )
+            raise ValueError("BattleEvent sin rounds")
 
-        first_rr = round_results[0]
-        battle = first_rr.round.battle
-
+        battle = round_results[0].round.battle
         data: dict[int, dict] = {}
 
         for rr in round_results:
             bp = next(
-                bp
-                for bp in rr.round.battle.battle_participants
+                bp for bp in rr.round.battle.battle_participants
                 if bp.player_id == rr.player_id
             )
 
@@ -126,9 +98,7 @@ class BattleEvent:
                 },
             )
 
-            # ─── Interpretación del resultado del round ───
             result = rr.result_code
-
             if result in ("W", "PW"):
                 entry["rounds_won"] += 1
             elif result == "D":
@@ -136,7 +106,6 @@ class BattleEvent:
             else:
                 entry["rounds_lost"] += 1
 
-            # ─── Puntos según regla de dominio ───
             entry["raw_points"] += ROUND_RESULT_POINTS.get(result, 0)
 
         participants = tuple(
@@ -144,26 +113,17 @@ class BattleEvent:
             for values in data.values()
         )
 
-        # ─── Determinar ganador / perdedor / empate ───
         if len(participants) != 2:
-            raise ValueError(
-                f"BattleEvent espera exactamente 2 participantes, recibió {len(participants)}"
-            )
+            raise ValueError("BattleEvent espera exactamente 2 participantes")
 
         p1, p2 = participants
-
         if p1.rounds_won > p2.rounds_won:
-            winner_id = p1.player_id
-            loser_id = p2.player_id
-            is_draw = False
+            winner, loser, draw = p1.player_id, p2.player_id, False
         elif p2.rounds_won > p1.rounds_won:
-            winner_id = p2.player_id
-            loser_id = p1.player_id
-            is_draw = False
+            winner, loser, draw = p2.player_id, p1.player_id, False
         else:
-            winner_id = None
-            loser_id = None
-            is_draw = True
+            winner = loser = None
+            draw = True
 
         return cls(
             battle_id=battle.id,
@@ -171,7 +131,7 @@ class BattleEvent:
             stage_id=battle.stage_id,
             rounds_played=len(round_results),
             participants=participants,
-            winner_player_id=winner_id,
-            loser_player_id=loser_id,
-            is_draw=is_draw,
+            winner_player_id=winner,
+            loser_player_id=loser,
+            is_draw=draw,
         )
