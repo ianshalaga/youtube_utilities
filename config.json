@@ -80,7 +80,7 @@
           "region_name": null,
           "game_name": null,
           "game_version": null,
-          "event_platform": "PS4",
+          "event_platform": "PC",
           "game_franchise_name": null
         },
         "duel": {
@@ -88,7 +88,7 @@
           "duel_type_name": null
         },
         "participant": {
-          "player_name": null,
+          "player_name": "raynarrok",
           "team_name": null,
           "participant_position": null
         },

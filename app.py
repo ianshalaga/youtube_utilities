@@ -16,6 +16,7 @@ from apps.ranking_system.queries.season_platform_query import (
 )
 from apps.ranking_system.resolvers.season_resolver import SeasonResolver
 from apps.ranking_system.resolvers.platform_resolver import PlatformResolver
+
 from services.ranking.storage.session import SessionLocal
 
 
@@ -33,7 +34,7 @@ csv_legacy_path = Path("F:/DESCARGAS/SSLEdb - SSLT.csv")
 
 
 # ───────────────────────────────
-# VIDEO MUSIC
+# VIDEO MUSIC @@@@
 # ───────────────────────────────
 
 if video_music:
@@ -50,7 +51,7 @@ if video_music:
 
 
 # ───────────────────────────────
-# VIDEO JOINER
+# VIDEO JOINER @@@@
 # ───────────────────────────────
 
 if video_joiner:
@@ -75,7 +76,7 @@ if video_joiner:
 
 
 # ───────────────────────────────
-# VIDEO CONVERTER
+# VIDEO CONVERTER @@@@
 # ───────────────────────────────
 
 if video_converter:
@@ -96,7 +97,7 @@ if video_converter:
 
 
 # ───────────────────────────────
-# RANKING SYSTEM
+# RANKING SYSTEM @@@@
 # ───────────────────────────────
 
 if db:
