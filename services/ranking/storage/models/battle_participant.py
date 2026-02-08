@@ -41,3 +41,7 @@ class BattleParticipant(Base):
     player = relationship("Player")
     game_character = relationship("GameCharacter")
     duel_team = relationship("DuelTeam")
+    battle = relationship(
+        "Battle",
+        back_populates="battle_participants",
+    )

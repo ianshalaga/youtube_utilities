@@ -93,6 +93,45 @@ class RankingRepository:
 
         return query.all()
 
+    def fetch_duel_player_affiliations(
+        self,
+        session: Session,
+        duel_id: int,
+    ) -> dict[int, int | None]:
+        """
+        Devuelve un mapping player_id -> team_id para un duelo.
+
+        Si el duelo no es por equipos, todos los team_id serán None.
+        """
+
+        rows = (
+            session.query(
+                BattleParticipant.player_id,
+                Team.id.label("team_id"),
+            )
+            .join(Battle, Battle.id == BattleParticipant.battle_id)
+            .join(Duel, Duel.id == Battle.duel_id)
+            .outerjoin(DuelTeam, DuelTeam.id == BattleParticipant.duel_team_id)
+            .outerjoin(Team, Team.id == DuelTeam.team_id)
+            .filter(Duel.id == duel_id)
+            .distinct()
+            .all()
+        )
+
+        affiliations: dict[int, int | None] = {}
+
+        for player_id, team_id in rows:
+            if player_id in affiliations:
+                if affiliations[player_id] != team_id:
+                    raise ValueError(
+                        f"Inconsistencia de team para player {player_id} "
+                        f"en el duelo {duel_id}"
+                    )
+            else:
+                affiliations[player_id] = team_id
+
+        return affiliations
+
     # ─────────────────────────────────────────────────────────
     # Query base
     # ─────────────────────────────────────────────────────────

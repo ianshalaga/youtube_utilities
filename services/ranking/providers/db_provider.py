@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 from services.ranking.filters import RankingQuery
 from services.ranking.providers.base import DataProvider
 from services.ranking.storage.repository import RankingRepository
-from services.ranking.storage.session import SessionLocal
 
+from domain.ranking.entities.ranking_entity import RankingEntity
 from domain.ranking.models.battle_event import BattleEvent
 from domain.ranking.models.duel_event import DuelEvent
 
@@ -15,15 +15,22 @@ from domain.ranking.models.duel_event import DuelEvent
 class RankingDBProvider(DataProvider):
     """
     Proveedor de datos de ranking desde base SQL.
+
+    - Usa una Session externa (no la crea).
+    - Delega SQL al RankingRepository.
+    - Transforma resultados en BattleEvent y DuelEvent.
     """
 
     def __init__(
         self,
+        *,
+        session: Session,
         repository: RankingRepository | None = None,
     ) -> None:
+        self._session = session
         self._repository = repository or RankingRepository()
 
-        # Cache interno por instancia
+        # Cache interno por instancia y query
         self._battle_cache: dict[int, list[BattleEvent]] = {}
         self._duel_cache: dict[int, list[DuelEvent]] = {}
 
@@ -38,10 +45,9 @@ class RankingDBProvider(DataProvider):
         query_key = id(query)
 
         if query_key not in self._battle_cache:
-            with SessionLocal() as session:
-                self._battle_cache[query_key] = self._build_battle_events(
-                    session, query
-                )
+            self._battle_cache[query_key] = self._build_battle_events(
+                query
+            )
 
         return self._battle_cache[query_key]
 
@@ -52,9 +58,7 @@ class RankingDBProvider(DataProvider):
         query_key = id(query)
 
         if query_key not in self._duel_cache:
-            # Reutilizamos battles si ya existen
             battles = self.iter_battles(query)
-
             self._duel_cache[query_key] = self._build_duel_events_from_battles(
                 battles
             )
@@ -67,11 +71,10 @@ class RankingDBProvider(DataProvider):
 
     def _build_battle_events(
         self,
-        session: Session,
         query: RankingQuery,
     ) -> list[BattleEvent]:
         round_results = self._repository.fetch_round_results(
-            session=session,
+            session=self._session,
             ranking_query=query,
         )
 
@@ -110,3 +113,34 @@ class RankingDBProvider(DataProvider):
             )
 
         return duel_events
+
+    def _resolve_duel_competitive_context(
+        self,
+        battles: list[BattleEvent],
+    ) -> tuple[RankingEntity, dict[int, int | None]]:
+        """
+        Determina si el duelo es por jugadores o por equipos y
+        construye el mapping player_id -> team_id (o None).
+
+        La afiliación a equipos se resuelve a nivel de duelo,
+        no a nivel de battle.
+        """
+
+        # Todos los BattleEvent del grupo pertenecen al mismo duelo
+        duel_id = battles[0].duel_id
+
+        # Consultamos explícitamente al repository
+        player_affiliations = self._repository.fetch_duel_player_affiliations(
+            session=self._session,
+            duel_id=duel_id,
+        )
+
+        # Determinar si hay equipos reales
+        has_teams = any(
+            team_id is not None for team_id in player_affiliations.values())
+
+        competitive_level = (
+            RankingEntity.TEAM if has_teams else RankingEntity.PLAYER
+        )
+
+        return competitive_level, player_affiliations

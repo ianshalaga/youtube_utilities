@@ -75,8 +75,12 @@ def apply_battle_event(
             losses=effective_losses,
         )
 
-        # opponent win rate (siempre hay exactamente uno)
-        opponent = next(p for p in battle.participants if p != participant)
+        # opponent win rate (siempre hay exactamente uno en una battle)
+        opponents = [p for p in battle.participants if p != participant]
+        assert len(opponents) == 1, "Battle mal formada: no hay rival único"
+
+        opponent = opponents[0]
+
         opp_key = entity_key_fn(opponent)
         opp_state: CompetitiveState = state_by_entity.setdefault(
             opp_key, CompetitiveState()

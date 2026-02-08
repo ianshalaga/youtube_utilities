@@ -25,3 +25,8 @@ class Battle(Base):
     # Relationships
     duel = relationship("Duel")
     stage = relationship("Stage")
+    battle_participants = relationship(
+        "BattleParticipant",
+        back_populates="battle",
+        cascade="all, delete-orphan",
+    )
