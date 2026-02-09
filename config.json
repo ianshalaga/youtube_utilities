@@ -70,17 +70,16 @@
 
     "ranking_system": {
       "entity": "player",
-      "preset": "season_platform",
 
       "filters": {
         "scope": {
-          "season_name": "S1",
-          "event_name": null,
+          "season_name": null,
+          "event_name": "SSLT 1",
           "event_type_name": null,
           "region_name": null,
           "game_name": null,
           "game_version": null,
-          "event_platform": "PC",
+          "event_platform": null,
           "game_franchise_name": null
         },
         "duel": {
@@ -88,13 +87,12 @@
           "duel_type_name": null
         },
         "participant": {
-          "player_name": "raynarrok",
-          "team_name": null,
-          "participant_position": null
+          "player_name": null,
+          "team_name": null
         },
         "battle": {
+          "participant_position": null,
           "stage_name": null,
-          "game_character_name": null,
           "character_identity_name": null
         },
         "player": {

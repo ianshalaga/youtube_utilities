@@ -262,10 +262,10 @@ class RankingRepository:
         if participant.player_id is not None:
             query = query.filter(Player.id == participant.player_id)
 
-        if participant.player_position is not None:
-            query = query.filter(
-                BattleParticipant.position == participant.player_position
-            )
+        # if participant.player_position is not None:
+        #     query = query.filter(
+        #         BattleParticipant.position == participant.player_position
+        #     )
 
         if participant.team_id is not None:
             query = query.filter(Team.id == participant.team_id)
@@ -282,8 +282,10 @@ class RankingRepository:
         if battle.stage_id is not None:
             query = query.filter(Stage.id == battle.stage_id)
 
-        if battle.game_character_id is not None:
-            query = query.filter(GameCharacter.id == battle.game_character_id)
+        if battle.player_position is not None:
+            query = query.filter(
+                BattleParticipant.position == battle.player_position
+            )
 
         if battle.character_identity_id is not None:
             query = query.filter(

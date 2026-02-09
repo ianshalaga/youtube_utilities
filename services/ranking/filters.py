@@ -36,14 +36,13 @@ class RankingQuery:
     player_meta: Optional[PlayerMetaFilter] = None
 
     def validate(self) -> None:
-        """
-        Validación semántica opcional.
-        Llamar explícitamente si se desea validar la coherencia del query.
-        """
-
-        if self.participant and not self.duel:
+        if (
+            self.participant
+            and self.battle.player_position is not None
+            and not self.battle
+        ):
             raise ValueError(
-                "ParticipantFilter requiere que DuelFilter esté definido."
+                "participant_position requiere BattleContextFilter"
             )
 
         if self.battle and not self.duel:
@@ -103,7 +102,6 @@ class ParticipantFilter:
     """
 
     player_id: Optional[int] = None
-    player_position: Optional[int] = None   # P1 / P2
     team_id: Optional[int] = None
 
 
@@ -117,8 +115,8 @@ class BattleContextFilter:
     Define el entorno de la battle y el contexto del personaje.
     """
 
+    player_position: Optional[int] = None   # P1 / P2
     stage_id: Optional[int] = None
-    game_character_id: Optional[int] = None
     character_identity_id: Optional[int] = None
 
 

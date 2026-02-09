@@ -11,11 +11,8 @@ from apps.ranking_system.create_db import create_db
 from apps.ranking_system.loaders.load_legacy import run as load_legacy_data
 
 from apps.ranking_system.processor import run_ranking
-from apps.ranking_system.queries.season_platform_query import (
-    SeasonPlatformRankingQuery,
-)
-from apps.ranking_system.resolvers.season_resolver import SeasonResolver
-from apps.ranking_system.resolvers.platform_resolver import PlatformResolver
+from apps.ranking_system.queries.builder import RankingQueryBuilder
+
 
 from services.ranking.storage.session import SessionLocal
 
@@ -109,22 +106,13 @@ if load_legacy:
 if ranking_system:
     session = SessionLocal()
 
-    season_id = SeasonResolver(session).by_name(
-        config.ranking_season_name
-    )
-    platform_id = PlatformResolver(session).by_name(
-        config.ranking_event_platform
-    )
-
-    preset = SeasonPlatformRankingQuery(
-        season_id=season_id,
-        platform_id=platform_id,
-    )
+    filters = config.ranking_filters
+    query = RankingQueryBuilder(session=session).build(filters=filters)
 
     results = run_ranking(
         session=session,
         entity=config.ranking_entity,
-        query=preset.build(),
+        query=query,
     )
 
     # export simple (luego se refina)
