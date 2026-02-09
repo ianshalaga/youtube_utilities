@@ -29,18 +29,8 @@ def apply_duel_event(
     )
 
     # ── definir clave competitiva ───────────────────────────
-    if duel.competitive_level is RankingEntity.TEAM:
-        def entity_key(p):
-            team_id = duel.player_affiliations.get(p.participant_id)
-            if team_id is None:
-                raise RuntimeError(
-                    f"Player {p.participant_id} no tiene team asignado "
-                    f"en duelo por equipos"
-                )
-            return team_id
-    else:
-        def entity_key(p):
-            return p.participant_id
+    def entity_key(p):
+        return p.participant_id
 
     # ── aplicar duelo a cada participante ───────────────────
     for participant in duel.participants:

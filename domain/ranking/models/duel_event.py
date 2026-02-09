@@ -69,6 +69,13 @@ class DuelEvent:
             for eid, values in stats.items()
         )
 
+        if competitive_level is RankingEntity.TEAM:
+            assert all(
+                pid in player_affiliations
+                for battle in battle_events
+                for pid in battle.participant_ids
+            ), "Hay jugadores sin team asignado en duelo por equipos"
+
         return cls(
             duel_id=duel_id,
             competitive_level=competitive_level,

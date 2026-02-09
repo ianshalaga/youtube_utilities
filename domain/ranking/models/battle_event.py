@@ -3,7 +3,8 @@ from typing import Iterable
 
 from services.ranking.storage.models.round_result import RoundResult
 from domain.ranking.rules.round_scoring import ROUND_RESULT_POINTS
-from services.ranking.loaders.mappers.event_type_mapper import EventType
+# from services.ranking.loaders.mappers.event_type_mapper import EventType
+from services.ranking.storage.models.event_type import EventType
 
 
 @dataclass(frozen=True)

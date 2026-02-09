@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from services.ranking.filters import RankingQuery
 from services.ranking.providers.base import DataProvider
 from services.ranking.storage.repository import RankingRepository
-from services.ranking.loaders.mappers.event_type_mapper import EventType
+from services.ranking.loaders.mappers.event_type_mapper import EventType as EventTypeEnum
 
 from domain.ranking.entities.ranking_entity import RankingEntity
 from domain.ranking.models.battle_event import BattleEvent
@@ -105,10 +105,9 @@ class RankingDBProvider(DataProvider):
             duel_id=duel_id,
         )
 
-        # 🔑 FUENTE DE VERDAD
         event_type = battles[0].event_type
 
-        if event_type == EventType.TEAM_TOURNAMENT:
+        if event_type.name == EventTypeEnum.TEAM_TOURNAMENT.value:
             competitive_level = RankingEntity.TEAM
         else:
             competitive_level = RankingEntity.PLAYER

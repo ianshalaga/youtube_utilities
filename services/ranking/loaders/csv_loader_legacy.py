@@ -20,7 +20,10 @@ from services.ranking.storage.session import SessionLocal
 from services.ranking.loaders.base import DataLoader
 from services.ranking.storage.base import Base
 from services.ranking.loaders.mappers.row_legacy_mapper import RowLegacyMapper
-from services.ranking.loaders.mappers.event_type_mapper import resolve_event_type
+from services.ranking.loaders.mappers.event_type_mapper import (
+    resolve_event_type,
+    EventType as EventTypeEnum
+)
 from services.ranking.loaders.mappers.country_mapper import country_name_to_iso
 
 from services.ranking.storage.models import (
@@ -30,7 +33,7 @@ from services.ranking.storage.models import (
     BattleParticipant, RoundResult,
     Game, Platform, GameVersionPlatform,
     GameCharacter, CharacterIdentity,
-    EventType, Region, DuelType, Stage,
+    EventType as EventTypeModel, Region, DuelType, Stage,
     Franchise
 )
 
@@ -129,7 +132,7 @@ class CSVLoaderLegacy(DataLoader):
                 )
 
                 if duel_key != last_duel_key:
-                    current_duel, duel_teams, player_1, player_2 = self._get_or_create_duel(
+                    current_duel, duel_teams, player_team_map, player_1, player_2 = self._get_or_create_duel(
                         session, current_event, row)
                     last_duel_key = duel_key
                     current_battle = None
@@ -152,6 +155,7 @@ class CSVLoaderLegacy(DataLoader):
                         row,
                         battle_order,
                         duel_teams,
+                        player_team_map,
                         game_version_platform,
                         player_1,
                         player_2,
@@ -203,7 +207,7 @@ class CSVLoaderLegacy(DataLoader):
         event_type_name = resolve_event_type(row.event_name)
 
         event_type = self._get_or_create_simple(
-            session, EventType, event_type_name)
+            session, EventTypeModel, event_type_name)
 
         region = self._get_or_create_simple(
             session, Region, row.region_name)
@@ -282,17 +286,15 @@ class CSVLoaderLegacy(DataLoader):
         session.add(DuelParticipant(duel=duel, player=p1))
         session.add(DuelParticipant(duel=duel, player=p2))
 
-        # ─────────────────────────────────────────
-        # FIX CLAVE: DuelTeam por equipo (NO por jugador)
-        # ─────────────────────────────────────────
-
         duel_teams: dict[str, DuelTeam] = {}
+        player_team_map: dict[int, DuelTeam] = {}
 
         if row.player_1_team:
             self._get_or_create_duel_team(
                 session=session,
                 duel=duel,
                 duel_teams=duel_teams,
+                player_team_map=player_team_map,
                 team_name=row.player_1_team,
                 player=p1
             )
@@ -302,40 +304,45 @@ class CSVLoaderLegacy(DataLoader):
                 session=session,
                 duel=duel,
                 duel_teams=duel_teams,
+                player_team_map=player_team_map,
                 team_name=row.player_2_team,
                 player=p2
             )
 
-        return duel, duel_teams, p1, p2
+        return duel, duel_teams, player_team_map, p1, p2
 
     def _get_or_create_duel_team(
         self,
         session: Session,
         duel: Duel,
         duel_teams: dict[str, DuelTeam],
+        player_team_map: dict[int, DuelTeam],
         team_name: str,
         player: Player
     ):
+        # Si el jugador ya tiene team asignado en este duel
+        if player.id in player_team_map:
+            return player_team_map[player.id]
+
+        # Resolver DuelTeam por nombre
         if team_name not in duel_teams:
             team = self._get_or_create_simple(session, Team, team_name)
-            session.flush()  # asegura team.id y duel.id
+            session.flush()
 
-            duel_team = DuelTeam(
-                duel=duel,
-                team=team,
-            )
+            duel_team = DuelTeam(duel=duel, team=team)
             session.add(duel_team)
 
             duel_teams[team_name] = duel_team
         else:
             duel_team = duel_teams[team_name]
 
-        session.add(
-            DuelTeamMember(
-                duel_team=duel_team,
-                player=player,
-            )
-        )
+        session.add(DuelTeamMember(
+            duel_team=duel_team,
+            player=player,
+        ))
+
+        player_team_map[player.id] = duel_team
+        return duel_team
 
     def _get_or_create_battle(self,
                               session: Session,
@@ -343,6 +350,7 @@ class CSVLoaderLegacy(DataLoader):
                               row: RowLegacyMapper,
                               battle_order: int,
                               duel_teams: dict[str, DuelTeam],
+                              player_team_map: dict[int, DuelTeam],
                               game_version_platform: GameVersionPlatform,
                               p1: Player,
                               p2: Player,
@@ -365,8 +373,25 @@ class CSVLoaderLegacy(DataLoader):
         c2 = self._get_or_create_character(
             session, row.character_2_name, franchise, game_version_platform)
 
-        duel_team_p1 = duel_teams.get(row.player_1_team)
-        duel_team_p2 = duel_teams.get(row.player_2_team)
+        duel_team_p1 = player_team_map.get(p1.id)
+        duel_team_p2 = player_team_map.get(p2.id)
+
+        is_team_event = (
+            duel.event.event_type.name
+            == EventTypeEnum.TEAM_TOURNAMENT.value
+        )
+
+        if is_team_event:
+            # En eventos TEAM, los teams son obligatorios
+            if duel_team_p1 is None or duel_team_p2 is None:
+                raise ValueError(
+                    f"Battle sin team resuelto en evento TEAM "
+                    f"(duel={duel.id}, p1={p1.id}, p2={p2.id})"
+                )
+        else:
+            # En eventos no TEAM, debe ser None
+            duel_team_p1 = None
+            duel_team_p2 = None
 
         session.add(BattleParticipant(
             battle=battle,
