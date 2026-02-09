@@ -245,12 +245,12 @@ class CSVLoaderLegacy(DataLoader):
         session.add(event)
         return (event, game_version_platform, franchise)
 
-    def _get_or_create_duel(self,
-                            session: Session,
-                            event: Event,
-                            row: RowLegacyMapper
-                            ):
-
+    def _get_or_create_duel(
+        self,
+        session: Session,
+        event: Event,
+        row: RowLegacyMapper
+    ):
         duel_type = self._get_or_create_simple(
             session, DuelType, row.duel_type
         )
@@ -261,71 +261,81 @@ class CSVLoaderLegacy(DataLoader):
             order=int(row.duel_order),
             video_url=row.duel_video,
         )
-
         session.add(duel)
 
         # Countries
         p1_country = self._get_or_create_country(
-            session, country_name_to_iso(row.player_1_country), row.player_1_country)
+            session,
+            country_name_to_iso(row.player_1_country),
+            row.player_1_country,
+        )
         p2_country = self._get_or_create_country(
-            session, country_name_to_iso(row.player_2_country), row.player_2_country)
+            session,
+            country_name_to_iso(row.player_2_country),
+            row.player_2_country,
+        )
 
-        # Participants
+        # Players
         p1 = self._get_or_create_player(session, row.player_1_name, p1_country)
         p2 = self._get_or_create_player(session, row.player_2_name, p2_country)
 
         session.add(DuelParticipant(duel=duel, player=p1))
         session.add(DuelParticipant(duel=duel, player=p2))
 
-        duel_teams = {}
+        # ─────────────────────────────────────────
+        # FIX CLAVE: DuelTeam por equipo (NO por jugador)
+        # ─────────────────────────────────────────
+
+        duel_teams: dict[str, DuelTeam] = {}
 
         if row.player_1_team:
-            team = self._get_or_create_simple(
-                session, Team, row.player_1_team)
-
-            session.flush()
-
-            duel_team = (
-                session.query(DuelTeam)
-                .filter_by(
-                    duel_id=duel.id,
-                    team_id=team.id,
-                )
-                .one_or_none()
+            self._get_or_create_duel_team(
+                session=session,
+                duel=duel,
+                duel_teams=duel_teams,
+                team_name=row.player_1_team,
+                player=p1
             )
-
-            if duel_team is None:
-                duel_team = DuelTeam(duel=duel, team=team)
-                session.add(duel_team)
-
-            duel_teams["p1"] = duel_team
-
-            session.add(DuelTeamMember(duel_team=duel_team, player=p1))
 
         if row.player_2_team:
-            team = self._get_or_create_simple(
-                session, Team, row.player_2_team)
-
-            session.flush()
-
-            duel_team = (
-                session.query(DuelTeam)
-                .filter_by(
-                    duel_id=duel.id,
-                    team_id=team.id,
-                )
-                .one_or_none()
+            self._get_or_create_duel_team(
+                session=session,
+                duel=duel,
+                duel_teams=duel_teams,
+                team_name=row.player_2_team,
+                player=p2
             )
 
-            if duel_team is None:
-                duel_team = DuelTeam(duel=duel, team=team)
-                session.add(duel_team)
+        return duel, duel_teams, p1, p2
 
-            duel_teams["p2"] = duel_team
+    def _get_or_create_duel_team(
+        self,
+        session: Session,
+        duel: Duel,
+        duel_teams: dict[str, DuelTeam],
+        team_name: str,
+        player: Player
+    ):
+        if team_name not in duel_teams:
+            team = self._get_or_create_simple(session, Team, team_name)
+            session.flush()  # asegura team.id y duel.id
 
-            session.add(DuelTeamMember(duel_team=duel_team, player=p2))
+            duel_team = DuelTeam(
+                duel=duel,
+                team=team,
+            )
+            session.add(duel_team)
 
-        return (duel, duel_teams, p1, p2)
+            duel_teams[team_name] = duel_team
+        else:
+            duel_team = duel_teams[team_name]
+
+        session.add(
+            DuelTeamMember(
+                duel_team=duel_team,
+                player=player,
+            )
+        )
 
     def _get_or_create_battle(self,
                               session: Session,
@@ -355,8 +365,8 @@ class CSVLoaderLegacy(DataLoader):
         c2 = self._get_or_create_character(
             session, row.character_2_name, franchise, game_version_platform)
 
-        duel_team_p1 = duel_teams.get("p1")
-        duel_team_p2 = duel_teams.get("p2")
+        duel_team_p1 = duel_teams.get(row.player_1_team)
+        duel_team_p2 = duel_teams.get(row.player_2_team)
 
         session.add(BattleParticipant(
             battle=battle,

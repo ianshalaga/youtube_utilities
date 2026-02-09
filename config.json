@@ -69,12 +69,12 @@
     },
 
     "ranking_system": {
-      "entity": "player",
+      "entity": "team",
 
       "filters": {
         "scope": {
           "season_name": null,
-          "event_name": "SSLT 1",
+          "event_name": "SSLTT 1",
           "event_type_name": null,
           "region_name": null,
           "game_name": null,

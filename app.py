@@ -1,19 +1,19 @@
 from pathlib import Path
 
-from core.config_manager import ConfigManager
+# CORE
+from core.config_manager import ConfigManager  # Fuente de obtención de datos
 
+# APPS
 from apps.video_music.processor import VideoMusicProcessor
 from apps.video_joiner.processor import VideoJoinerProcessor
-from services.media.video.converter import VideoConverter
-from services.media.ffprobe_provider import FFProbeProvider
-
 from apps.ranking_system.create_db import create_db
 from apps.ranking_system.loaders.load_legacy import run as load_legacy_data
-
 from apps.ranking_system.processor import run_ranking
 from apps.ranking_system.queries.builder import RankingQueryBuilder
 
-
+# SERVICES
+from services.media.video.converter import VideoConverter
+from services.media.ffprobe_provider import FFProbeProvider
 from services.ranking.storage.session import SessionLocal
 
 
