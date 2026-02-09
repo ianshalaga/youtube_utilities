@@ -72,6 +72,8 @@ class RankingDBProvider(DataProvider):
                 self._resolve_duel_competitive_context(battles)
             )
 
+            # En TEAM, las battles pueden incluir players no afiliados.
+            # Se filtran aquí para que DuelEvent solo procese participantes válidos.
             if competitive_level is RankingEntity.TEAM:
                 valid_players = {
                     pid for pid, tid in player_affiliations.items()
@@ -82,6 +84,11 @@ class RankingDBProvider(DataProvider):
                     b.with_filtered_participants(valid_players)
                     for b in battles
                 ]
+
+            if competitive_level not in (RankingEntity.PLAYER, RankingEntity.TEAM):
+                raise ValueError(
+                    f"DuelEvent inválido para nivel competitivo {competitive_level}"
+                )
 
             duel_events.append(
                 DuelEvent.from_battle_events(
