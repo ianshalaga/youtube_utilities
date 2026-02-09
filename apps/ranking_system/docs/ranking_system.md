@@ -2,143 +2,162 @@
 
 ## Proyecto: youtube_utilities
 
-## Módulo: ranking_system
+## App: ranking_system
 
-## Versión: 1.2
+## Versión: 1.4
 
 ---
 
 ## 1. Objetivo
 
-Este documento define formalmente el sistema de ranking utilizado para
-evaluar el desempeño competitivo de las entidades del proyecto
-**youtube_utilities**.
+Este documento define formalmente el **contrato conceptual** del sistema de ranking utilizado para evaluar el desempeño competitivo de las entidades del proyecto **youtube_utilities**.
 
 El sistema está diseñado para:
 
-- Reflejar rendimiento real basado en resultados objetivos
-- Ser invariante ante cambios de escala de daño
-- Penalizar muestras pequeñas e inconsistencia histórica
-- Separar correctamente niveles semánticos de competencia
-- Evitar inversiones de mérito (el derrotado nunca supera al vencedor)
+- Reflejar rendimiento competitivo real basado en resultados objetivos.
+- Ser invariante ante cambios en la escala de daño.
+- Penalizar muestras pequeñas y la inconsistencia histórica.
+- Separar explícitamente los niveles semánticos de competencia.
+- Evitar inversiones de mérito (el derrotado nunca supera al vencedor).
+
+Este documento es **normativo**: el código debe ajustarse a lo aquí definido.
 
 ---
 
-## 2. Alcance por tipo de entidad
+## 2. Entidades competitivas
 
-### 2.1 Player
+### 2.1 Tipos de entidades
 
-Los **players** son la única entidad que participa en **duelos**.
-Por lo tanto, el sistema completo de ranking aplica únicamente a ellos.
+Existen cuatro tipos de entidades:
 
-Jerarquía competitiva:
+- **Players**
+- **Teams**
+- **Characters**
+- **PlayerCharacters**
 
-`Round → Battle → Duel → Player Ranking`
+### 2.2 Nivel semántico de competencia
 
-Los players acumulan:
+Las entidades se dividen en **dos niveles competitivos** claramente diferenciados:
 
-- `battle_points`
-- `duel_points`
-- `score`
-- `rating`
+#### Duel-level entities
 
----
+- Players
+- Teams
 
-### 2.2 PlayerCharacter y Character
+#### Battle-level entities
 
-Las entidades **player_character** y **character**:
+- Characters
+- PlayerCharacters
 
-- No participan en duelos
-- Pueden cambiar dentro de un mismo duelo
-- Su máxima unidad competitiva es la **battle**
-
-Jerarquía aplicable:
-
-`Round → Battle → Character Ranking`
-
-Consecuencias:
-
-- No existe capa `duel`
-- No existen `duel_points`
-- No existe `rating`
-- El ranking final se basa exclusivamente en `battle_points`
+Este nivel **define completamente** la semántica de las estadísticas y la granularidad de cálculo.
 
 ---
 
-## 3. Sistema atómico de puntos (raw_points)
+## 3. Jerarquía competitiva
 
-### 3.1 Definición
+### 3.1 Duel-level
 
-Los `raw_points` representan el **daño real infligido** durante un round.
+```
+Round → Battle → Duel → Ranking
+```
 
-- El valor máximo por round es la vida total del rival (`H`)
-- El perdedor de un round puede obtener puntos parciales
+Aplica a **Players** y **Teams**.
 
-Ejemplo:
+### 3.2 Battle-level
 
-- Round ganado: `H`
-- Round perdido infligiendo `H − 1`: `H − 1`
+```
+Round → Battle → Ranking
+```
 
-Este sistema es lineal respecto a `H`.
-
----
-
-### 3.2 Invariancia a la escala de daño
-
-Si el valor máximo de daño cambia (por ejemplo, de `240` a `1000`):
-
-- Todos los `raw_points` escalan linealmente
-- Los factores multiplicativos permanecen adimensionales
-- El orden relativo del ranking no se altera
-
-El sistema es **invariante ante cambios de escala de daño**.
+Aplica a **Characters** y **PlayerCharacters**.
 
 ---
 
-## 4. Beating factor
+## 4. Definición de duelos y batallas
 
-El `beating_factor` mide la proporción de éxito de una entidad.
+### 4.1 Batallas (Battles)
 
-Definición:
+- Una batalla siempre tiene exactamente dos participantes.
+- Los participantes pueden ser Characters o PlayerCharacters.
+- En una batalla existen tres resultados posibles: win, loss o draw.
+- Las batallas están compuestas por rounds.
 
-`beating_factor = (wins + ε) / (total + ε)`
+### 4.2 Duelos (Duels)
 
-Parámetro:
+- Un duelo está compuesto por una o más batallas.
+- Los duelos solo existen para Players y Teams.
+- Un duelo siempre tiene un ganador (no existen empates de duelo).
+- En un mismo duelo:
+  - Las posiciones de los jugadores pueden variar entre batallas.
+  - Las batallas empatadas no determinan la victoria, pero sí aportan puntos.
 
-- `ε = 0.5`
+---
+
+## 5. Sistema atómico de puntos (raw_points)
+
+### 5.1 Definición
+
+Los **raw_points** representan el daño real infligido durante un round.
+
+- El valor máximo por round es la vida total del rival.
+- El perdedor puede obtener puntos parciales según el daño infligido.
+
+### 5.2 Invariancia de escala
+
+El sistema es invariante ante cambios de escala de daño:
+
+- Los raw_points escalan linealmente.
+- Los factores multiplicativos son adimensionales.
+- El orden relativo del ranking no se altera.
+
+---
+
+## 6. Beating Factor
+
+El **beating_factor** mide la proporción de éxito en un conjunto de eventos.
+
+```
+beating_factor = (wins + draws × draws_weight + ε) / (total + ε)
+```
+
+Parámetros:
+
+- ε = 0.5
+- draws_weight = 0.5
 
 Propiedades:
 
-- Nunca es cero
-- Diferencia correctamente 0/x de 1/x
-- Escala automáticamente con FT variables
-- Es válido para cualquier nivel semántico
+- Nunca es cero.
+- Diferencia correctamente 0/x de 1/x.
+- Es válido para cualquier nivel:
+  - rounds_beating_factor (battle-level)
+  - battles_beating_factor (duel-level)
 
 ---
 
-## 5. Win rate bayesiano
+## 7. Win Rate Bayesiano
 
 Para evitar sesgos por muestras pequeñas se utiliza un win rate suavizado:
 
-`adjusted_win_rate = (wins + α) / (games + 2α)`
+```
+adjusted_win_rate = (wins + draws × draw_weight + α) / (games + α + β)
+```
 
-Parámetro:
+Parámetros:
 
-- `α = 1`
+- α = 1
+- β = 1
+- draw_weight = 0.5
 
-Este valor se utiliza **exclusivamente** para el cálculo de los
-`lvl_factor`.
+Este valor se utiliza **exclusivamente** para el cálculo del level factor.
 
 ---
 
-## 6. Level factor (lvl_factor)
+## 8. Level Factor (lvl_factor)
 
-El `lvl_factor` ajusta los puntos obtenidos en función de la diferencia
-de nivel entre los competidores.
+El **lvl_factor** ajusta los puntos obtenidos según la diferencia de nivel entre competidores.
 
-Definición general:
-
-```Python
+```
 lvl_factor = clamp(
     1 + k × (win_rate_opponent − win_rate_self),
     min_factor,
@@ -146,157 +165,149 @@ lvl_factor = clamp(
 )
 ```
 
----
+### Parámetros
 
-### 6.1 Battles lvl_factor
+**Battle-level**
 
-Parámetros:
+```
+k = 0.03
+min = 0.85
+max = 1.15
+```
 
-- `k = 0.03`
-- `min_factor = 0.85`
-- `max_factor = 1.15`
+**Duel-level**
 
----
+```
+k = 0.02
+min = 0.90
+max = 1.10
+```
 
-### 6.2 Duels lvl_factor (solo players)
+### Invariante fundamental
 
-Parámetros:
-
-- `k = 0.02`
-- `min_factor = 0.90`
-- `max_factor = 1.10`
-
----
-
-### 6.3 Invariante fundamental
-
-Bajo ningún escenario el `lvl_factor` permite que el derrotado obtenga
-más puntos que el vencedor, incluso con:
-
-- Daño parcial refinado
-- FT elevados
-- Escalas de daño variables
+El lvl_factor **nunca** permite que el derrotado obtenga más puntos que el vencedor.
 
 ---
 
-## 7. Cálculo de battle_points
+## 9. Cálculo de puntos
 
-Los `battle_points` se calculan para todas las entidades competitivas.
+### 9.1 Battle-level (Characters, PlayerCharacters)
 
-`battle_points = raw_points * rounds_beating_factor * battles_lvl_factor`
+```
+battle_points = raw_points × rounds_beating_factor × battles_lvl_factor
+battle_raw_score = Σ battle_points
+```
 
----
-
-## 8. Cálculo de duel_points (solo players)
-
-Primero se agregan los puntos de las battles:
-
-`battles_points = Σ battle_points`
-
-Luego se calcula:
-
-`duel_points = battles_points * battles_beating_factor * duels_lvl_factor`
-
-Los `duel_points` son:
-
-- Atómicos
-- Inmutables
-- Exclusivos de players
+El cálculo se realiza **battle a battle**.
 
 ---
 
-## 9. Consistency factor
+### 9.2 Duel-level (Players, Teams)
 
-El `consistency_factor` penaliza la inconsistencia histórica y las
-muestras pequeñas.
+```
+battles_points = Σ battle_points
+duel_points = battles_points × battles_beating_factor × duels_lvl_factor
+duel_raw_score = Σ duel_points
+```
 
-Definición:
+El cálculo se realiza **duel a duel**.
 
-`consistency_factor = games_played / (games_played + C)`
+---
+
+## 10. Semántica de estadísticas
+
+### 10.1 Duel-level entities
+
+- events_played = duelos jugados
+- wins = duelos ganados
+- losses = duelos perdidos
+- draws = 0 (no existen empates de duelo)
+- win_rate = duel win rate
+
+### 10.2 Battle-level entities
+
+- events_played = batallas jugadas
+- wins = batallas ganadas
+- losses = batallas perdidas
+- draws = batallas empatadas
+- win_rate = battle win rate
+
+---
+
+## 11. Consistency Factor
+
+```
+consistency_factor = games_played / (games_played + C)
+```
 
 Parámetro:
 
-- `C = 10`
+- C = 10
+
+Penaliza muestras pequeñas e inconsistencia histórica.
 
 ---
 
-## 10. Score (ranking histórico)
+## 12. Score
 
-### 10.1 Players
+### Duel-level
 
-`raw_score = Σ duel_points`
-`score = raw_score * consistency_factor`
+```
+score = duel_raw_score × consistency_factor
+```
 
-### 10.2 Characters y PlayerCharacters
+Se actualiza duelo a duelo.
 
-`raw_score = Σ battle_points`
-`score = raw_score * consistency_factor`
+### Battle-level
 
-El `score`:
+```
+score = battle_raw_score × consistency_factor
+```
 
-- Es permanente
-- No se reinicia
-- Representa el legado competitivo
-
----
-
-## 11. Rating (ranking competitivo actual)
-
-### 11.1 Alcance
-
-El `rating` existe únicamente para players.
+Se actualiza batalla a batalla.
 
 ---
 
-### 11.2 Valor inicial
+## 13. Rating
 
-`rating_initial = 1500`
+### Valor inicial
 
-Este valor representa un punto neutro y facilita comparación histórica.
+```
+rating_initial = 1500
+```
 
----
+### Actualización
 
-### 11.3 Actualización del rating
+**Duel-level**
 
-`rating_new = rating_old + duel_points × k_rating`
+```
+rating_new = rating_old + duel_points × k_rating
+```
 
-Parámetro definido:
+**Battle-level**
 
-`k_rating = 0.02`
+```
+rating_new = rating_old + battle_points × k_rating
+```
 
----
+Parámetro:
 
-### 11.4 Temporalidad
-
-- El rating es estacional
-- Puede reiniciarse por temporada
-- El score no se reinicia
-
----
-
-## 12. Relación Score vs Rating
-
-| Métrica | Significado              | Persistencia |
-| ------- | ------------------------ | ------------ |
-| Score   | Trayectoria histórica    | Permanente   |
-| Rating  | Forma competitiva actual | Estacional   |
-
-Ambas métricas coexisten y cumplen funciones distintas.
+- k_rating = 0.02
 
 ---
 
-## 13. Invariantes globales
+## 14. Invariantes globales
 
-1. El vencedor nunca obtiene menos puntos que el derrotado
-2. Ningún factor invierte resultados competitivos
-3. El sistema es invariante a la escala de daño
-4. Las muestras pequeñas están penalizadas
-5. FT variables no rompen el modelo
-6. Todos los parámetros son explícitos y versionables
+1. El vencedor nunca obtiene menos puntos que el derrotado.
+2. Ningún factor invierte resultados competitivos.
+3. El sistema es invariante a la escala de daño.
+4. Las muestras pequeñas están penalizadas.
+5. FT variables no rompen el modelo.
+6. El nivel semántico de la entidad define el cálculo.
 
 ---
 
-## 14. Estado del documento
+## 15. Estado del documento
 
-Este documento define la **base contractual** del sistema de ranking.
-Cualquier cambio posterior debe implicar una nueva versión.
+Este documento define la **base contractual** del sistema de ranking.  
+Cualquier cambio requiere una nueva versión.
