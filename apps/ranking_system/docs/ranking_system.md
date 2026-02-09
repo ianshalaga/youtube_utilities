@@ -280,15 +280,11 @@ rating_initial = 1500
 
 **Duel-level**
 
-```
-rating_new = rating_old + duel_points × k_rating
-```
+`rating_new = rating_old + duel_points × k_rating`
 
 **Battle-level**
 
-```
-rating_new = rating_old + battle_points × k_rating
-```
+`rating_new = rating_old + battle_points × k_rating`
 
 Parámetro:
 

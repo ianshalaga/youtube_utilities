@@ -1,127 +1,97 @@
-from core.math.bayesian_win_rate import bayesian_win_rate
-from domain.ranking.engine.factors import beating_factor, lvl_factor
-from domain.ranking.engine.calculators.rating_calculator import update_rating
-from domain.ranking.engine.calculators.battle_calculator import compute_battle_points
-from domain.ranking.engine.state import CompetitiveState
-from domain.ranking.models.duel_event import DuelEvent
-from domain.ranking.entities.ranking_entity import RankingEntity
+from domain.ranking.engine.factors import (
+    beating_factor,
+    lvl_factor,
+)
+from domain.ranking.engine.calculators.score_calculator import compute_score
 
 
 def apply_duel_event(
     *,
-    duel: DuelEvent,
-    state_by_entity: dict,
-    lvl_params: dict,
-    k_rating: float,
-) -> None:
+    duel,
+    state_by_entity,
+    lvl_params,
+    k_rating,
+):
     """
-    Aplica un DuelEvent al estado acumulado.
+    Aplica un DuelEvent a los estados competitivos.
 
-    El estado se actualiza UNA vez por duelo:
-    - ganador: win += 1
-    - resto: loss += 1
+    CONTRATO:
+    - Un DuelEvent equivale a UN evento competitivo.
+    - El ganador y perdedores vienen dados explícitamente.
+    - Las battles solo aportan puntos (score / rating).
     """
 
-    # ── determinar ganador del duelo ────────────────────────
-    winner = max(
-        duel.participants,
-        key=lambda p: p.battles_won
-    )
+    # ──────────────────────────────────────────────────────────
+    # Resolver estados
+    # ──────────────────────────────────────────────────────────
 
-    # ── definir clave competitiva ───────────────────────────
-    def entity_key(p):
-        return p.participant_id
+    winner_state = state_by_entity[duel.winner_id]
+    loser_states = [state_by_entity[lid] for lid in duel.loser_ids]
 
-    # ── aplicar duelo a cada participante ───────────────────
+    # Todos los participantes (ganador + perdedores)
+    participant_states = [winner_state, *loser_states]
+
+    # ──────────────────────────────────────────────────────────
+    # Calcular duel_points para cada participante
+    # ──────────────────────────────────────────────────────────
+
+    duel_points_by_entity = {}
+
     for participant in duel.participants:
-        key = entity_key(participant)
+        state = state_by_entity[participant.participant_id]
 
-        state: CompetitiveState = state_by_entity.setdefault(
-            key, CompetitiveState()
-        )
-
-        # ── estado previo ───────────────────────────────────
-        eff_wins = state.wins + 0.5 * state.draws
-        eff_losses = state.losses + 0.5 * state.draws
-
-        wr_self = bayesian_win_rate(
-            wins=eff_wins,
-            losses=eff_losses,
-        )
-
-        # ── win rate promedio de oponentes ──────────────────
-        opp_wrs = []
-
-        for opp in duel.participants:
-            if entity_key(opp) == key:
-                continue
-
-            opp_state = state_by_entity.setdefault(
-                entity_key(opp), CompetitiveState()
-            )
-
-            opp_eff_wins = opp_state.wins + 0.5 * opp_state.draws
-            opp_eff_losses = opp_state.losses + 0.5 * opp_state.draws
-
-            opp_wrs.append(
-                bayesian_win_rate(
-                    wins=opp_eff_wins,
-                    losses=opp_eff_losses,
-                )
-            )
-
-        if not opp_wrs:
-            raise RuntimeError(
-                f"Duel mal formado: sin oponentes para {key}"
-            )
-
-        wr_opponent = sum(opp_wrs) / len(opp_wrs)
-
-        # ── sumar battle points del duelo ───────────────────
-        total_battle_points = 0.0
-
+        # Sumar puntos de battles (battle-level)
+        battle_points = 0.0
         for battle in duel.battles:
-            if participant.participant_id not in battle.participant_ids:
-                continue
-
-            bp = battle.get_participant(participant.participant_id)
-
-            total_battle_points += compute_battle_points(
-                raw_points=bp.raw_points,
-                rounds_won=bp.rounds_won,
-                rounds_draw=bp.rounds_draw,
-                rounds_played=battle.rounds_played,
-                wr_self=wr_self,
-                wr_opponent=wr_opponent,
-                lvl_params=lvl_params,
+            battle_points += battle.raw_points_by_player.get(
+                participant.participant_id,
+                0.0,
             )
 
-        # ── factores de duelo ───────────────────────────────
+        # battles_beating_factor (proporción de éxito en battles)
         bf = beating_factor(
             wins=participant.battles_won,
             draws=participant.battles_draw,
             total=participant.battles_played,
         )
 
+        # duel-level lvl_factor
         lf = lvl_factor(
-            wr_self=wr_self,
-            wr_opponent=wr_opponent,
-            **lvl_params,
+            self_win_rate=state.win_rate,
+            opponent_win_rates=[
+                s.win_rate for s in participant_states
+                if s is not state
+            ],
+            params=lvl_params,
         )
 
-        duel_points = total_battle_points * bf * lf
+        duel_points = battle_points * bf * lf
+        duel_points_by_entity[participant.participant_id] = duel_points
 
-        # ── actualizar estado ───────────────────────────────
-        state.events_played += 1
-        state.raw_score += duel_points
+    # ──────────────────────────────────────────────────────────
+    # Actualizar estados (UNA VEZ POR DUELO)
+    # ──────────────────────────────────────────────────────────
 
-        if participant.participant_id == winner.participant_id:
-            state.wins += 1
-        else:
-            state.losses += 1
+    # Ganador
+    winner_state.events_played += 1
+    winner_state.wins += 1
+    winner_state.raw_score += duel_points_by_entity[duel.winner_id]
+    winner_state.rating += duel_points_by_entity[duel.winner_id] * k_rating
 
-        state.rating = update_rating(
-            rating=state.rating,
-            event_points=duel_points,
-            k_rating=k_rating,
+    # Perdedores
+    for loser_id in duel.loser_ids:
+        loser_state = state_by_entity[loser_id]
+        loser_state.events_played += 1
+        loser_state.losses += 1
+        loser_state.raw_score += duel_points_by_entity[loser_id]
+        loser_state.rating += duel_points_by_entity[loser_id] * k_rating
+
+    # ──────────────────────────────────────────────────────────
+    # Score (consistency factor)
+    # ──────────────────────────────────────────────────────────
+
+    for state in participant_states:
+        state.score = compute_score(
+            raw_score=state.raw_score,
+            events_played=state.events_played,
         )

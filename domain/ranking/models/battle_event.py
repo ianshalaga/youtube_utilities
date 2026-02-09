@@ -148,3 +148,13 @@ class BattleEvent:
             loser_player_id=self.loser_player_id,
             is_draw=self.is_draw,
         )
+
+    @property
+    def raw_points_by_player(self) -> dict[int, int]:
+        """
+        Devuelve los raw_points battle-level por player_id.
+        """
+        return {
+            p.player_id: p.raw_points
+            for p in self.participants
+        }
