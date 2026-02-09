@@ -1,10 +1,8 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from collections import defaultdict
-from typing import Iterable
+from typing import Iterable, Tuple
 
-from domain.ranking.entities import RankingEntity
+from domain.ranking.entities.ranking_entity import RankingEntity
 from domain.ranking.models.battle_event import BattleEvent
 
 
@@ -12,45 +10,26 @@ from domain.ranking.models.battle_event import BattleEvent
 class DuelParticipantResult:
     """
     Resultado agregado de un participante dentro de un duelo.
-
-    NOTA SEMÁNTICA:
-    - participant_id representa la entidad competitiva:
-        - PLAYER  -> player_id
-        - TEAM    -> team_id
-    - battles_* son métricas internas del duelo.
-      NO representan resultados competitivos finales.
     """
     participant_id: int
     battles_played: int
     battles_won: int
     battles_lost: int
     battles_draw: int
+    raw_points: float
 
 
 @dataclass(frozen=True)
 class DuelEvent:
     """
     Evento competitivo a nivel DUEL.
-
-    CONTRATO:
-    - Aplica exclusivamente a entidades duel-level (PLAYER, TEAM).
-    - Un duelo tiene exactamente UN ganador.
-    - Puede tener uno o más perdedores.
-    - No existen empates de duelo.
-    - Las battles son información interna.
     """
-
-    participants: tuple[DuelParticipantResult, ...]
-    battles: tuple[BattleEvent, ...]
+    participants: Tuple[DuelParticipantResult, ...]
+    battles: Tuple[BattleEvent, ...]
     competitive_level: RankingEntity
 
-    # Resultado explícito del duelo (nivel competitivo)
     winner_id: int
-    loser_ids: tuple[int, ...]
-
-    # ──────────────────────────────────────────────────────────────
-    # Construcción
-    # ──────────────────────────────────────────────────────────────
+    loser_ids: Tuple[int, ...]
 
     @classmethod
     def from_battle_events(
@@ -59,118 +38,81 @@ class DuelEvent:
         *,
         competitive_level: RankingEntity,
         player_affiliations: dict[int, int | None],
-    ) -> DuelEvent:
-        """
-        Construye un DuelEvent a partir de BattleEvents.
-
-        RESPONSABILIDAD:
-        - Agregar información battle-level.
-        - Resolver explícitamente el resultado del duelo.
-        - NO inferir semántica aguas abajo.
-        """
+    ) -> "DuelEvent":
 
         battles = tuple(battles)
         if not battles:
             raise ValueError("No se puede construir un DuelEvent sin battles")
 
-        # ──────────────────────────────────────────────────────────
-        # Inicializar stats internas por participante
-        # ──────────────────────────────────────────────────────────
+        stats = defaultdict(lambda: {
+            "battles_played": 0,
+            "battles_won": 0,
+            "battles_lost": 0,
+            "battles_draw": 0,
+            "raw_points": 0.0,
+        })
 
-        stats: dict[int, dict[str, int]] = defaultdict(
-            lambda: {
-                "battles_played": 0,
-                "battles_won": 0,
-                "battles_lost": 0,
-                "battles_draw": 0,
-            }
-        )
-
-        # Conteo de battles ganadas (para resolver el duelo)
-        battle_wins: dict[int, int] = defaultdict(int)
-
-        # ──────────────────────────────────────────────────────────
-        # Procesar battles
-        # ──────────────────────────────────────────────────────────
+        battle_wins = defaultdict(int)
 
         for battle in battles:
-            # Resolver participantes de la battle a nivel competitivo
-            participant_entities: list[int] = []
-
-            for pid in battle.participant_player_ids:
+            for player_id in battle.participant_player_ids:
                 if competitive_level is RankingEntity.PLAYER:
-                    participant_entities.append(pid)
+                    entity_id = player_id
                 else:
-                    team_id = player_affiliations.get(pid)
-                    if team_id is None:
+                    entity_id = player_affiliations.get(player_id)
+                    if entity_id is None:
                         raise ValueError(
-                            f"Player {pid} no tiene team asignado en duelo por equipos"
+                            f"Player {player_id} sin team en duelo por equipos"
                         )
-                    participant_entities.append(team_id)
 
-            # Actualizar battles_played
-            for entity_id in participant_entities:
                 stats[entity_id]["battles_played"] += 1
+                stats[entity_id]["raw_points"] += (
+                    battle.raw_points_by_player.get(player_id, 0.0)
+                )
 
-            # Resolver resultado de la battle
             if battle.is_draw:
-                for entity_id in participant_entities:
+                for entity_id in stats:
                     stats[entity_id]["battles_draw"] += 1
                 continue
 
-            winner_player_id = battle.winner_player_id
+            winner_player = battle.winner_player_id
+            winner_entity = (
+                winner_player
+                if competitive_level is RankingEntity.PLAYER
+                else player_affiliations[winner_player]
+            )
 
-            if competitive_level is RankingEntity.PLAYER:
-                winner_entity_id = winner_player_id
-            else:
-                winner_entity_id = player_affiliations[winner_player_id]
+            battle_wins[winner_entity] += 1
 
-            battle_wins[winner_entity_id] += 1
-
-            for entity_id in participant_entities:
-                if entity_id == winner_entity_id:
+            for entity_id in stats:
+                if entity_id == winner_entity:
                     stats[entity_id]["battles_won"] += 1
                 else:
                     stats[entity_id]["battles_lost"] += 1
 
-        # ──────────────────────────────────────────────────────────
-        # Resolver ganador del duelo
-        # ──────────────────────────────────────────────────────────
-
         if not battle_wins:
             raise ValueError("Duelo inválido: ninguna battle resolvió ganador")
 
-        # Determinar máximo de battles ganadas
         max_wins = max(battle_wins.values())
         winners = [eid for eid, w in battle_wins.items() if w == max_wins]
 
         if len(winners) != 1:
-            raise ValueError(
-                "Duelo inválido: empate de battles a nivel duelo"
-            )
+            raise ValueError("Duelo inválido: empate de battles")
 
         winner_id = winners[0]
-
-        # Todos los demás participantes son perdedores
-        all_participants = set(stats.keys())
-        loser_ids = tuple(sorted(all_participants - {winner_id}))
-
-        if not loser_ids:
-            raise ValueError("Duelo inválido: no hay perdedores")
-
-        # ──────────────────────────────────────────────────────────
-        # Construir resultados finales
-        # ──────────────────────────────────────────────────────────
+        all_entities = set(stats.keys())
+        loser_ids = tuple(sorted(all_entities - {winner_id}))
 
         participants = tuple(
             DuelParticipantResult(
-                participant_id=entity_id,
-                battles_played=values["battles_played"],
-                battles_won=values["battles_won"],
-                battles_lost=values["battles_lost"],
-                battles_draw=values["battles_draw"],
+                participant_id=eid,
+                battles_played=v["battles_played"],
+                battles_won=v["battles_won"],
+                battles_lost=v["battles_lost"],
+                battles_draw=v["battles_draw"],
+                raw_points=v["raw_points"],
             )
-            for entity_id, values in stats.items()
+            for eid, v in stats.items()
         )
 
         return cls(

@@ -19,6 +19,8 @@ from domain.ranking.stats.player_character_stats import (
     PlayerCharacterRankingStats,
 )
 
+from services.ranking.storage.repository import RankingRepository
+
 
 # ─────────────────────────────────────────────────────────────
 # Configuración del ranking
@@ -56,7 +58,11 @@ def run_ranking(
 
     entity = RankingEntity(entity)
 
-    provider = RankingDBProvider(session=session)
+    repository = RankingRepository()
+    provider = RankingDBProvider(
+        session=session,
+        repository=repository,
+    )
 
     engine = RankingEngine(
         lvl_params=(
