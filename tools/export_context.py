@@ -234,9 +234,9 @@ def export_context(
 if __name__ == "__main__":
     BASE_DIR = Path(__file__).resolve().parents[1]
 
+    # BASE_DIR / <path>
     INPUT_PATHS = (
-        BASE_DIR / "domain/ranking",
-        BASE_DIR / "services/ranking",
+        BASE_DIR / "services/ranking/storage/models"
     )
 
     export_context(

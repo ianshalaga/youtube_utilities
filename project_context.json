@@ -1,0 +1,258 @@
+{
+  "base_dir": "F:\\@Seyfer\\Proyectos\\youtube_utilities",
+  "extensions": [
+    ".md",
+    ".py",
+    ".toml",
+    ".txt",
+    ".yaml",
+    ".yml"
+  ],
+  "excluded_dirs": [
+    ".env",
+    ".git",
+    ".hg",
+    ".idea",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pycache__",
+    "build",
+    "dist",
+    "env",
+    "node_modules",
+    "venv"
+  ],
+  "excluded_patterns": [
+    "*.min.py",
+    "*.pyc",
+    "*.pyd",
+    "*.pyo",
+    "*_test.py",
+    "*~",
+    "test_*.py"
+  ],
+  "total_files": 27,
+  "files": [
+    {
+      "path": "services\\ranking\\storage\\models\\__init__.py",
+      "extension": ".py",
+      "size_bytes": 1957,
+      "lines": 35,
+      "sha256": "0d6b7c68b66df35d04b9f4e5e263226a7a6e47c9c68d67975a4095835079ac8a",
+      "content": "\"\"\"\nCarga explícita de todos los modelos ORM.\n\nEste archivo existe exclusivamente para garantizar que\ntodas las clases que heredan de Base sean registradas\nen Base.metadata antes de ejecutar create_all().\n\"\"\"\n\nfrom services.ranking.storage.models.battle_participant import BattleParticipant\nfrom services.ranking.storage.models.battle import Battle\nfrom services.ranking.storage.models.character_identity import CharacterIdentity\nfrom services.ranking.storage.models.country import Country\nfrom services.ranking.storage.models.duel_participant import DuelParticipant\nfrom services.ranking.storage.models.duel_team_member import DuelTeamMember\nfrom services.ranking.storage.models.duel_team import DuelTeam\nfrom services.ranking.storage.models.duel_type import DuelType\nfrom services.ranking.storage.models.duel import Duel\nfrom services.ranking.storage.models.event_type import EventType\nfrom services.ranking.storage.models.event import Event\nfrom services.ranking.storage.models.game_character import GameCharacter\nfrom services.ranking.storage.models.game_version_platform import GameVersionPlatform\nfrom services.ranking.storage.models.game import Game\nfrom services.ranking.storage.models.platform import Platform\nfrom services.ranking.storage.models.player_alias import PlayerAlias\nfrom services.ranking.storage.models.player_social_account import PlayerSocialAccount\nfrom services.ranking.storage.models.player import Player\nfrom services.ranking.storage.models.region import Region\nfrom services.ranking.storage.models.round_result import RoundResult\nfrom services.ranking.storage.models.round import Round\nfrom services.ranking.storage.models.season import Season\nfrom services.ranking.storage.models.social_platform import SocialPlatform\nfrom services.ranking.storage.models.team import Team\nfrom services.ranking.storage.models.stage import Stage\nfrom services.ranking.storage.models.franchise import Franchise\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\battle.py",
+      "extension": ".py",
+      "size_bytes": 934,
+      "lines": 33,
+      "sha256": "079c4c9d7898c83d6e9f832f7364e56d7587cabedcb0c7aac9be6e28c47ff4b2",
+      "content": "from sqlalchemy import Column, Integer, ForeignKey, Index, UniqueConstraint\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\n\n\nclass Battle(Base):\n    __tablename__ = \"battles\"\n\n    __table_args__ = (\n        Index(\"ix_battles_duel_order\", \"duel_id\", \"order\"),\n        Index(\"ix_battles_stage_id\", \"stage_id\"),\n        UniqueConstraint(\"duel_id\", \"order\")\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign keys\n    duel_id = Column(Integer, ForeignKey(\"duels.id\"), nullable=False)\n    stage_id = Column(Integer, ForeignKey(\"stages.id\"), nullable=False)\n\n    # Properties\n    order = Column(Integer, nullable=False)\n\n    # Relationships\n    duel = relationship(\"Duel\")\n    stage = relationship(\"Stage\")\n    battle_participants = relationship(\n        \"BattleParticipant\",\n        back_populates=\"battle\",\n        cascade=\"all, delete-orphan\",\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\battle_participant.py",
+      "extension": ".py",
+      "size_bytes": 1430,
+      "lines": 48,
+      "sha256": "93548bc5b1209d10a8342253399d16c65ae709609471e8940695b44c098709ef",
+      "content": "from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint, Index\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\n\n\nclass BattleParticipant(Base):\n    __tablename__ = \"battle_participants\"\n\n    __table_args__ = (\n        Index(\"ix_battle_participants_battle_id\", \"battle_id\"),\n        Index(\"ix_battle_participants_player_id\", \"player_id\"),\n        UniqueConstraint(\n            \"battle_id\",\n            \"player_id\",\n            name=\"uq_battle_player\"\n        ),\n        UniqueConstraint(\n            \"battle_id\",\n            \"position\",\n            name=\"uq_battle_position\"\n        ),\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign Keys\n    battle_id = Column(Integer, ForeignKey(\"battles.id\"), nullable=False)\n    player_id = Column(Integer, ForeignKey(\"players.id\"), nullable=False)\n    game_character_id = Column(\n        Integer, ForeignKey(\"game_characters.id\"), nullable=False\n    )\n    duel_team_id = Column(\n        Integer, ForeignKey(\"duel_teams.id\"), nullable=True\n    )\n\n    position = Column(Integer, nullable=False)\n\n    # Relationships\n    battle = relationship(\"Battle\")\n    player = relationship(\"Player\")\n    game_character = relationship(\"GameCharacter\")\n    duel_team = relationship(\"DuelTeam\")\n    battle = relationship(\n        \"Battle\",\n        back_populates=\"battle_participants\",\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\character_identity.py",
+      "extension": ".py",
+      "size_bytes": 932,
+      "lines": 39,
+      "sha256": "b1e7417b81e34e5575710f184eedc59584236e72d9c53ac76ba543df6714d831",
+      "content": "from sqlalchemy import Column, Integer, String, UniqueConstraint, ForeignKey\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass CharacterIdentity(Base, WithCode):\n    __tablename__ = \"character_identities\"\n\n    id = Column(Integer, primary_key=True)\n\n    name = Column(String, nullable=False)\n\n    franchise_id = Column(\n        Integer,\n        ForeignKey(\"franchises.id\"),\n        nullable=False\n    )\n\n    franchise = relationship(\n        \"Franchise\",\n        back_populates=\"character_identities\"\n    )\n\n    __table_args__ = (\n        UniqueConstraint(\n            \"name\",\n            \"franchise_id\",\n            name=\"uq_character_identity\"\n        ),\n    )\n\n    # Relationships\n    game_characters = relationship(\n        \"GameCharacter\",\n        back_populates=\"character_identity\"\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\country.py",
+      "extension": ".py",
+      "size_bytes": 457,
+      "lines": 18,
+      "sha256": "5748fb6b0ed83a9ac6971f154d8d327bfe9daeb073fb88d243a978ae0b7d85a2",
+      "content": "from sqlalchemy import Column, Integer, String, Index\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass Country(Base, WithCode):\n    __tablename__ = \"countries\"\n\n    id = Column(Integer, primary_key=True)\n\n    iso_code = Column(String, unique=True, nullable=False)\n    name = Column(String, nullable=False)\n\n    __table_args__ = (\n        Index(\"ix_countries_code\", \"code\"),\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\duel.py",
+      "extension": ".py",
+      "size_bytes": 797,
+      "lines": 29,
+      "sha256": "a2bee9973e6c8b1bd971677c26c9c4a0f2ff59dcf5a6e4fb7addd368de7518a2",
+      "content": "from sqlalchemy import Column, Integer, ForeignKey, String, Index\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass Duel(Base, WithCode):\n    __tablename__ = \"duels\"\n\n    # Indexes\n    __table_args__ = (\n        Index(\"ix_duels_code\", \"code\"),\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign keys\n    event_id = Column(Integer, ForeignKey(\"events.id\"), nullable=False)\n    duel_type_id = Column(Integer, ForeignKey(\"duel_types.id\"), nullable=False)\n\n    # Properties\n    order = Column(Integer, nullable=False)\n    video_url = Column(String, nullable=True)\n\n    # Relationships\n    event = relationship(\"Event\")\n    duel_type = relationship(\"DuelType\")\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\duel_participant.py",
+      "extension": ".py",
+      "size_bytes": 834,
+      "lines": 29,
+      "sha256": "ea673dd09131a8bc9e5d9786bc3af6276b86eecace49b5c3a9d9f09281443f85",
+      "content": "from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint, Index\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\n\n\nclass DuelParticipant(Base):\n    __tablename__ = \"duel_participants\"\n\n    __table_args__ = (\n        Index(\"ix_duel_participants_player_id\", \"player_id\"),\n        Index(\"ix_duel_participants_duel_id\", \"duel_id\"),\n        UniqueConstraint(\n            \"duel_id\",\n            \"player_id\",\n            name=\"uq_duel_participant\"\n        ),\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign Keys\n    duel_id = Column(Integer, ForeignKey(\"duels.id\"), nullable=False)\n    player_id = Column(Integer, ForeignKey(\"players.id\"), nullable=False)\n\n    # Relationships\n    duel = relationship(\"Duel\")\n    player = relationship(\"Player\")\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\duel_team.py",
+      "extension": ".py",
+      "size_bytes": 603,
+      "lines": 23,
+      "sha256": "1f2db7df9742b8812541792bea94029368860de13acc09e18aed3ff043dee070",
+      "content": "from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\n\n\nclass DuelTeam(Base):\n    __tablename__ = \"duel_teams\"\n\n    __table_args__ = (\n        UniqueConstraint(\"duel_id\", \"team_id\"),\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign Keys\n    duel_id = Column(Integer, ForeignKey(\"duels.id\"), nullable=False)\n    team_id = Column(Integer, ForeignKey(\"teams.id\"), nullable=False)\n\n    # Relationships\n    duel = relationship(\"Duel\")\n    team = relationship(\"Team\")\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\duel_team_member.py",
+      "extension": ".py",
+      "size_bytes": 789,
+      "lines": 25,
+      "sha256": "ff1d3c072d4f61981d6e9a5c752f0606d3e7da8d458f3c0d8a591e72680f81a6",
+      "content": "from sqlalchemy import Column, Integer, ForeignKey, Index, UniqueConstraint\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\n\n\nclass DuelTeamMember(Base):\n    __tablename__ = \"duel_team_members\"\n\n    __table_args__ = (\n        Index(\"ix_duel_team_members_player_id\", \"player_id\"),\n        Index(\"ix_duel_team_members_duel_team_id\", \"duel_team_id\"),\n        UniqueConstraint(\"duel_team_id\", \"player_id\"),\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign Keys\n    duel_team_id = Column(Integer, ForeignKey(\"duel_teams.id\"), nullable=False)\n    player_id = Column(Integer, ForeignKey(\"players.id\"), nullable=False)\n\n    # Relationships\n    duel_team = relationship(\"DuelTeam\")\n    player = relationship(\"Player\")\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\duel_type.py",
+      "extension": ".py",
+      "size_bytes": 263,
+      "lines": 12,
+      "sha256": "901b1b9da87619334515120f0d21e50882fa884a19134e13fb7fb46745440580",
+      "content": "from sqlalchemy import Column, Integer, String\n\nfrom services.ranking.storage.base import Base\n\n\nclass DuelType(Base):\n    __tablename__ = \"duel_types\"\n\n    id = Column(Integer, primary_key=True)\n\n    name = Column(String, unique=True, nullable=False)\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\event.py",
+      "extension": ".py",
+      "size_bytes": 1434,
+      "lines": 46,
+      "sha256": "653c9185ade117559ca08ab73f27735cc624a54c9455f5ae535ef5a4f608bb14",
+      "content": "from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Index\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass Event(Base, WithCode):\n    __tablename__ = \"events\"\n\n    # Indexes\n    __table_args__ = (\n        Index(\"ix_events_code\", \"code\"),\n        Index(\"ix_events_season_id\", \"season_id\"),\n        Index(\"ix_events_game_version_platform_id\", \"game_version_platform_id\"),\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # FKs\n    season_id = Column(Integer, ForeignKey(\"seasons.id\"), nullable=True)\n    region_id = Column(Integer, ForeignKey(\"regions.id\"), nullable=False)\n    event_type_id = Column(\n        Integer,\n        ForeignKey(\"event_types.id\"),\n        nullable=False\n    )\n    game_version_platform_id = Column(\n        Integer,\n        ForeignKey(\"game_version_platforms.id\"),\n        nullable=False\n    )\n\n    # Fields\n    name = Column(String, nullable=False)\n    event_date = Column(DateTime, nullable=False)\n    order = Column(Integer, nullable=False)\n    bracket_url = Column(String, nullable=True)\n    playlist_url = Column(String, nullable=True)\n\n    # Relationships\n    season = relationship(\"Season\")\n    event_type = relationship(\"EventType\")\n    region = relationship(\"Region\")\n    game_version_platform = relationship(\"GameVersionPlatform\")\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\event_type.py",
+      "extension": ".py",
+      "size_bytes": 265,
+      "lines": 12,
+      "sha256": "41d18ddf79ceb7dbcaea8fe00e414f07ba57916e05bdf0e87eb6eb6a8357c387",
+      "content": "from sqlalchemy import Column, Integer, String\n\nfrom services.ranking.storage.base import Base\n\n\nclass EventType(Base):\n    __tablename__ = \"event_types\"\n\n    id = Column(Integer, primary_key=True)\n\n    name = Column(String, unique=True, nullable=False)\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\franchise.py",
+      "extension": ".py",
+      "size_bytes": 745,
+      "lines": 29,
+      "sha256": "a11ef5dd4430c00e096a3235f4e700abd2d8e15d6c0e7ed242d2f503ac130c7f",
+      "content": "from sqlalchemy import Column, Integer, String, UniqueConstraint, Index\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass Franchise(Base, WithCode):\n    __tablename__ = \"franchises\"\n\n    __table_args__ = (\n        UniqueConstraint(\"name\", name=\"uq_franchise_name\"),\n        Index(\"ix_franchise_code\", \"code\"),\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    name = Column(String, nullable=False)\n\n    # Relationships\n    character_identities = relationship(\n        \"CharacterIdentity\",\n        back_populates=\"franchise\"\n    )\n    games = relationship(\n        \"Game\",\n        back_populates=\"franchise\"\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\game.py",
+      "extension": ".py",
+      "size_bytes": 649,
+      "lines": 29,
+      "sha256": "d1145bc9e9af1bf90ab4f4e8676d3aec5c9fe44d4e323824ae02afe5c3589b37",
+      "content": "from sqlalchemy import Column, Integer, String, ForeignKey, Index\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass Game(Base, WithCode):\n    __tablename__ = \"games\"\n\n    id = Column(Integer, primary_key=True)\n\n    name = Column(String, nullable=False)\n\n    franchise_id = Column(\n        Integer,\n        ForeignKey(\"franchises.id\"),\n        nullable=False\n    )\n\n    franchise = relationship(\n        \"Franchise\",\n        back_populates=\"games\"\n    )\n\n    __table_args__ = (\n        Index(\"ix_game_code\", \"code\"),\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\game_character.py",
+      "extension": ".py",
+      "size_bytes": 944,
+      "lines": 30,
+      "sha256": "fee7cd1bfee524b679d8363cafb97666b6cb85eb1d96c10014f739cd041dd6c2",
+      "content": "from sqlalchemy import Column, Integer, ForeignKey, Index, UniqueConstraint\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass GameCharacter(Base, WithCode):\n    __tablename__ = \"game_characters\"\n\n    __table_args__ = (\n        Index(\"ix_game_characters_code\", \"code\"),\n        UniqueConstraint(\n            \"character_identity_id\",\n            \"game_version_platform_id\"\n        )\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign keys\n    character_identity_id = Column(Integer, ForeignKey(\n        \"character_identities.id\"), nullable=False)\n    game_version_platform_id = Column(Integer, ForeignKey(\n        \"game_version_platforms.id\"), nullable=False)\n\n    # Relationships\n    character_identity = relationship(\"CharacterIdentity\")\n    game_version_platform = relationship(\"GameVersionPlatform\")\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\game_version_platform.py",
+      "extension": ".py",
+      "size_bytes": 888,
+      "lines": 30,
+      "sha256": "ad9219a0cc2c14e68fc378ff71761e62ee3a29d401e5bc085932842971a3fd4d",
+      "content": "from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint, Index\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass GameVersionPlatform(Base, WithCode):\n    __tablename__ = \"game_version_platforms\"\n\n    id = Column(Integer, primary_key=True)\n\n    game_id = Column(Integer, ForeignKey(\"games.id\"), nullable=False)\n    platform_id = Column(Integer, ForeignKey(\"platforms.id\"), nullable=False)\n\n    version = Column(String, nullable=False)\n\n    game = relationship(\"Game\")\n    platform = relationship(\"Platform\")\n\n    __table_args__ = (\n        UniqueConstraint(\n            \"game_id\",\n            \"platform_id\",\n            \"version\",\n            name=\"uq_game_platform_version\"\n        ),\n        Index(\"ix_game_versions_code\", \"code\"),\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\platform.py",
+      "extension": ".py",
+      "size_bytes": 411,
+      "lines": 17,
+      "sha256": "8889be702546acac53ac4eb5e68a88959d81ff41a732c68ef67de76d4faffd7f",
+      "content": "from sqlalchemy import Column, Integer, String, Index\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass Platform(Base, WithCode):\n    __tablename__ = \"platforms\"\n\n    id = Column(Integer, primary_key=True)\n\n    name = Column(String, unique=True, nullable=False)\n\n    __table_args__ = (\n        Index(\"ix_platforms_code\", \"code\"),\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\player.py",
+      "extension": ".py",
+      "size_bytes": 626,
+      "lines": 25,
+      "sha256": "3f86a72d304068468c306fb3dcb0c1be75cb67510044f4d42bde694f4b97e4be",
+      "content": "from sqlalchemy import Column, Integer, String, ForeignKey, Index\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass Player(Base, WithCode):\n    __tablename__ = \"players\"\n\n    __table_args__ = (\n        Index(\"ix_players_code\", \"code\"),\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign Keys\n    country_id = Column(Integer, ForeignKey(\"countries.id\"))\n\n    # Attributes\n    nickname = Column(String, unique=True, nullable=False)\n\n    # Relationships\n    country = relationship(\"Country\")\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\player_alias.py",
+      "extension": ".py",
+      "size_bytes": 447,
+      "lines": 18,
+      "sha256": "ce1dda0df0b00074b032fb29200196a6fa681174d3d1d5a38a4dc17dbfc2f57d",
+      "content": "from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint\n\nfrom services.ranking.storage.base import Base\n\n\nclass PlayerAlias(Base):\n    __tablename__ = \"player_aliases\"\n\n    id = Column(Integer, primary_key=True)\n\n    player_id = Column(Integer, ForeignKey(\"players.id\"), nullable=False)\n\n    alias = Column(String, nullable=False)\n\n    __table_args__ = (\n        UniqueConstraint(\"player_id\", \"alias\"),\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\player_social_account.py",
+      "extension": ".py",
+      "size_bytes": 563,
+      "lines": 20,
+      "sha256": "c100d2595b3233f13333717ba921f5c15effdcf223928bfe42934b11bbf4eeba",
+      "content": "from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint\n\nfrom services.ranking.storage.base import Base\n\n\nclass PlayerSocialAccount(Base):\n    __tablename__ = \"player_social_accounts\"\n\n    id = Column(Integer, primary_key=True)\n\n    player_id = Column(Integer, ForeignKey(\"players.id\"), nullable=False)\n    platform_id = Column(Integer, ForeignKey(\n        \"social_platforms.id\"), nullable=False)\n\n    handle = Column(String, nullable=False)\n\n    __table_args__ = (\n        UniqueConstraint(\"platform_id\", \"handle\"),\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\region.py",
+      "extension": ".py",
+      "size_bytes": 405,
+      "lines": 17,
+      "sha256": "0e607406610620146e6f498376c478dd1ca8fa47878491a2d37c91f571fdc6c3",
+      "content": "from sqlalchemy import Column, Integer, String, Index\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass Region(Base, WithCode):\n    __tablename__ = \"regions\"\n\n    id = Column(Integer, primary_key=True)\n\n    name = Column(String, unique=True, nullable=False)\n\n    __table_args__ = (\n        Index(\"ix_regions_code\", \"code\"),\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\round.py",
+      "extension": ".py",
+      "size_bytes": 635,
+      "lines": 25,
+      "sha256": "72ec4ef4d997696b037bd4b26737fe2a4b7dbb206818cf07fbdf6e52e40de4c3",
+      "content": "from sqlalchemy import Column, Integer, ForeignKey, Index, UniqueConstraint\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\n\n\nclass Round(Base):\n    __tablename__ = \"rounds\"\n\n    __table_args__ = (\n        Index(\"ix_rounds_battle_order\", \"battle_id\", \"order\"),\n        UniqueConstraint(\"battle_id\", \"order\")\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign Keys\n    battle_id = Column(Integer, ForeignKey(\"battles.id\"), nullable=False)\n\n    # Attributes\n    order = Column(Integer, nullable=False)\n\n    # Relationships\n    battle = relationship(\"Battle\")\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\round_result.py",
+      "extension": ".py",
+      "size_bytes": 712,
+      "lines": 28,
+      "sha256": "097abcc4524a8c302ee2c6d985f4b6882d094583e33430f74ae31dffb75b7d6f",
+      "content": "from sqlalchemy import Column, Integer, ForeignKey, Enum\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\n\n\nRoundResultCode = Enum(\n    \"W\", \"LB\", \"LY\", \"PW\", \"PL\", \"D\", \"0\",\n    name=\"round_result_code\"\n)\n\n\nclass RoundResult(Base):\n    __tablename__ = \"round_results\"\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign keys\n    round_id = Column(Integer, ForeignKey(\"rounds.id\"), nullable=False)\n    player_id = Column(Integer, ForeignKey(\"players.id\"), nullable=False)\n\n    # Attributes\n    result_code = Column(RoundResultCode, nullable=False)\n\n    # Relationships\n    round = relationship(\"Round\")\n    player = relationship(\"Player\")\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\season.py",
+      "extension": ".py",
+      "size_bytes": 517,
+      "lines": 19,
+      "sha256": "991b898f65afa2edc2e72af35c11463e971656812703b7b85e9a9756d9b67c77",
+      "content": "from sqlalchemy import Column, Integer, String, Date, Index\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass Season(Base, WithCode):\n    __tablename__ = \"seasons\"\n\n    id = Column(Integer, primary_key=True)\n\n    name = Column(String, nullable=False)  # \"2023\", \"Season 5\", etc.\n    start_date = Column(Date, nullable=False)\n    end_date = Column(Date, nullable=True)\n\n    __table_args__ = (\n        Index(\"ix_seasons_code\", \"code\"),\n    )\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\social_platform.py",
+      "extension": ".py",
+      "size_bytes": 275,
+      "lines": 12,
+      "sha256": "71a71b11f47a4f2eb936e1426639e57185296d9b0d6f786d1fd0f1760cd6ee72",
+      "content": "from sqlalchemy import Column, Integer, String\n\nfrom services.ranking.storage.base import Base\n\n\nclass SocialPlatform(Base):\n    __tablename__ = \"social_platforms\"\n\n    id = Column(Integer, primary_key=True)\n\n    name = Column(String, unique=True, nullable=False)\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\stage.py",
+      "extension": ".py",
+      "size_bytes": 965,
+      "lines": 35,
+      "sha256": "4e5d30387cc8b6713b03638d79456e690ffdbef862fdfb94d1655ae33331a64e",
+      "content": "from sqlalchemy import Column, Integer, String, ForeignKey, Index, UniqueConstraint\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass Stage(Base, WithCode):\n    __tablename__ = \"stages\"\n\n    __table_args__ = (\n        Index(\"ix_stages_game_version_platform_id\", \"game_version_platform_id\"),\n        Index(\"ix_stages_name\", \"name\"),\n        UniqueConstraint(\n            \"name\",\n            \"game_version_platform_id\",\n            name=\"uq_stage_name_game_version_platform\"\n        ),\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Forein Key\n    game_version_platform_id = Column(\n        Integer,\n        ForeignKey(\"game_version_platforms.id\"),\n        nullable=False,\n    )\n\n    # Attributes\n    name = Column(String, nullable=False)\n\n    # Relationships\n    game_version_platform = relationship(\"GameVersionPlatform\")\n"
+    },
+    {
+      "path": "services\\ranking\\storage\\models\\team.py",
+      "extension": ".py",
+      "size_bytes": 385,
+      "lines": 17,
+      "sha256": "aa72a7ee189a7d18d52778e56dae23cd1b3ff021e4d776f7c2a38c81d2603ada",
+      "content": "from sqlalchemy import Column, Integer, String, Index\n\nfrom services.ranking.storage.base import Base\nfrom services.ranking.storage.mixins import WithCode\n\n\nclass Team(Base, WithCode):\n    __tablename__ = \"teams\"\n\n    id = Column(Integer, primary_key=True)\n\n    name = Column(String, nullable=True)\n\n    __table_args__ = (\n        Index(\"ix_teams_code\", \"code\"),\n    )\n"
+    }
+  ]
+}
