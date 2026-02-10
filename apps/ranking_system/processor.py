@@ -86,6 +86,7 @@ def run_ranking(
         provider=provider,
         engine=engine,
         query=query,
+        entity=entity,
     )
 
 
@@ -98,8 +99,12 @@ def _rank_players(
     provider: RankingDBProvider,
     engine: RankingEngine,
     query: RankingQuery,
+    entity: RankingEntity,
 ) -> Dict[int, PlayerRankingStats]:
-    duels = provider.iter_duels(query)
+    duels = provider.iter_duels(
+        query=query,
+        competitive_level=entity,
+    )
     return engine.rank_duels(
         duel_events=duels,
         stats_factory=_player_stats_factory,
@@ -111,8 +116,12 @@ def _rank_teams(
     provider: RankingDBProvider,
     engine: RankingEngine,
     query: RankingQuery,
+    entity: RankingEntity,
 ) -> Dict[int, TeamRankingStats]:
-    duels = provider.iter_duels(query)
+    duels = provider.iter_duels(
+        query=query,
+        competitive_level=entity,
+    )
     return engine.rank_duels(
         duel_events=duels,
         stats_factory=_team_stats_factory,
