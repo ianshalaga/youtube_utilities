@@ -10,15 +10,26 @@ def apply_duel_event(
     k_rating,
 ):
     """
-    Aplica un DuelEvent como UN evento competitivo.
+    Aplica un DuelEvent como UNA unidad competitiva.
+
+    - El ganador YA debe estar resuelto en duel.winner_id
+      (PLAYER: inferido desde battles)
+    - Las battles solo aportan score, no wins/losses
     """
 
-    winner_state = state_by_entity[duel.winner_id]
-    loser_states = [state_by_entity[lid] for lid in duel.loser_ids]
+    winner_id = duel.winner_id
+    loser_ids = duel.loser_ids
+
+    winner_state = state_by_entity[winner_id]
+    loser_states = [state_by_entity[lid] for lid in loser_ids]
+
     all_states = [winner_state, *loser_states]
 
     duel_points = {}
 
+    # ─────────────────────────────────────────────
+    # Calcular puntos del duelo (score input)
+    # ─────────────────────────────────────────────
     for participant in duel.participants:
         state = state_by_entity[participant.participant_id]
 
@@ -40,21 +51,27 @@ def apply_duel_event(
             participant.raw_points * bf * lf
         )
 
+    # ─────────────────────────────────────────────
+    # Aplicar resultado del duelo (UNA VEZ)
+    # ─────────────────────────────────────────────
+
     # Ganador
     winner_state.events_played += 1
     winner_state.wins += 1
-    winner_state.raw_score += duel_points[duel.winner_id]
-    winner_state.rating += duel_points[duel.winner_id] * k_rating
+    winner_state.raw_score += duel_points[winner_id]
+    winner_state.rating += duel_points[winner_id] * k_rating
 
     # Perdedores
-    for lid in duel.loser_ids:
+    for lid in loser_ids:
         state = state_by_entity[lid]
         state.events_played += 1
         state.losses += 1
         state.raw_score += duel_points[lid]
         state.rating += duel_points[lid] * k_rating
 
-    # Score (consistency factor)
+    # ─────────────────────────────────────────────
+    # Recalcular score final (consistencia)
+    # ─────────────────────────────────────────────
     for state in all_states:
         state.score = compute_score(
             raw_score=state.raw_score,
