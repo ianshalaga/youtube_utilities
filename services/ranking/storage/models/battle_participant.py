@@ -37,11 +37,12 @@ class BattleParticipant(Base):
     position = Column(Integer, nullable=False)
 
     # Relationships
-    battle = relationship("Battle")
-    player = relationship("Player")
-    game_character = relationship("GameCharacter")
-    duel_team = relationship("DuelTeam")
+    player = relationship("Player", foreign_keys=[player_id])
+    game_character = relationship(
+        "GameCharacter", foreign_keys=[game_character_id])
+    duel_team = relationship("DuelTeam", foreign_keys=[duel_team_id])
     battle = relationship(
         "Battle",
         back_populates="battle_participants",
+        foreign_keys=[battle_id],
     )

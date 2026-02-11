@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Index
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
@@ -13,12 +13,13 @@ class Event(Base, WithCode):
         Index("ix_events_code", "code"),
         Index("ix_events_season_id", "season_id"),
         Index("ix_events_game_version_platform_id", "game_version_platform_id"),
+        UniqueConstraint("season_id", "sequence_number")
     )
 
     id = Column(Integer, primary_key=True)
 
     # FKs
-    season_id = Column(Integer, ForeignKey("seasons.id"), nullable=True)
+    season_id = Column(Integer, ForeignKey("seasons.id"), nullable=False)
     region_id = Column(Integer, ForeignKey("regions.id"), nullable=False)
     event_type_id = Column(
         Integer,
@@ -34,12 +35,13 @@ class Event(Base, WithCode):
     # Fields
     name = Column(String, nullable=False)
     event_date = Column(DateTime, nullable=False)
-    order = Column(Integer, nullable=False)
+    sequence_number = Column(Integer, nullable=False)
     bracket_url = Column(String, nullable=True)
     playlist_url = Column(String, nullable=True)
 
     # Relationships
-    season = relationship("Season")
-    event_type = relationship("EventType")
-    region = relationship("Region")
-    game_version_platform = relationship("GameVersionPlatform")
+    season = relationship("Season", foreign_keys=[season_id])
+    event_type = relationship("EventType", foreign_keys=[event_type_id])
+    region = relationship("Region", foreign_keys=[region_id])
+    game_version_platform = relationship(
+        "GameVersionPlatform", foreign_keys=[game_version_platform_id])
