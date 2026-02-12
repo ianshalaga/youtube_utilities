@@ -28,5 +28,23 @@ class GameVersionPlatform(Base, WithCode):
     version = Column(String, nullable=False)
 
     # Relationships
-    game = relationship("Game")
-    platform = relationship("Platform")
+    game = relationship("Game", back_populates="game_versions")
+    platform = relationship("Platform", back_populates="game_versions")
+
+    stages = relationship(
+        "Stage",
+        back_populates="game_version_platform",
+        cascade="all, delete-orphan"
+    )
+
+    events = relationship(
+        "Event",
+        back_populates="game_version_platform",
+        cascade="all, delete-orphan"
+    )
+
+    game_characters = relationship(
+        "GameCharacter",
+        back_populates="game_version_platform",
+        cascade="all, delete-orphan"
+    )

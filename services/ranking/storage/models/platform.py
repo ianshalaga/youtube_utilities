@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Index
+from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
@@ -15,3 +16,10 @@ class Platform(Base, WithCode):
 
     # Fields
     name = Column(String, unique=True, nullable=False)
+
+    # Relationships
+    game_versions = relationship(
+        "GameVersionPlatform",
+        back_populates="platform",
+        cascade="all, delete-orphan"
+    )

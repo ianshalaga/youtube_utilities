@@ -18,9 +18,11 @@ class Duel(Base, WithCode):
 
     __table_args__ = (
         Index("ix_duels_code", "code"),
+        Index("ix_duels_event_id", "event_id"),
         Index("ix_duels_winner_id", "winner_id"),
         Index("ix_duels_winner_team_id", "winner_team_id"),
-        UniqueConstraint("event_id", "sequence_number"),
+        UniqueConstraint("event_id", "sequence_number",
+                         name="uq_duel_event_sequence"),
         CheckConstraint(
             """
             (winner_id IS NOT NULL AND winner_team_id IS NULL)
@@ -47,8 +49,8 @@ class Duel(Base, WithCode):
     # Relationships
     event = relationship("Event", back_populates="duels")
     duel_type = relationship("DuelType")
-    winner = relationship("Player")
-    winner_team = relationship("Team")
+    winner = relationship("Player", foreign_keys=[winner_id])
+    winner_team = relationship("Team", foreign_keys=[winner_team_id])
 
     duel_participants = relationship(
         "DuelParticipant",

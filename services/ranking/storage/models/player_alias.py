@@ -8,7 +8,7 @@ class PlayerAlias(Base):
     __tablename__ = "player_aliases"
 
     __table_args__ = (
-        UniqueConstraint("player_id", "alias"),
+        UniqueConstraint("player_id", "alias", name="uq_player_alias"),
     )
 
     id = Column(Integer, primary_key=True)

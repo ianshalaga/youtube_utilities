@@ -12,7 +12,8 @@ class Event(Base, WithCode):
         Index("ix_events_code", "code"),
         Index("ix_events_season_id", "season_id"),
         Index("ix_events_game_version_platform_id", "game_version_platform_id"),
-        UniqueConstraint("season_id", "sequence_number")
+        UniqueConstraint("season_id", "sequence_number",
+                         name="uq_event_season_sequence")
     )
 
     id = Column(Integer, primary_key=True)
@@ -44,7 +45,11 @@ class Event(Base, WithCode):
     season = relationship("Season", back_populates="events")
     region = relationship("Region")
     event_type = relationship("EventType")
-    game_version_platform = relationship("GameVersionPlatform")
+
+    game_version_platform = relationship(
+        "GameVersionPlatform",
+        back_populates="events"
+    )
 
     duels = relationship(
         "Duel",

@@ -10,7 +10,8 @@ class DuelTeamMember(Base):
     __table_args__ = (
         Index("ix_duel_team_members_player_id", "player_id"),
         Index("ix_duel_team_members_duel_team_id", "duel_team_id"),
-        UniqueConstraint("duel_team_id", "player_id"),
+        UniqueConstraint("duel_team_id", "player_id",
+                         name="uq_duel_team_member"),
     )
 
     id = Column(Integer, primary_key=True)

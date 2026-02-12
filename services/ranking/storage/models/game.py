@@ -26,3 +26,9 @@ class Game(Base, WithCode):
 
     # Relationships
     franchise = relationship("Franchise", back_populates="games")
+
+    game_versions = relationship(
+        "GameVersionPlatform",
+        back_populates="game",
+        cascade="all, delete-orphan"
+    )

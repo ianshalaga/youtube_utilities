@@ -10,6 +10,7 @@ class BattleParticipant(Base):
     __table_args__ = (
         Index("ix_battle_participants_battle_id", "battle_id"),
         Index("ix_battle_participants_player_id", "player_id"),
+        Index("ix_battle_participants_duel_team_id", "duel_team_id"),
         UniqueConstraint(
             "battle_id",
             "player_id",

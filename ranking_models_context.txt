@@ -60,6 +60,7 @@ from services.ranking.storage.models.duel_type import DuelType
 from services.ranking.storage.models.duel import Duel
 from services.ranking.storage.models.event_type import EventType
 from services.ranking.storage.models.event import Event
+from services.ranking.storage.models.franchise import Franchise
 from services.ranking.storage.models.game_character import GameCharacter
 from services.ranking.storage.models.game_version_platform import GameVersionPlatform
 from services.ranking.storage.models.game import Game
@@ -72,9 +73,8 @@ from services.ranking.storage.models.round_result import RoundResult
 from services.ranking.storage.models.round import Round
 from services.ranking.storage.models.season import Season
 from services.ranking.storage.models.social_platform import SocialPlatform
-from services.ranking.storage.models.team import Team
 from services.ranking.storage.models.stage import Stage
-from services.ranking.storage.models.franchise import Franchise
+from services.ranking.storage.models.team import Team
 
 
 ================================================================================
@@ -92,7 +92,10 @@ class Battle(Base):
     __table_args__ = (
         Index("ix_battles_duel_sequence", "duel_id", "sequence_number"),
         Index("ix_battles_stage_id", "stage_id"),
-        UniqueConstraint("duel_id", "sequence_number"),
+        Index("ix_battles_winner_id", "winner_id"),
+        Index("ix_battles_loser_id", "loser_id"),
+        UniqueConstraint("duel_id", "sequence_number",
+                         name="uq_battle_duel_sequence"),
         CheckConstraint(
             """
             (is_draw = TRUE AND winner_id IS NULL AND loser_id IS NULL)
@@ -115,17 +118,24 @@ class Battle(Base):
     winner_id = Column(Integer, ForeignKey("players.id"), nullable=True)
     loser_id = Column(Integer, ForeignKey("players.id"), nullable=True)
 
-    # Properties
+    # Fields
     is_draw = Column(Boolean, nullable=False, default=False)
     sequence_number = Column(Integer, nullable=False)
 
     # Relationships
-    duel = relationship("Duel", foreign_keys=[duel_id])
-    stage = relationship("Stage", foreign_keys=[stage_id])
+    duel = relationship("Duel", back_populates="battles")
+    stage = relationship("Stage")
     winner = relationship("Player", foreign_keys=[winner_id])
     loser = relationship("Player", foreign_keys=[loser_id])
+
     battle_participants = relationship(
         "BattleParticipant",
+        back_populates="battle",
+        cascade="all, delete-orphan",
+    )
+
+    rounds = relationship(
+        "Round",
         back_populates="battle",
         cascade="all, delete-orphan",
     )
@@ -146,6 +156,7 @@ class BattleParticipant(Base):
     __table_args__ = (
         Index("ix_battle_participants_battle_id", "battle_id"),
         Index("ix_battle_participants_player_id", "player_id"),
+        Index("ix_battle_participants_duel_team_id", "duel_team_id"),
         UniqueConstraint(
             "battle_id",
             "player_id",
@@ -176,23 +187,14 @@ class BattleParticipant(Base):
         nullable=True
     )
 
+    # Fields
     position = Column(Integer, nullable=False)
 
     # Relationships
-    player = relationship("Player", foreign_keys=[player_id])
-
-    game_character = relationship(
-        "GameCharacter",
-        foreign_keys=[game_character_id]
-    )
-
-    duel_team = relationship("DuelTeam", foreign_keys=[duel_team_id])
-
-    battle = relationship(
-        "Battle",
-        back_populates="battle_participants",
-        foreign_keys=[battle_id],
-    )
+    battle = relationship("Battle", back_populates="battle_participants")
+    player = relationship("Player")
+    game_character = relationship("GameCharacter")
+    duel_team = relationship("DuelTeam")
 
 
 ================================================================================
@@ -208,21 +210,6 @@ from services.ranking.storage.mixins import WithCode
 class CharacterIdentity(Base, WithCode):
     __tablename__ = "character_identities"
 
-    id = Column(Integer, primary_key=True)
-
-    name = Column(String, nullable=False)
-
-    franchise_id = Column(
-        Integer,
-        ForeignKey("franchises.id"),
-        nullable=False
-    )
-
-    franchise = relationship(
-        "Franchise",
-        back_populates="character_identities"
-    )
-
     __table_args__ = (
         UniqueConstraint(
             "name",
@@ -231,11 +218,24 @@ class CharacterIdentity(Base, WithCode):
         ),
     )
 
-    # Relationships
-    game_characters = relationship(
-        "GameCharacter",
-        back_populates="character_identity"
+    id = Column(Integer, primary_key=True)
+
+    # Foreign keys
+    franchise_id = Column(
+        Integer,
+        ForeignKey("franchises.id"),
+        nullable=False
     )
+
+    # Fields
+    name = Column(String, nullable=False)
+
+    # Relationships
+    franchise = relationship(
+        "Franchise", back_populates="character_identities")
+
+    game_characters = relationship(
+        "GameCharacter", back_populates="character_identity")
 
 
 ================================================================================
@@ -250,14 +250,15 @@ from services.ranking.storage.mixins import WithCode
 class Country(Base, WithCode):
     __tablename__ = "countries"
 
-    id = Column(Integer, primary_key=True)
-
-    iso_code = Column(String, unique=True, nullable=False)
-    name = Column(String, nullable=False)
-
     __table_args__ = (
         Index("ix_countries_code", "code"),
     )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    iso_code = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
 
 
 ================================================================================
@@ -283,9 +284,11 @@ class Duel(Base, WithCode):
 
     __table_args__ = (
         Index("ix_duels_code", "code"),
+        Index("ix_duels_event_id", "event_id"),
         Index("ix_duels_winner_id", "winner_id"),
         Index("ix_duels_winner_team_id", "winner_team_id"),
-        UniqueConstraint("event_id", "sequence_number"),
+        UniqueConstraint("event_id", "sequence_number",
+                         name="uq_duel_event_sequence"),
         CheckConstraint(
             """
             (winner_id IS NOT NULL AND winner_team_id IS NULL)
@@ -305,14 +308,13 @@ class Duel(Base, WithCode):
     winner_id = Column(Integer, ForeignKey("players.id"), nullable=True)
     winner_team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
 
-    # Properties
+    # Fields
     sequence_number = Column(Integer, nullable=False)
     video_url = Column(String, nullable=True)
 
     # Relationships
-    event = relationship("Event", foreign_keys=[event_id])
-    duel_type = relationship("DuelType", foreign_keys=[duel_type_id])
-
+    event = relationship("Event", back_populates="duels")
+    duel_type = relationship("DuelType")
     winner = relationship("Player", foreign_keys=[winner_id])
     winner_team = relationship("Team", foreign_keys=[winner_team_id])
 
@@ -324,6 +326,12 @@ class Duel(Base, WithCode):
 
     duel_teams = relationship(
         "DuelTeam",
+        back_populates="duel",
+        cascade="all, delete-orphan"
+    )
+
+    battles = relationship(
+        "Battle",
         back_populates="duel",
         cascade="all, delete-orphan"
     )
@@ -358,18 +366,14 @@ class DuelParticipant(Base):
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
 
     # Relationships
-    duel = relationship(
-        "Duel",
-        back_populates="duel_participants",
-        foreign_keys=[duel_id]
-    )
-    player = relationship("Player", foreign_keys=[player_id])
+    duel = relationship("Duel", back_populates="duel_participants")
+    player = relationship("Player")
 
 
 ================================================================================
 FILE: services\ranking\storage\models\duel_team.py
 ================================================================================
-from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint, Index
 from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
@@ -379,7 +383,9 @@ class DuelTeam(Base):
     __tablename__ = "duel_teams"
 
     __table_args__ = (
-        UniqueConstraint("duel_id", "team_id"),
+        Index("ix_duel_teams_duel_id", "duel_id"),
+        Index("ix_duel_teams_team_id", "team_id"),
+        UniqueConstraint("duel_id", "team_id", name="uq_duel_team")
     )
 
     id = Column(Integer, primary_key=True)
@@ -389,12 +395,9 @@ class DuelTeam(Base):
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
 
     # Relationships
-    duel = relationship(
-        "Duel",
-        back_populates="duel_teams",
-        foreign_keys=[duel_id]
-    )
-    team = relationship("Team", foreign_keys=[team_id])
+    duel = relationship("Duel", back_populates="duel_teams")
+    team = relationship("Team")
+
     members = relationship(
         "DuelTeamMember",
         back_populates="duel_team",
@@ -417,7 +420,8 @@ class DuelTeamMember(Base):
     __table_args__ = (
         Index("ix_duel_team_members_player_id", "player_id"),
         Index("ix_duel_team_members_duel_team_id", "duel_team_id"),
-        UniqueConstraint("duel_team_id", "player_id"),
+        UniqueConstraint("duel_team_id", "player_id",
+                         name="uq_duel_team_member"),
     )
 
     id = Column(Integer, primary_key=True)
@@ -427,12 +431,7 @@ class DuelTeamMember(Base):
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
 
     # Relationships
-    duel_team = relationship(
-        "DuelTeam",
-        back_populates="members",
-        foreign_keys=[duel_team_id]
-    )
-
+    duel_team = relationship("DuelTeam", back_populates="members")
     player = relationship("Player")
 
 
@@ -449,6 +448,7 @@ class DuelType(Base):
 
     id = Column(Integer, primary_key=True)
 
+    # Fields
     name = Column(String, unique=True, nullable=False)
 
 
@@ -465,24 +465,26 @@ from services.ranking.storage.mixins import WithCode
 class Event(Base, WithCode):
     __tablename__ = "events"
 
-    # Indexes
     __table_args__ = (
         Index("ix_events_code", "code"),
         Index("ix_events_season_id", "season_id"),
         Index("ix_events_game_version_platform_id", "game_version_platform_id"),
-        UniqueConstraint("season_id", "sequence_number")
+        UniqueConstraint("season_id", "sequence_number",
+                         name="uq_event_season_sequence")
     )
 
     id = Column(Integer, primary_key=True)
 
-    # FKs
+    # Foreign Keys
     season_id = Column(Integer, ForeignKey("seasons.id"), nullable=False)
     region_id = Column(Integer, ForeignKey("regions.id"), nullable=False)
+
     event_type_id = Column(
         Integer,
         ForeignKey("event_types.id"),
         nullable=False
     )
+
     game_version_platform_id = Column(
         Integer,
         ForeignKey("game_version_platforms.id"),
@@ -497,11 +499,20 @@ class Event(Base, WithCode):
     playlist_url = Column(String, nullable=True)
 
     # Relationships
-    season = relationship("Season", foreign_keys=[season_id])
-    event_type = relationship("EventType", foreign_keys=[event_type_id])
-    region = relationship("Region", foreign_keys=[region_id])
+    season = relationship("Season", back_populates="events")
+    region = relationship("Region")
+    event_type = relationship("EventType")
+
     game_version_platform = relationship(
-        "GameVersionPlatform", foreign_keys=[game_version_platform_id])
+        "GameVersionPlatform",
+        back_populates="events"
+    )
+
+    duels = relationship(
+        "Duel",
+        back_populates="event",
+        cascade="all, delete-orphan"
+    )
 
 
 ================================================================================
@@ -517,6 +528,7 @@ class EventType(Base):
 
     id = Column(Integer, primary_key=True)
 
+    # Fields
     name = Column(String, unique=True, nullable=False)
 
 
@@ -540,13 +552,15 @@ class Franchise(Base, WithCode):
 
     id = Column(Integer, primary_key=True)
 
+    # Fields
     name = Column(String, nullable=False)
 
     # Relationships
     character_identities = relationship(
         "CharacterIdentity",
-        back_populates="franchise"
+        back_populates="franchise",
     )
+
     games = relationship(
         "Game",
         back_populates="franchise"
@@ -566,23 +580,29 @@ from services.ranking.storage.mixins import WithCode
 class Game(Base, WithCode):
     __tablename__ = "games"
 
+    __table_args__ = (
+        Index("ix_game_code", "code"),
+    )
+
     id = Column(Integer, primary_key=True)
 
-    name = Column(String, nullable=False)
-
+    # Foreign Keys
     franchise_id = Column(
         Integer,
         ForeignKey("franchises.id"),
         nullable=False
     )
 
-    franchise = relationship(
-        "Franchise",
-        back_populates="games"
-    )
+    # Fields
+    name = Column(String, nullable=False)
 
-    __table_args__ = (
-        Index("ix_game_code", "code"),
+    # Relationships
+    franchise = relationship("Franchise", back_populates="games")
+
+    game_versions = relationship(
+        "GameVersionPlatform",
+        back_populates="game",
+        cascade="all, delete-orphan"
     )
 
 
@@ -603,7 +623,8 @@ class GameCharacter(Base, WithCode):
         Index("ix_game_characters_code", "code"),
         UniqueConstraint(
             "character_identity_id",
-            "game_version_platform_id"
+            "game_version_platform_id",
+            name="uq_game_character_character_identity_game_version_platform"
         )
     )
 
@@ -616,7 +637,11 @@ class GameCharacter(Base, WithCode):
         "game_version_platforms.id"), nullable=False)
 
     # Relationships
-    character_identity = relationship("CharacterIdentity")
+    character_identity = relationship(
+        "CharacterIdentity",
+        back_populates="game_characters"
+    )
+
     game_version_platform = relationship("GameVersionPlatform")
 
 
@@ -633,16 +658,6 @@ from services.ranking.storage.mixins import WithCode
 class GameVersionPlatform(Base, WithCode):
     __tablename__ = "game_version_platforms"
 
-    id = Column(Integer, primary_key=True)
-
-    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
-    platform_id = Column(Integer, ForeignKey("platforms.id"), nullable=False)
-
-    version = Column(String, nullable=False)
-
-    game = relationship("Game")
-    platform = relationship("Platform")
-
     __table_args__ = (
         UniqueConstraint(
             "game_id",
@@ -653,11 +668,40 @@ class GameVersionPlatform(Base, WithCode):
         Index("ix_game_versions_code", "code"),
     )
 
+    id = Column(Integer, primary_key=True)
+
+    # Foreign keys
+    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
+    platform_id = Column(Integer, ForeignKey("platforms.id"), nullable=False)
+
+    # Fields
+    version = Column(String, nullable=False)
+
+    # Relationships
+    game = relationship("Game")
+    platform = relationship("Platform")
+
+    stages = relationship(
+        "Stage",
+        back_populates="game_version_platform",
+        cascade="all, delete-orphan"
+    )
+
+    events = relationship(
+        "Event",
+        back_populates="game_version_platform",
+        cascade="all, delete-orphan"
+    )
+
+    game = relationship("Game", back_populates="game_versions")
+    platform = relationship("Platform", back_populates="game_versions")
+
 
 ================================================================================
 FILE: services\ranking\storage\models\platform.py
 ================================================================================
 from sqlalchemy import Column, Integer, String, Index
+from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
@@ -666,12 +710,20 @@ from services.ranking.storage.mixins import WithCode
 class Platform(Base, WithCode):
     __tablename__ = "platforms"
 
-    id = Column(Integer, primary_key=True)
-
-    name = Column(String, unique=True, nullable=False)
-
     __table_args__ = (
         Index("ix_platforms_code", "code"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, unique=True, nullable=False)
+
+    # Relationships
+    game_versions = relationship(
+        "GameVersionPlatform",
+        back_populates="platform",
+        cascade="all, delete-orphan"
     )
 
 
@@ -695,19 +747,23 @@ class Player(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    country_id = Column(Integer, ForeignKey("countries.id"))
+    country_id = Column(Integer, ForeignKey("countries.id"), nullable=False)
 
-    # Attributes
+    # Fields
     nickname = Column(String, unique=True, nullable=False)
 
     # Relationships
     country = relationship("Country")
+    aliases = relationship("PlayerAlias", back_populates="player")
+    social_accounts = relationship(
+        "PlayerSocialAccount", back_populates="player")
 
 
 ================================================================================
 FILE: services\ranking\storage\models\player_alias.py
 ================================================================================
 from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
 
@@ -715,21 +771,27 @@ from services.ranking.storage.base import Base
 class PlayerAlias(Base):
     __tablename__ = "player_aliases"
 
+    __table_args__ = (
+        UniqueConstraint("player_id", "alias", name="uq_player_alias"),
+    )
+
     id = Column(Integer, primary_key=True)
 
+    # Foreign Keys
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
 
+    # Fields
     alias = Column(String, nullable=False)
 
-    __table_args__ = (
-        UniqueConstraint("player_id", "alias"),
-    )
+    # Relationships
+    player = relationship("Player", back_populates="aliases")
 
 
 ================================================================================
 FILE: services\ranking\storage\models\player_social_account.py
 ================================================================================
 from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
 
@@ -737,17 +799,24 @@ from services.ranking.storage.base import Base
 class PlayerSocialAccount(Base):
     __tablename__ = "player_social_accounts"
 
+    __table_args__ = (
+        UniqueConstraint("platform_id", "handle",
+                         name="uq_player_social_account"),
+    )
+
     id = Column(Integer, primary_key=True)
 
+    # Foreign Keys
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
-    platform_id = Column(Integer, ForeignKey(
+    social_platform_id = Column(Integer, ForeignKey(
         "social_platforms.id"), nullable=False)
 
+    # Fields
     handle = Column(String, nullable=False)
 
-    __table_args__ = (
-        UniqueConstraint("platform_id", "handle"),
-    )
+    # Relationships
+    player = relationship("Player", back_populates="social_accounts")
+    social_platform = relationship("SocialPlatform")
 
 
 ================================================================================
@@ -762,13 +831,14 @@ from services.ranking.storage.mixins import WithCode
 class Region(Base, WithCode):
     __tablename__ = "regions"
 
-    id = Column(Integer, primary_key=True)
-
-    name = Column(String, unique=True, nullable=False)
-
     __table_args__ = (
         Index("ix_regions_code", "code"),
     )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, unique=True, nullable=False)
 
 
 ================================================================================
@@ -785,7 +855,10 @@ class Round(Base):
 
     __table_args__ = (
         Index("ix_rounds_battle_sequence", "battle_id", "sequence_number"),
-        UniqueConstraint("battle_id", "sequence_number"),
+        Index("ix_rounds_winner_id", "winner_id"),
+        Index("ix_rounds_loser_id", "loser_id"),
+        UniqueConstraint("battle_id", "sequence_number",
+                         name="uq_round_battle_sequence"),
         CheckConstraint(
             """
             (is_draw = TRUE AND winner_id IS NULL AND loser_id IS NULL)
@@ -807,14 +880,15 @@ class Round(Base):
     winner_id = Column(Integer, ForeignKey("players.id"), nullable=True)
     loser_id = Column(Integer, ForeignKey("players.id"), nullable=True)
 
-    # Attributes
+    # Fields
     is_draw = Column(Boolean, nullable=False, default=False)
     sequence_number = Column(Integer, nullable=False)
 
     # Relationships
-    battle = relationship("Battle", foreign_keys=[battle_id])
+    battle = relationship("Battle", back_populates="rounds")
     winner = relationship("Player", foreign_keys=[winner_id])
     loser = relationship("Player", foreign_keys=[loser_id])
+
     round_results = relationship(
         "RoundResult",
         back_populates="round",
@@ -825,7 +899,7 @@ class Round(Base):
 ================================================================================
 FILE: services\ranking\storage\models\round_result.py
 ================================================================================
-from sqlalchemy import Column, Integer, ForeignKey, Enum, UniqueConstraint
+from sqlalchemy import Column, Integer, ForeignKey, Enum, UniqueConstraint, Index
 from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
@@ -841,7 +915,9 @@ class RoundResult(Base):
     __tablename__ = "round_results"
 
     __table_args__ = (
-        UniqueConstraint("round_id", "player_id", name="uq_round_player")
+        Index("ix_round_results_round_id", "round_id"),
+        Index("ix_round_results_player_id", "player_id"),
+        UniqueConstraint("round_id", "player_id", name="uq_round_result"),
     )
 
     id = Column(Integer, primary_key=True)
@@ -854,18 +930,15 @@ class RoundResult(Base):
     result_code = Column(RoundResultCode, nullable=False)
 
     # Relationships
-    round = relationship(
-        "Round",
-        back_populates="round_results",
-        foreign_keys=[round_id]
-    )
-    player = relationship("Player", foreign_keys=[player_id])
+    round = relationship("Round", back_populates="round_results")
+    player = relationship("Player")
 
 
 ================================================================================
 FILE: services\ranking\storage\models\season.py
 ================================================================================
 from sqlalchemy import Column, Integer, String, Date, Index
+from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
@@ -874,14 +947,22 @@ from services.ranking.storage.mixins import WithCode
 class Season(Base, WithCode):
     __tablename__ = "seasons"
 
+    __table_args__ = (
+        Index("ix_seasons_code", "code"),
+    )
+
     id = Column(Integer, primary_key=True)
 
-    name = Column(String, nullable=False)  # "2023", "Season 5", etc.
+    # Fields
+    name = Column(String, nullable=False)
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=True)
 
-    __table_args__ = (
-        Index("ix_seasons_code", "code"),
+    # Relationships
+    events = relationship(
+        "Event",
+        back_populates="season",
+        cascade="all, delete-orphan"
     )
 
 
@@ -898,6 +979,7 @@ class SocialPlatform(Base):
 
     id = Column(Integer, primary_key=True)
 
+    # Fields
     name = Column(String, unique=True, nullable=False)
 
 
@@ -926,18 +1008,21 @@ class Stage(Base, WithCode):
 
     id = Column(Integer, primary_key=True)
 
-    # Forein Key
+    # Foreign Key
     game_version_platform_id = Column(
         Integer,
         ForeignKey("game_version_platforms.id"),
         nullable=False,
     )
 
-    # Attributes
+    # Fields
     name = Column(String, nullable=False)
 
     # Relationships
-    game_version_platform = relationship("GameVersionPlatform")
+    game_version_platform = relationship(
+        "GameVersionPlatform",
+        back_populates="stages"
+    )
 
 
 ================================================================================
@@ -952,12 +1037,13 @@ from services.ranking.storage.mixins import WithCode
 class Team(Base, WithCode):
     __tablename__ = "teams"
 
-    id = Column(Integer, primary_key=True)
-
-    name = Column(String, nullable=True)
-
     __table_args__ = (
         Index("ix_teams_code", "code"),
     )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, nullable=False)
 
 

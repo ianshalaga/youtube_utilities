@@ -12,7 +12,8 @@ class GameCharacter(Base, WithCode):
         Index("ix_game_characters_code", "code"),
         UniqueConstraint(
             "character_identity_id",
-            "game_version_platform_id"
+            "game_version_platform_id",
+            name="uq_game_character_character_identity_game_version_platform"
         )
     )
 
@@ -25,5 +26,12 @@ class GameCharacter(Base, WithCode):
         "game_version_platforms.id"), nullable=False)
 
     # Relationships
-    character_identity = relationship("CharacterIdentity")
-    game_version_platform = relationship("GameVersionPlatform")
+    character_identity = relationship(
+        "CharacterIdentity",
+        back_populates="game_characters"
+    )
+
+    game_version_platform = relationship(
+        "GameVersionPlatform",
+        back_populates="game_characters"
+    )

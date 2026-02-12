@@ -10,7 +10,10 @@ class Battle(Base):
     __table_args__ = (
         Index("ix_battles_duel_sequence", "duel_id", "sequence_number"),
         Index("ix_battles_stage_id", "stage_id"),
-        UniqueConstraint("duel_id", "sequence_number"),
+        Index("ix_battles_winner_id", "winner_id"),
+        Index("ix_battles_loser_id", "loser_id"),
+        UniqueConstraint("duel_id", "sequence_number",
+                         name="uq_battle_duel_sequence"),
         CheckConstraint(
             """
             (is_draw = TRUE AND winner_id IS NULL AND loser_id IS NULL)
@@ -40,8 +43,8 @@ class Battle(Base):
     # Relationships
     duel = relationship("Duel", back_populates="battles")
     stage = relationship("Stage")
-    winner = relationship("Player")
-    loser = relationship("Player")
+    winner = relationship("Player", foreign_keys=[winner_id])
+    loser = relationship("Player", foreign_keys=[loser_id])
 
     battle_participants = relationship(
         "BattleParticipant",

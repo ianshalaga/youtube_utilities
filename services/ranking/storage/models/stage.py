@@ -20,7 +20,7 @@ class Stage(Base, WithCode):
 
     id = Column(Integer, primary_key=True)
 
-    # Forein Key
+    # Foreign Key
     game_version_platform_id = Column(
         Integer,
         ForeignKey("game_version_platforms.id"),
@@ -31,4 +31,7 @@ class Stage(Base, WithCode):
     name = Column(String, nullable=False)
 
     # Relationships
-    game_version_platform = relationship("GameVersionPlatform")
+    game_version_platform = relationship(
+        "GameVersionPlatform",
+        back_populates="stages"
+    )

@@ -8,7 +8,8 @@ class PlayerSocialAccount(Base):
     __tablename__ = "player_social_accounts"
 
     __table_args__ = (
-        UniqueConstraint("platform_id", "handle"),
+        UniqueConstraint("platform_id", "handle",
+                         name="uq_player_social_account"),
     )
 
     id = Column(Integer, primary_key=True)

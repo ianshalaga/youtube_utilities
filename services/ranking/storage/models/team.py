@@ -14,4 +14,4 @@ class Team(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     # Fields
-    name = Column(String, nullable=True)
+    name = Column(String, nullable=False)
