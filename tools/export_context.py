@@ -6,6 +6,16 @@ from typing import Iterable, Set
 from collections.abc import Iterable
 
 
+BASE_DIR = Path(__file__).resolve().parents[1]
+
+
+# BASE_DIR / <path>
+INPUT_PATHS = (
+    BASE_DIR / "services/ranking/storage/models"
+)
+
+OUTPUT_NAME = "ranking_models_context"
+
 # ============================================================
 # CONFIGURACIÓN DEFAULT (Python Projects)
 # ============================================================
@@ -232,16 +242,9 @@ def export_context(
 # ============================================================
 
 if __name__ == "__main__":
-    BASE_DIR = Path(__file__).resolve().parents[1]
-
-    # BASE_DIR / <path>
-    INPUT_PATHS = (
-        BASE_DIR / "services/ranking/storage/models"
-    )
-
     export_context(
         base_dir=BASE_DIR,
         input_paths=INPUT_PATHS,
-        output_path="project_context",
+        output_path=OUTPUT_NAME,
         strict=True,
     )

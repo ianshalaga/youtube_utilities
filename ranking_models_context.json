@@ -217,10 +217,10 @@
     {
       "path": "services\\ranking\\storage\\models\\round_result.py",
       "extension": ".py",
-      "size_bytes": 884,
-      "lines": 32,
-      "sha256": "c3dd764fee56f57d031ac4b45323c47401953784589d3776497af885585811d1",
-      "content": "from sqlalchemy import Column, Integer, ForeignKey, Enum, UniqueConstraint\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\n\n\nRoundResultCode = Enum(\n    \"W\", \"LB\", \"LY\", \"PW\", \"PL\", \"D\",\n    name=\"round_result_code\"\n)\n\n\nclass RoundResult(Base):\n    __tablename__ = \"round_results\"\n\n    __table_args__ = (\n        UniqueConstraint(\"round_id\", \"player_id\", name=\"uq_round_player\")\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign keys\n    round_id = Column(Integer, ForeignKey(\"rounds.id\"), nullable=False)\n    player_id = Column(Integer, ForeignKey(\"players.id\"), nullable=False)\n\n    # Attributes\n    result_code = Column(RoundResultCode, nullable=False)\n\n    # Relationships\n    round = relationship(\"Round\", foreign_keys=[round_id])\n    player = relationship(\"Player\", foreign_keys=[player_id])\n"
+      "size_bytes": 950,
+      "lines": 36,
+      "sha256": "19a725c6627f670d5821e435d8aa44bc1416ce931537c73d21333219ad6bfab9",
+      "content": "from sqlalchemy import Column, Integer, ForeignKey, Enum, UniqueConstraint\nfrom sqlalchemy.orm import relationship\n\nfrom services.ranking.storage.base import Base\n\n\nRoundResultCode = Enum(\n    \"W\", \"LB\", \"LY\", \"PW\", \"PL\", \"D\",\n    name=\"round_result_code\"\n)\n\n\nclass RoundResult(Base):\n    __tablename__ = \"round_results\"\n\n    __table_args__ = (\n        UniqueConstraint(\"round_id\", \"player_id\", name=\"uq_round_player\")\n    )\n\n    id = Column(Integer, primary_key=True)\n\n    # Foreign keys\n    round_id = Column(Integer, ForeignKey(\"rounds.id\"), nullable=False)\n    player_id = Column(Integer, ForeignKey(\"players.id\"), nullable=False)\n\n    # Attributes\n    result_code = Column(RoundResultCode, nullable=False)\n\n    # Relationships\n    round = relationship(\n        \"Round\",\n        back_populates=\"round_results\",\n        foreign_keys=[round_id]\n    )\n    player = relationship(\"Player\", foreign_keys=[player_id])\n"
     },
     {
       "path": "services\\ranking\\storage\\models\\season.py",
