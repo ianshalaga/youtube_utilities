@@ -17,8 +17,11 @@ class Player(Base, WithCode):
     # Foreign Keys
     country_id = Column(Integer, ForeignKey("countries.id"))
 
-    # Attributes
+    # Fields
     nickname = Column(String, unique=True, nullable=False)
 
     # Relationships
     country = relationship("Country")
+    aliases = relationship("PlayerAlias", back_populates="player")
+    social_accounts = relationship(
+        "PlayerSocialAccount", back_populates="player")

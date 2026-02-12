@@ -27,7 +27,7 @@ class Stage(Base, WithCode):
         nullable=False,
     )
 
-    # Attributes
+    # Fields
     name = Column(String, nullable=False)
 
     # Relationships

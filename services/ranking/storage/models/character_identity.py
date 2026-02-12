@@ -8,21 +8,6 @@ from services.ranking.storage.mixins import WithCode
 class CharacterIdentity(Base, WithCode):
     __tablename__ = "character_identities"
 
-    id = Column(Integer, primary_key=True)
-
-    name = Column(String, nullable=False)
-
-    franchise_id = Column(
-        Integer,
-        ForeignKey("franchises.id"),
-        nullable=False
-    )
-
-    franchise = relationship(
-        "Franchise",
-        back_populates="character_identities"
-    )
-
     __table_args__ = (
         UniqueConstraint(
             "name",
@@ -31,8 +16,21 @@ class CharacterIdentity(Base, WithCode):
         ),
     )
 
-    # Relationships
-    game_characters = relationship(
-        "GameCharacter",
-        back_populates="character_identity"
+    id = Column(Integer, primary_key=True)
+
+    # Foreign keys
+    franchise_id = Column(
+        Integer,
+        ForeignKey("franchises.id"),
+        nullable=False
     )
+
+    # Fields
+    name = Column(String, nullable=False)
+
+    # Relationships
+    franchise = relationship(
+        "Franchise", back_populates="character_identities")
+
+    game_characters = relationship(
+        "GameCharacter", back_populates="character_identity")

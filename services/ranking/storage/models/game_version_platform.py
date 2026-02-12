@@ -8,16 +8,6 @@ from services.ranking.storage.mixins import WithCode
 class GameVersionPlatform(Base, WithCode):
     __tablename__ = "game_version_platforms"
 
-    id = Column(Integer, primary_key=True)
-
-    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
-    platform_id = Column(Integer, ForeignKey("platforms.id"), nullable=False)
-
-    version = Column(String, nullable=False)
-
-    game = relationship("Game")
-    platform = relationship("Platform")
-
     __table_args__ = (
         UniqueConstraint(
             "game_id",
@@ -27,3 +17,16 @@ class GameVersionPlatform(Base, WithCode):
         ),
         Index("ix_game_versions_code", "code"),
     )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign keys
+    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
+    platform_id = Column(Integer, ForeignKey("platforms.id"), nullable=False)
+
+    # Fields
+    version = Column(String, nullable=False)
+
+    # Relationships
+    game = relationship("Game")
+    platform = relationship("Platform")

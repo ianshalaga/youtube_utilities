@@ -76,12 +76,13 @@
 ### Columnas v2
 
 - Se conservan las columnas (algunas renombradas): season, event, duel (p_duel, players duel), combat (battle), player1 (p1, player 1), player2 (p2, player 2), character1 (p1_ch, player 1 character), character2 (p2_ch, player 2 character), p1_country, p2_country, stage, video, date, playlist, brackets, platform, game, version, region, p1_team, p2_team, team_duel (t_duel, teams duel), duel_type.
+- No es necesaria una columna para la franquicia del juego. El juego se identifica mediante el nombre del juego a través de un mapper.
 - **p1_result**: resultado del round para el jugador 1.
 - **p2_result**: resultado del round para el jugador 2.
-- **r_winner**: ganador del round.
-- **b_winner**: ganador de la batalla.
-- **d_winner**: ganador del duelo.
-- **franchise**: franquicia del juego.
+- **r_winner**: jugador / personaje ganador del round.
+- **b_winner**: jugador / personaje ganador de la batalla.
+- **d_winner**: jugador ganador del duelo.
+- **t_winner**: equipo ganador del duelo de equipo en caso de eventos de tipo team_tournament.
 - **event_type**: tipo de evento. Puede ser: tournament, league, team_tournament o special_tournament.
 
 ### Filas v2

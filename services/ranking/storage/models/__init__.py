@@ -17,6 +17,7 @@ from services.ranking.storage.models.duel_type import DuelType
 from services.ranking.storage.models.duel import Duel
 from services.ranking.storage.models.event_type import EventType
 from services.ranking.storage.models.event import Event
+from services.ranking.storage.models.franchise import Franchise
 from services.ranking.storage.models.game_character import GameCharacter
 from services.ranking.storage.models.game_version_platform import GameVersionPlatform
 from services.ranking.storage.models.game import Game
@@ -29,6 +30,5 @@ from services.ranking.storage.models.round_result import RoundResult
 from services.ranking.storage.models.round import Round
 from services.ranking.storage.models.season import Season
 from services.ranking.storage.models.social_platform import SocialPlatform
-from services.ranking.storage.models.team import Team
 from services.ranking.storage.models.stage import Stage
-from services.ranking.storage.models.franchise import Franchise
+from services.ranking.storage.models.team import Team

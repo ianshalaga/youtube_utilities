@@ -27,9 +27,5 @@ class RoundResult(Base):
     result_code = Column(RoundResultCode, nullable=False)
 
     # Relationships
-    round = relationship(
-        "Round",
-        back_populates="round_results",
-        foreign_keys=[round_id]
-    )
-    player = relationship("Player", foreign_keys=[player_id])
+    round = relationship("Round", back_populates="round_results")
+    player = relationship("Player")

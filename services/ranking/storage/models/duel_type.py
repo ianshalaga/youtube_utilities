@@ -8,4 +8,5 @@ class DuelType(Base):
 
     id = Column(Integer, primary_key=True)
 
+    # Fields
     name = Column(String, unique=True, nullable=False)

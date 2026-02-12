@@ -163,20 +163,31 @@ class BattleParticipant(Base):
     # Foreign Keys
     battle_id = Column(Integer, ForeignKey("battles.id"), nullable=False)
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+
     game_character_id = Column(
-        Integer, ForeignKey("game_characters.id"), nullable=False
+        Integer,
+        ForeignKey("game_characters.id"),
+        nullable=False
     )
+
     duel_team_id = Column(
-        Integer, ForeignKey("duel_teams.id"), nullable=True
+        Integer,
+        ForeignKey("duel_teams.id"),
+        nullable=True
     )
 
     position = Column(Integer, nullable=False)
 
     # Relationships
     player = relationship("Player", foreign_keys=[player_id])
+
     game_character = relationship(
-        "GameCharacter", foreign_keys=[game_character_id])
+        "GameCharacter",
+        foreign_keys=[game_character_id]
+    )
+
     duel_team = relationship("DuelTeam", foreign_keys=[duel_team_id])
+
     battle = relationship(
         "Battle",
         back_populates="battle_participants",
@@ -252,7 +263,15 @@ class Country(Base, WithCode):
 ================================================================================
 FILE: services\ranking\storage\models\duel.py
 ================================================================================
-from sqlalchemy import Column, Integer, ForeignKey, String, Index, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    Integer,
+    ForeignKey,
+    String,
+    Index,
+    UniqueConstraint,
+    CheckConstraint,
+)
 from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
@@ -262,11 +281,19 @@ from services.ranking.storage.mixins import WithCode
 class Duel(Base, WithCode):
     __tablename__ = "duels"
 
-    # Indexes
     __table_args__ = (
         Index("ix_duels_code", "code"),
         Index("ix_duels_winner_id", "winner_id"),
-        UniqueConstraint("event_id", "sequence_number")
+        Index("ix_duels_winner_team_id", "winner_team_id"),
+        UniqueConstraint("event_id", "sequence_number"),
+        CheckConstraint(
+            """
+            (winner_id IS NOT NULL AND winner_team_id IS NULL)
+            OR
+            (winner_id IS NULL AND winner_team_id IS NOT NULL)
+            """,
+            name="ck_duel_winner_consistency"
+        ),
     )
 
     id = Column(Integer, primary_key=True)
@@ -274,7 +301,9 @@ class Duel(Base, WithCode):
     # Foreign keys
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
     duel_type_id = Column(Integer, ForeignKey("duel_types.id"), nullable=False)
-    winner_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+
+    winner_id = Column(Integer, ForeignKey("players.id"), nullable=True)
+    winner_team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
 
     # Properties
     sequence_number = Column(Integer, nullable=False)
@@ -283,9 +312,18 @@ class Duel(Base, WithCode):
     # Relationships
     event = relationship("Event", foreign_keys=[event_id])
     duel_type = relationship("DuelType", foreign_keys=[duel_type_id])
+
     winner = relationship("Player", foreign_keys=[winner_id])
+    winner_team = relationship("Team", foreign_keys=[winner_team_id])
+
     duel_participants = relationship(
         "DuelParticipant",
+        back_populates="duel",
+        cascade="all, delete-orphan"
+    )
+
+    duel_teams = relationship(
+        "DuelTeam",
         back_populates="duel",
         cascade="all, delete-orphan"
     )
@@ -351,8 +389,17 @@ class DuelTeam(Base):
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
 
     # Relationships
-    duel = relationship("Duel")
-    team = relationship("Team")
+    duel = relationship(
+        "Duel",
+        back_populates="duel_teams",
+        foreign_keys=[duel_id]
+    )
+    team = relationship("Team", foreign_keys=[team_id])
+    members = relationship(
+        "DuelTeamMember",
+        back_populates="duel_team",
+        cascade="all, delete-orphan"
+    )
 
 
 ================================================================================
@@ -380,7 +427,12 @@ class DuelTeamMember(Base):
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
 
     # Relationships
-    duel_team = relationship("DuelTeam")
+    duel_team = relationship(
+        "DuelTeam",
+        back_populates="members",
+        foreign_keys=[duel_team_id]
+    )
+
     player = relationship("Player")
 
 

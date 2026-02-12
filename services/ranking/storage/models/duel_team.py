@@ -18,5 +18,11 @@ class DuelTeam(Base):
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
 
     # Relationships
-    duel = relationship("Duel")
+    duel = relationship("Duel", back_populates="duel_teams")
     team = relationship("Team")
+
+    members = relationship(
+        "DuelTeamMember",
+        back_populates="duel_team",
+        cascade="all, delete-orphan"
+    )

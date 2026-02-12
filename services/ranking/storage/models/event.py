@@ -8,7 +8,6 @@ from services.ranking.storage.mixins import WithCode
 class Event(Base, WithCode):
     __tablename__ = "events"
 
-    # Indexes
     __table_args__ = (
         Index("ix_events_code", "code"),
         Index("ix_events_season_id", "season_id"),
@@ -18,14 +17,16 @@ class Event(Base, WithCode):
 
     id = Column(Integer, primary_key=True)
 
-    # FKs
+    # Foreign Keys
     season_id = Column(Integer, ForeignKey("seasons.id"), nullable=False)
     region_id = Column(Integer, ForeignKey("regions.id"), nullable=False)
+
     event_type_id = Column(
         Integer,
         ForeignKey("event_types.id"),
         nullable=False
     )
+
     game_version_platform_id = Column(
         Integer,
         ForeignKey("game_version_platforms.id"),
@@ -40,8 +41,13 @@ class Event(Base, WithCode):
     playlist_url = Column(String, nullable=True)
 
     # Relationships
-    season = relationship("Season", foreign_keys=[season_id])
-    event_type = relationship("EventType", foreign_keys=[event_type_id])
-    region = relationship("Region", foreign_keys=[region_id])
-    game_version_platform = relationship(
-        "GameVersionPlatform", foreign_keys=[game_version_platform_id])
+    season = relationship("Season", back_populates="events")
+    region = relationship("Region")
+    event_type = relationship("EventType")
+    game_version_platform = relationship("GameVersionPlatform")
+
+    duels = relationship(
+        "Duel",
+        back_populates="event",
+        cascade="all, delete-orphan"
+    )

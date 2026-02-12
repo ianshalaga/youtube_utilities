@@ -8,21 +8,21 @@ from services.ranking.storage.mixins import WithCode
 class Game(Base, WithCode):
     __tablename__ = "games"
 
+    __table_args__ = (
+        Index("ix_game_code", "code"),
+    )
+
     id = Column(Integer, primary_key=True)
 
-    name = Column(String, nullable=False)
-
+    # Foreign Keys
     franchise_id = Column(
         Integer,
         ForeignKey("franchises.id"),
         nullable=False
     )
 
-    franchise = relationship(
-        "Franchise",
-        back_populates="games"
-    )
+    # Fields
+    name = Column(String, nullable=False)
 
-    __table_args__ = (
-        Index("ix_game_code", "code"),
-    )
+    # Relationships
+    franchise = relationship("Franchise", back_populates="games")

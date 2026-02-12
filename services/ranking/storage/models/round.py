@@ -31,14 +31,15 @@ class Round(Base):
     winner_id = Column(Integer, ForeignKey("players.id"), nullable=True)
     loser_id = Column(Integer, ForeignKey("players.id"), nullable=True)
 
-    # Attributes
+    # Fields
     is_draw = Column(Boolean, nullable=False, default=False)
     sequence_number = Column(Integer, nullable=False)
 
     # Relationships
-    battle = relationship("Battle", foreign_keys=[battle_id])
-    winner = relationship("Player", foreign_keys=[winner_id])
-    loser = relationship("Player", foreign_keys=[loser_id])
+    battle = relationship("Battle", back_populates="rounds")
+    winner = relationship("Player")
+    loser = relationship("Player")
+
     round_results = relationship(
         "RoundResult",
         back_populates="round",

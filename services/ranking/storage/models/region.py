@@ -7,10 +7,11 @@ from services.ranking.storage.mixins import WithCode
 class Region(Base, WithCode):
     __tablename__ = "regions"
 
-    id = Column(Integer, primary_key=True)
-
-    name = Column(String, unique=True, nullable=False)
-
     __table_args__ = (
         Index("ix_regions_code", "code"),
     )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, unique=True, nullable=False)

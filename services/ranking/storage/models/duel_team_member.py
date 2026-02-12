@@ -20,5 +20,5 @@ class DuelTeamMember(Base):
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
 
     # Relationships
-    duel_team = relationship("DuelTeam")
+    duel_team = relationship("DuelTeam", back_populates="members")
     player = relationship("Player")
