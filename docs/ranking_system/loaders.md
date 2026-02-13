@@ -37,6 +37,7 @@
 - **p2_team**: Nombre del equipo al que representa el jugador 2 en un duelo de equipo.
 - **team_duel**: Es un número entero que siempre comienza en 1 para cada evento de equipos y se incrementa con cada duelo de equipos del mismo. Si un evento de equipos tiene 10 duelos de equipos, el valor de team_duel sera 1, 2, 3, 4, 5, 6, 7, 8, 9 y 10.
 - **duel_type**: Tipo de duelo. Puede ser FT2, FT3, FT5, etc (First to X).
+- **t_duel_type**: Tipo de duelo de equipos. Puede ser FT2, FT3, FT5, etc (First to X).
 
 ### Filas Legacy
 
@@ -68,8 +69,9 @@
 - El ganador de un duelo se debe inferir a partir de los resultados de las batallas.
 - El ganador de un duelo es aquel que ha ganado más batallas.
 - Las columnas **team_duel**, **p1_team** y **p2_team** están vacías si el evento no es un evento de equipos. Es decir, si el evento no es de tipo "team_tournament".
-- En eventos de equipos la columna **duel_type** hace referencia al duelo de equipo. Es decir, al duelo enumerado según la columna **team_duel**.
-- En los eventos de equipos los duelos de equipos están conformados por duelos entre jugadores (columna **duel**) de esos equipos.
+- En eventos de equipos la columna **duel_type** hace referencia al duelo entre jugadores que representan a los equipos. La columna **t_duel_type** hace referencia al duelo entre equipos.
+- En los eventos de equipos los duelos de equipos están conformados por duelos entre jugadores (columna **duel**) de esos equipos. Los duelos entre los equipos se identifican por la columna **team_duel**.
+- Un duelo de equipos puede enfrentar a dos o más equipos.
 
 ## Loader v2
 

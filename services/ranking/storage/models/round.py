@@ -11,6 +11,7 @@ class Round(Base):
         Index("ix_rounds_battle_sequence", "battle_id", "sequence_number"),
         Index("ix_rounds_winner_id", "winner_id"),
         Index("ix_rounds_loser_id", "loser_id"),
+        Index("ix_rounds_battle_sequence", "battle_id", "sequence_number"),
         UniqueConstraint("battle_id", "sequence_number",
                          name="uq_round_battle_sequence"),
         CheckConstraint(
@@ -24,6 +25,10 @@ class Round(Base):
         CheckConstraint(
             "winner_id IS NULL OR loser_id IS NULL OR winner_id <> loser_id",
             name="ck_round_winner_not_equal_loser"
+        ),
+        CheckConstraint(
+            "sequence_number >= 1",
+            name="ck_round_sequence_positive"
         )
     )
 

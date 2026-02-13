@@ -15,7 +15,11 @@ class Player(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    country_id = Column(Integer, ForeignKey("countries.id"), nullable=False)
+    country_id = Column(
+        Integer,
+        ForeignKey("countries.id", ondelete="RESTRICT"),
+        nullable=False
+    )
 
     # Fields
     nickname = Column(String, unique=True, nullable=False)

@@ -6,6 +6,7 @@ from sqlalchemy import (
     Index,
     UniqueConstraint,
     CheckConstraint,
+    Boolean
 )
 from sqlalchemy.orm import relationship
 
@@ -21,6 +22,7 @@ class Duel(Base, WithCode):
         Index("ix_duels_event_id", "event_id"),
         Index("ix_duels_winner_id", "winner_id"),
         Index("ix_duels_winner_team_id", "winner_team_id"),
+        Index("ix_duels_event_winner", "event_id", "winner_id"),
         UniqueConstraint(
             "event_id",
             "sequence_number",
@@ -28,12 +30,20 @@ class Duel(Base, WithCode):
         ),
         CheckConstraint(
             """
-            (winner_id IS NOT NULL AND winner_team_id IS NULL)
+            (is_team_duel = TRUE AND winner_team_id IS NOT NULL AND winner_id IS NULL)
             OR
-            (winner_id IS NULL AND winner_team_id IS NOT NULL)
+            (is_team_duel = FALSE AND winner_id IS NOT NULL AND winner_team_id IS NULL)
             """,
-            name="ck_duel_winner_consistency"
+            name="ck_duel_type_winner_alignment"
         ),
+        CheckConstraint(
+            """
+            (is_team_duel = TRUE AND team_duel_sequence_number IS NOT NULL)
+            OR
+            (is_team_duel = FALSE AND team_duel_sequence_number IS NULL)
+            """,
+            name="ck_duel_team_sequence_consistency"
+        )
     )
 
     id = Column(Integer, primary_key=True)
@@ -47,7 +57,13 @@ class Duel(Base, WithCode):
 
     duel_type_id = Column(
         Integer,
-        ForeignKey("duel_types.id"),
+        ForeignKey("duel_types.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    team_duel_type_id = Column(
+        Integer,
+        ForeignKey("duel_types.id", ondelete="RESTRICT"),
         nullable=False
     )
 
@@ -64,12 +80,15 @@ class Duel(Base, WithCode):
     )
 
     # Fields
+    is_team_duel = Column(Boolean, nullable=False)
     sequence_number = Column(Integer, nullable=False)
+    team_duel_sequence_number = Column(Integer, nullable=True)
     video_url = Column(String, nullable=True)
 
     # Relationships
     event = relationship("Event", back_populates="duels")
-    duel_type = relationship("DuelType")
+    duel_type = relationship("DuelType", foreign_keys=[duel_type_id])
+    team_duel_type = relationship("DuelType", foreign_keys=[team_duel_type_id])
     winner = relationship("Player", foreign_keys=[winner_id])
     winner_team = relationship("Team", foreign_keys=[winner_team_id])
 

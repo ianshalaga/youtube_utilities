@@ -21,7 +21,7 @@ class CharacterIdentity(Base, WithCode):
     # Foreign keys
     franchise_id = Column(
         Integer,
-        ForeignKey("franchises.id"),
+        ForeignKey("franchises.id", ondelete="RESTRICT"),
         nullable=False
     )
 

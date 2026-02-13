@@ -1,106 +1,204 @@
-# Base de datos
+# Base de Datos
 
-## Validaciones de loader
+## Validaciones obligatorias en Loader / Aplicación
 
-### 1
+El modelo relacional es estructuralmente correcto, pero existen
+debilidades semánticas que deben validarse fuera de la base de datos.
 
-- Winner no está restringido a participantes en:
-  - Battle (winner_id / loser_id)
-  - Round (winner_id / loser_id)
-  - Duel (winner_id / winner_team_id)
+Las siguientes reglas deben implementarse explícitamente en el loader o
+en la capa de aplicación.
 
-No hay constraint que garantice que el winner pertenece al conjunto de participantes. Eso debe vivir en el loader. No es error del modelo, pero es punto crítico operativo.
+---
 
-### 2
+## 1. Coherencia de Winner con Participantes
 
-- Duel permite 0 participants. Nada impide:
-  - Crear Duel sin DuelParticipant
-  - Crear Duel de equipo sin DuelTeam
+### Problema
 
-Eso es correcto a nivel relacional, pero debe validarse en loader.
+No existe un constraint que garantice que el ganador pertenece al
+conjunto de participantes en:
 
-### 3
+- `Battle (winner_id / loser_id)`
+- `Round (winner_id / loser_id)`
+- `Duel (winner_id / winner_team_id)`
 
-- BattleParticipant.duel_team_id no está protegido. En eventos de equipos:
-  - battle_participant.duel_team_id debería ser NOT NULL.
-  - En eventos individuales debería ser NULL.
+La base de datos permite asignar como ganador una entidad que no
+participa en ese contexto competitivo.
 
-Eso no está restringido. Lógica en loader:
+### Validación requerida
 
-```Python
-if duel has duel_teams:
-    duel_team_id required
-else:
-    duel_team_id must be NULL
-```
+- En `Battle`:
+  - `winner_id` y `loser_id` deben existir en `BattleParticipant` de
+    esa battle.
+- En `Round`:
+  - `winner_id` y `loser_id` deben existir en `RoundResult` de ese
+    round.
+- En `Duel` individual:
+  - `winner_id` debe existir en `DuelParticipant`.
+- En `Duel` de equipo:
+  - `winner_team_id` debe existir en `DuelTeam`.
 
-### 4
+---
 
-- Agregar constraint lógico en Duel. Actualmente:
+## 2. Cardinalidad mínima de Participantes
 
+### 2.1 Duel sin participantes
+
+El modelo permite:
+
+- Crear un `Duel` sin `DuelParticipant`.
+- Crear un `Duel` de equipo sin `DuelTeam`.
+
+#### Validación requerida
+
+- Duel individual → mínimo 2 `DuelParticipant`.
+- Duel de equipo → exactamente 2 `DuelTeam`.
+
+---
+
+### 2.2 Battle con más de 2 participantes
+
+El modelo permite 3 o más `BattleParticipant` en una battle.
+
+El dominio asume enfrentamientos 1v1.
+
+#### Validación requerida
+
+- Cada `Battle` debe tener exactamente 2 `BattleParticipant`.
+
+---
+
+## 3. Coherencia en Eventos por Equipos
+
+### 3.1 duel_team_id en BattleParticipant
+
+Actualmente se permite:
+
+- `duel_team_id = NULL`
+- `duel_team_id` que no pertenezca al mismo `Duel` que la `Battle`
+
+#### Validaciones requeridas
+
+Si el duelo es por equipos:
+
+- `battle_participant.duel_team_id` debe ser NOT NULL.
+- `duel_team.duel_id` debe coincidir con `battle.duel_id`.
+
+Si el duelo es individual:
+
+- `battle_participant.duel_team_id` debe ser NULL.
+
+---
+
+## 4. Coherencia entre tipo de Duel y Winner
+
+Actualmente existe el siguiente constraint:
+
+```sql
 (winner_id IS NOT NULL AND winner_team_id IS NULL)
 OR
 (winner_id IS NULL AND winner_team_id IS NOT NULL)
+```
 
-Eso obliga siempre a tener uno de los dos. Correcto según ranking_system. Pero hay un detalle conceptual:
+Este constraint garantiza que exista un único tipo de ganador.
 
-En duelo individual:
+### Problema
 
-- winner_team_id NULL
-- winner_id NOT NULL
+No se valida coherencia entre:
 
-En duelo por equipos:
+- El tipo real del duelo (individual vs equipos)
+- La existencia de `DuelTeam`
+- El tipo de winner asignado
 
-- winner_team_id NOT NULL
-- winner_id NULL
+### Validación requerida
 
-Eso está bien. Pero no se valida coherencia con la existencia de duel_teams. No puede hacerse con CheckConstraint estándar. Debe validarse en loader.
+- Si existen `DuelTeam` asociados:
+  - `winner_team_id` debe estar definido.
+  - `winner_id` debe ser NULL.
+- Si no existen `DuelTeam`:
+  - `winner_id` debe estar definido.
+  - `winner_team_id` debe ser NULL.
 
-### 5
+---
 
-- BattleParticipant no valida cardinalidad real. Modelo permite:
-  - 3 participantes en una battle.
-  - 4 participantes en una battle.
+## 5. Resumen de Reglas Críticas
 
-El dominio asume 2. Eso no es error estructural, pero es una debilidad semántica. Validarlo estrictamente en loader o agregar validación a nivel aplicación.
+El loader debe garantizar:
 
-### 6
+1. El winner siempre pertenece al conjunto correcto.
+2. El Duel tiene cardinalidad válida de participantes.
+3. La Battle tiene exactamente 2 participantes.
+4. `duel_team_id` es coherente con el tipo de duelo.
+5. El tipo de winner coincide con el tipo de duelo.
 
-- BattleParticipant.duel_team_id es débil semánticamente. Permite:
-  - duel_team_id NULL.
-  - duel_team_id que no pertenezca al mismo duel que la battle.
+---
 
-- No puede resolverse con FK simple. Pero se debe validar estrictamente en loader:
-  - Que si battle pertenece a duelo por equipos, entonces duel_team_id no sea NULL.
-  - Que duel_team.duel_id == battle.duel_id.
+## 6. Principio General
 
-Es un punto frágil del modelo.
+El modelo relacional garantiza la estructura.
 
-### 7
+La coherencia competitiva debe garantizarse en el loader o en la capa de
+aplicación.
 
-BattleParticipant permite cardinalidad > 2
+No es posible imponer estas reglas mediante constraints SQL estándar sin
+introducir complejidad excesiva.
 
-Modelo permite 3 o más participantes en battle.
+## 7. EventType vs event_type columna v2
 
-Si dominio exige 2 siempre, debes:
+Loader v2:
 
-Validarlo en loader
+event_type explícito
 
-O agregar check application-level
+loaders
 
-No se puede resolver en DB sin trucos complejos.
+Modelo:
 
-### 8
+Tiene EventType FK
 
-Duel no valida coherencia entre winner y tipo de duelo
+Correcto, pero no hay constraint que alinee:
+
+event_type = team_tournament
+
+con existencia de DuelTeam
+
+Eso es validación aplicación.
+
+Pero estructuralmente falta coherencia cruzada.
+
+Recomendación:
+
+Validar en loader que:
+
+event.event_type == team_tournament
+↔ existen duels con is_team_duel = TRUE
+
+## 8. Falta alineación estructural EventType ↔ is_team_duel
+
+Loader v2:
+
+event_type explícito
+
+loaders
+
+Modelo:
+
+EventType FK
+
+Duel.is_team_duel independiente
 
 Nada impide:
 
-Duel con winner_id
+EventType = tournament
 
-Y también tener duel_teams cargados
+Duel.is_team_duel = TRUE
 
-Es correcto relacionalmente,
-pero frágil semánticamente.
+Eso rompe coherencia estructural.
 
-Debe validarse en loader.
+No es resoluble con FK simple, pero deberías:
+
+Validarlo en loader
+
+O considerar constraint a nivel aplicación que:
+
+event.event_type.name == "team_tournament"
+↔
+duel.is_team_duel = TRUE

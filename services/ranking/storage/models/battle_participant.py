@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint, Index
+from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint, Index, CheckConstraint
 from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
@@ -21,6 +21,10 @@ class BattleParticipant(Base):
             "position",
             name="uq_battle_position"
         ),
+        CheckConstraint(
+            "position IN (1, 2)",
+            name="ck_battle_participant_position_range"
+        )
     )
 
     id = Column(Integer, primary_key=True)
@@ -40,13 +44,13 @@ class BattleParticipant(Base):
 
     game_character_id = Column(
         Integer,
-        ForeignKey("game_characters.id"),
+        ForeignKey("game_characters.id", ondelete="RESTRICT"),
         nullable=False
     )
 
     duel_team_id = Column(
         Integer,
-        ForeignKey("duel_teams.id"),
+        ForeignKey("duel_teams.id", ondelete="RESTRICT"),
         nullable=True
     )
 

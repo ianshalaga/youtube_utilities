@@ -12,6 +12,7 @@ class Event(Base, WithCode):
         Index("ix_events_code", "code"),
         Index("ix_events_season_id", "season_id"),
         Index("ix_events_game_version_platform_id", "game_version_platform_id"),
+        Index("ix_events_event_date", "event_date"),
         UniqueConstraint("season_id", "sequence_number",
                          name="uq_event_season_sequence")
     )

@@ -12,6 +12,7 @@ class Battle(Base):
         Index("ix_battles_stage_id", "stage_id"),
         Index("ix_battles_winner_id", "winner_id"),
         Index("ix_battles_loser_id", "loser_id"),
+        Index("ix_battles_duel_winner", "duel_id", "winner_id"),
         UniqueConstraint("duel_id", "sequence_number",
                          name="uq_battle_duel_sequence"),
         CheckConstraint(
