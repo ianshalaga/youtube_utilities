@@ -307,3 +307,78 @@ Parámetro:
 
 Este documento define la **base contractual** del sistema de ranking.  
 Cualquier cambio requiere una nueva versión.
+
+NEW RATING SYSTEM
+
+7️⃣ Cómo hacer que rating suba o baje correctamente
+
+La forma correcta es introducir expectativa.
+
+Es decir:
+
+expected_performance
+
+Similar a ELO pero usando tu sistema.
+
+Ejemplo conceptual:
+
+expected_factor = f(rating_self, rating_opponent)
+
+Entonces:
+
+rating_delta = k_rating × (actual_performance - expected_performance)
+
+Donde:
+
+actual_performance ∈ [0,1]
+
+expected_performance ∈ [0,1]
+
+Si:
+
+Ganas contra más débil → pequeño incremento.
+
+Pierdes contra más débil → decremento fuerte.
+
+Ganas contra más fuerte → gran incremento.
+
+Pierdes contra más fuerte → pequeño decremento.
+
+Esto mantiene:
+
+Score acumulativo.
+
+Rating dinámico.
+
+Sistema no conservativo.
+
+No necesitas raw_points negativos.
+
+🧮 8️⃣ Aplicado a tu modelo
+
+Podrías definir:
+
+actual_performance = battles_beating_factor
+
+Y:
+
+expected_performance =
+rating_self / (rating_self + rating_opponent)
+
+O versión logística:
+
+expected = 1 / (1 + 10^((R_op - R_self)/400))
+
+Entonces:
+
+rating_delta = k_rating × duel_points × (actual - expected)
+
+Ahora:
+
+Duel_points sigue siendo positivo.
+
+Pero (actual - expected) puede ser negativo.
+
+Rating puede bajar.
+
+Score sigue creciendo.
