@@ -1,13 +1,7 @@
-from sqlalchemy import Column, Integer, ForeignKey, Enum, UniqueConstraint, Index
+from sqlalchemy import Column, Integer, ForeignKey, Enum, UniqueConstraint, Index, String
 from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
-
-
-RoundResultCode = Enum(
-    "W", "LB", "LY", "PW", "PL", "D",
-    name="round_result_code"
-)
 
 
 class RoundResult(Base):
@@ -36,7 +30,7 @@ class RoundResult(Base):
     )
 
     # Attributes
-    result_code = Column(RoundResultCode, nullable=False)
+    result_code = Column(String(5), nullable=False)
 
     # Relationships
     round = relationship("Round", back_populates="round_results")

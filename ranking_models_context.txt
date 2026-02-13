@@ -294,7 +294,7 @@ class Country(Base, WithCode):
 
     # Fields
     iso_code = Column(String, unique=True, nullable=False)
-    name = Column(String, nullable=False)
+    name = Column(String, unique=True, nullable=False)
 
 
 ================================================================================
@@ -330,11 +330,11 @@ class Duel(Base, WithCode):
             "sequence_number",
             name="uq_duel_event_sequence"
         ),
-        UniqueConstraint(
-            "event_id",
-            "team_duel_sequence_number",
-            name="uq_duel_event_team_sequence"
-        ),
+        # UniqueConstraint(
+        #     "event_id",
+        #     "team_duel_sequence_number",
+        #     name="uq_duel_event_team_sequence"
+        # ),
         CheckConstraint(
             """
             (is_team_duel = TRUE AND winner_team_id IS NOT NULL AND winner_id IS NULL)
@@ -358,6 +358,22 @@ class Duel(Base, WithCode):
             (is_team_duel = FALSE AND team_duel_type_id IS NULL)
             """,
             name="ck_duel_team_type_alignment"
+        ),
+        CheckConstraint(
+            """
+            (
+                is_team_duel = FALSE
+                AND duel_type_id IS NOT NULL
+                AND team_duel_type_id IS NULL
+            )
+            OR
+            (
+                is_team_duel = TRUE
+                AND duel_type_id IS NOT NULL
+                AND team_duel_type_id IS NOT NULL
+            )
+            """,
+            name="ck_duel_type_consistency"
         )
     )
 
@@ -975,9 +991,17 @@ class PlayerSocialAccount(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
-    social_platform_id = Column(Integer, ForeignKey(
-        "social_platforms.id"), nullable=False)
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    social_platform_id = Column(
+        Integer,
+        ForeignKey("social_platforms.id", ondelete="RESTRICT"),
+        nullable=False
+    )
 
     # Fields
     handle = Column(String, nullable=False)
@@ -1023,9 +1047,8 @@ class Round(Base):
 
     __table_args__ = (
         Index("ix_rounds_battle_sequence", "battle_id", "sequence_number"),
-        Index("ix_rounds_winner_id", "winner_id"),
-        Index("ix_rounds_loser_id", "loser_id"),
-        Index("ix_rounds_battle_sequence", "battle_id", "sequence_number"),
+        Index("ix_rounds_battle_winner", "battle_id", "winner_id"),
+        Index("ix_rounds_battle_loser", "battle_id", "loser_id"),
         UniqueConstraint(
             "battle_id",
             "sequence_number",

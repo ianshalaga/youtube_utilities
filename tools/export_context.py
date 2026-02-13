@@ -11,10 +11,11 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 
 # BASE_DIR / <path>
 INPUT_PATHS = (
-    BASE_DIR / "services/ranking/storage/models"
+    # BASE_DIR / "services/ranking/storage/models"
+    BASE_DIR
 )
 
-OUTPUT_NAME = "ranking_models_context"
+OUTPUT_NAME = "project_context"
 
 # ============================================================
 # CONFIGURACIÓN DEFAULT (Python Projects)
