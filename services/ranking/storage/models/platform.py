@@ -21,5 +21,6 @@ class Platform(Base, WithCode):
     game_versions = relationship(
         "GameVersionPlatform",
         back_populates="platform",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )

@@ -113,7 +113,8 @@ class Battle(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign keys
-    duel_id = Column(Integer, ForeignKey("duels.id"), nullable=False)
+    duel_id = Column(Integer, ForeignKey(
+        "duels.id", ondelete="CASCADE"), nullable=False)
     stage_id = Column(Integer, ForeignKey("stages.id"), nullable=False)
     winner_id = Column(Integer, ForeignKey("players.id"), nullable=True)
     loser_id = Column(Integer, ForeignKey("players.id"), nullable=True)
@@ -132,12 +133,14 @@ class Battle(Base):
         "BattleParticipant",
         back_populates="battle",
         cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     rounds = relationship(
         "Round",
         back_populates="battle",
         cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
 
@@ -172,7 +175,8 @@ class BattleParticipant(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    battle_id = Column(Integer, ForeignKey("battles.id"), nullable=False)
+    battle_id = Column(Integer, ForeignKey(
+        "battles.id", ondelete="CASCADE"), nullable=False)
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
 
     game_character_id = Column(
@@ -302,7 +306,8 @@ class Duel(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     # Foreign keys
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    event_id = Column(Integer, ForeignKey(
+        "events.id", ondelete="CASCADE"), nullable=False)
     duel_type_id = Column(Integer, ForeignKey("duel_types.id"), nullable=False)
 
     winner_id = Column(Integer, ForeignKey("players.id"), nullable=True)
@@ -321,19 +326,22 @@ class Duel(Base, WithCode):
     duel_participants = relationship(
         "DuelParticipant",
         back_populates="duel",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     duel_teams = relationship(
         "DuelTeam",
         back_populates="duel",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     battles = relationship(
         "Battle",
         back_populates="duel",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
 
@@ -362,7 +370,8 @@ class DuelParticipant(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    duel_id = Column(Integer, ForeignKey("duels.id"), nullable=False)
+    duel_id = Column(Integer, ForeignKey(
+        "duels.id", ondelete="CASCADE"), nullable=False)
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
 
     # Relationships
@@ -391,7 +400,8 @@ class DuelTeam(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    duel_id = Column(Integer, ForeignKey("duels.id"), nullable=False)
+    duel_id = Column(Integer, ForeignKey(
+        "duels.id", ondelete="CASCADE"), nullable=False)
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
 
     # Relationships
@@ -401,7 +411,8 @@ class DuelTeam(Base):
     members = relationship(
         "DuelTeamMember",
         back_populates="duel_team",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
 
@@ -427,7 +438,8 @@ class DuelTeamMember(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    duel_team_id = Column(Integer, ForeignKey("duel_teams.id"), nullable=False)
+    duel_team_id = Column(Integer, ForeignKey(
+        "duel_teams.id", ondelete="CASCADE"), nullable=False)
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
 
     # Relationships
@@ -438,13 +450,17 @@ class DuelTeamMember(Base):
 ================================================================================
 FILE: services\ranking\storage\models\duel_type.py
 ================================================================================
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Index
 
 from services.ranking.storage.base import Base
 
 
 class DuelType(Base):
     __tablename__ = "duel_types"
+
+    __table_args__ = (
+        Index("ix_duel_types_name", "name"),
+    )
 
     id = Column(Integer, primary_key=True)
 
@@ -476,7 +492,8 @@ class Event(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    season_id = Column(Integer, ForeignKey("seasons.id"), nullable=False)
+    season_id = Column(Integer, ForeignKey(
+        "seasons.id", ondelete="CASCADE"), nullable=False)
     region_id = Column(Integer, ForeignKey("regions.id"), nullable=False)
 
     event_type_id = Column(
@@ -511,20 +528,25 @@ class Event(Base, WithCode):
     duels = relationship(
         "Duel",
         back_populates="event",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
 
 ================================================================================
 FILE: services\ranking\storage\models\event_type.py
 ================================================================================
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Index
 
 from services.ranking.storage.base import Base
 
 
 class EventType(Base):
     __tablename__ = "event_types"
+
+    __table_args__ = (
+        Index("ix_event_types_name", "name"),
+    )
 
     id = Column(Integer, primary_key=True)
 
@@ -602,7 +624,8 @@ class Game(Base, WithCode):
     game_versions = relationship(
         "GameVersionPlatform",
         back_populates="game",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
 
@@ -642,7 +665,10 @@ class GameCharacter(Base, WithCode):
         back_populates="game_characters"
     )
 
-    game_version_platform = relationship("GameVersionPlatform")
+    game_version_platform = relationship(
+        "GameVersionPlatform",
+        back_populates="game_characters"
+    )
 
 
 ================================================================================
@@ -671,20 +697,23 @@ class GameVersionPlatform(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     # Foreign keys
-    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
-    platform_id = Column(Integer, ForeignKey("platforms.id"), nullable=False)
+    game_id = Column(Integer, ForeignKey(
+        "games.id", ondelete="CASCADE"), nullable=False)
+    platform_id = Column(Integer, ForeignKey(
+        "platforms.id", ondelete="CASCADE"), nullable=False)
 
     # Fields
     version = Column(String, nullable=False)
 
     # Relationships
-    game = relationship("Game")
-    platform = relationship("Platform")
+    game = relationship("Game", back_populates="game_versions")
+    platform = relationship("Platform", back_populates="game_versions")
 
     stages = relationship(
         "Stage",
         back_populates="game_version_platform",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     events = relationship(
@@ -693,8 +722,12 @@ class GameVersionPlatform(Base, WithCode):
         cascade="all, delete-orphan"
     )
 
-    game = relationship("Game", back_populates="game_versions")
-    platform = relationship("Platform", back_populates="game_versions")
+    game_characters = relationship(
+        "GameCharacter",
+        back_populates="game_version_platform",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
 
 
 ================================================================================
@@ -723,7 +756,8 @@ class Platform(Base, WithCode):
     game_versions = relationship(
         "GameVersionPlatform",
         back_populates="platform",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
 
@@ -876,7 +910,8 @@ class Round(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    battle_id = Column(Integer, ForeignKey("battles.id"), nullable=False)
+    battle_id = Column(Integer, ForeignKey(
+        "battles.id", ondelete="CASCADE"), nullable=False)
     winner_id = Column(Integer, ForeignKey("players.id"), nullable=True)
     loser_id = Column(Integer, ForeignKey("players.id"), nullable=True)
 
@@ -892,7 +927,8 @@ class Round(Base):
     round_results = relationship(
         "RoundResult",
         back_populates="round",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
 
@@ -923,7 +959,8 @@ class RoundResult(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign keys
-    round_id = Column(Integer, ForeignKey("rounds.id"), nullable=False)
+    round_id = Column(Integer, ForeignKey(
+        "rounds.id", ondelete="CASCADE"), nullable=False)
     player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
 
     # Attributes
@@ -962,20 +999,25 @@ class Season(Base, WithCode):
     events = relationship(
         "Event",
         back_populates="season",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
 
 ================================================================================
 FILE: services\ranking\storage\models\social_platform.py
 ================================================================================
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Index
 
 from services.ranking.storage.base import Base
 
 
 class SocialPlatform(Base):
     __tablename__ = "social_platforms"
+
+    __table_args__ = (
+        Index("ix_social_platforms_name", "name"),
+    )
 
     id = Column(Integer, primary_key=True)
 
@@ -1011,7 +1053,7 @@ class Stage(Base, WithCode):
     # Foreign Key
     game_version_platform_id = Column(
         Integer,
-        ForeignKey("game_version_platforms.id"),
+        ForeignKey("game_version_platforms.id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -1028,7 +1070,7 @@ class Stage(Base, WithCode):
 ================================================================================
 FILE: services\ranking\storage\models\team.py
 ================================================================================
-from sqlalchemy import Column, Integer, String, Index
+from sqlalchemy import Column, Integer, String, Index, UniqueConstraint
 
 from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
@@ -1039,6 +1081,7 @@ class Team(Base, WithCode):
 
     __table_args__ = (
         Index("ix_teams_code", "code"),
+        UniqueConstraint("name", name="uq_team_name")
     )
 
     id = Column(Integer, primary_key=True)

@@ -16,7 +16,8 @@ class DuelTeam(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    duel_id = Column(Integer, ForeignKey("duels.id"), nullable=False)
+    duel_id = Column(Integer, ForeignKey(
+        "duels.id", ondelete="CASCADE"), nullable=False)
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
 
     # Relationships
@@ -26,5 +27,6 @@ class DuelTeam(Base):
     members = relationship(
         "DuelTeamMember",
         back_populates="duel_team",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )

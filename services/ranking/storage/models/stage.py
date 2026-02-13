@@ -23,7 +23,7 @@ class Stage(Base, WithCode):
     # Foreign Key
     game_version_platform_id = Column(
         Integer,
-        ForeignKey("game_version_platforms.id"),
+        ForeignKey("game_version_platforms.id", ondelete="CASCADE"),
         nullable=False,
     )
 

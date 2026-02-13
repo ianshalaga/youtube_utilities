@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Index
+from sqlalchemy import Column, Integer, String, Date, Index, CheckConstraint
 from sqlalchemy.orm import relationship
 
 from services.ranking.storage.base import Base
@@ -10,6 +10,10 @@ class Season(Base, WithCode):
 
     __table_args__ = (
         Index("ix_seasons_code", "code"),
+        CheckConstraint(
+            "end_date IS NULL OR end_date >= start_date",
+            name="ck_season_date_consistency"
+        )
     )
 
     id = Column(Integer, primary_key=True)
@@ -23,5 +27,6 @@ class Season(Base, WithCode):
     events = relationship(
         "Event",
         back_populates="season",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )

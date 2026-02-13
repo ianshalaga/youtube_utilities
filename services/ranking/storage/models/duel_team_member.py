@@ -17,8 +17,17 @@ class DuelTeamMember(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    duel_team_id = Column(Integer, ForeignKey("duel_teams.id"), nullable=False)
-    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    duel_team_id = Column(
+        Integer,
+        ForeignKey("duel_teams.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=False
+    )
 
     # Relationships
     duel_team = relationship("DuelTeam", back_populates="members")

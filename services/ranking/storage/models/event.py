@@ -19,18 +19,27 @@ class Event(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    season_id = Column(Integer, ForeignKey("seasons.id"), nullable=False)
-    region_id = Column(Integer, ForeignKey("regions.id"), nullable=False)
+    season_id = Column(
+        Integer,
+        ForeignKey("seasons.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    region_id = Column(
+        Integer,
+        ForeignKey("regions.id", ondelete="RESTRICT"),
+        nullable=False
+    )
 
     event_type_id = Column(
         Integer,
-        ForeignKey("event_types.id"),
+        ForeignKey("event_types.id", ondelete="RESTRICT"),
         nullable=False
     )
 
     game_version_platform_id = Column(
         Integer,
-        ForeignKey("game_version_platforms.id"),
+        ForeignKey("game_version_platforms.id", ondelete="CASCADE"),
         nullable=False
     )
 
@@ -54,5 +63,6 @@ class Event(Base, WithCode):
     duels = relationship(
         "Duel",
         back_populates="event",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )

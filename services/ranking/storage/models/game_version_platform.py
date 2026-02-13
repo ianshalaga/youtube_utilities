@@ -21,8 +21,10 @@ class GameVersionPlatform(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     # Foreign keys
-    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
-    platform_id = Column(Integer, ForeignKey("platforms.id"), nullable=False)
+    game_id = Column(Integer, ForeignKey(
+        "games.id", ondelete="CASCADE"), nullable=False)
+    platform_id = Column(Integer, ForeignKey(
+        "platforms.id", ondelete="CASCADE"), nullable=False)
 
     # Fields
     version = Column(String, nullable=False)
@@ -34,17 +36,20 @@ class GameVersionPlatform(Base, WithCode):
     stages = relationship(
         "Stage",
         back_populates="game_version_platform",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     events = relationship(
         "Event",
         back_populates="game_version_platform",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     game_characters = relationship(
         "GameCharacter",
         back_populates="game_version_platform",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )

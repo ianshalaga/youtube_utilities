@@ -17,7 +17,7 @@ class Game(Base, WithCode):
     # Foreign Keys
     franchise_id = Column(
         Integer,
-        ForeignKey("franchises.id"),
+        ForeignKey("franchises.id", ondelete="RESTRICT"),
         nullable=False
     )
 
@@ -30,5 +30,6 @@ class Game(Base, WithCode):
     game_versions = relationship(
         "GameVersionPlatform",
         back_populates="game",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )

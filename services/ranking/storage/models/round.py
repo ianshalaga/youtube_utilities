@@ -30,9 +30,23 @@ class Round(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    battle_id = Column(Integer, ForeignKey("battles.id"), nullable=False)
-    winner_id = Column(Integer, ForeignKey("players.id"), nullable=True)
-    loser_id = Column(Integer, ForeignKey("players.id"), nullable=True)
+    battle_id = Column(
+        Integer,
+        ForeignKey("battles.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    winner_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=True
+    )
+
+    loser_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=True
+    )
 
     # Fields
     is_draw = Column(Boolean, nullable=False, default=False)
@@ -46,5 +60,6 @@ class Round(Base):
     round_results = relationship(
         "RoundResult",
         back_populates="round",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )

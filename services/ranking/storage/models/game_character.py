@@ -20,8 +20,12 @@ class GameCharacter(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     # Foreign keys
-    character_identity_id = Column(Integer, ForeignKey(
-        "character_identities.id"), nullable=False)
+    character_identity_id = Column(
+        Integer,
+        ForeignKey("character_identities.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
     game_version_platform_id = Column(Integer, ForeignKey(
         "game_version_platforms.id"), nullable=False)
 

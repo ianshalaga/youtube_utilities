@@ -21,10 +21,11 @@ class Franchise(Base, WithCode):
     # Relationships
     character_identities = relationship(
         "CharacterIdentity",
-        back_populates="franchise",
+        back_populates="franchise"
     )
 
     games = relationship(
         "Game",
-        back_populates="franchise"
+        back_populates="franchise",
+        passive_deletes=True
     )

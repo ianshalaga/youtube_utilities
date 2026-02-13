@@ -63,3 +63,44 @@ Eso está bien. Pero no se valida coherencia con la existencia de duel_teams. No
   - 4 participantes en una battle.
 
 El dominio asume 2. Eso no es error estructural, pero es una debilidad semántica. Validarlo estrictamente en loader o agregar validación a nivel aplicación.
+
+### 6
+
+- BattleParticipant.duel_team_id es débil semánticamente. Permite:
+  - duel_team_id NULL.
+  - duel_team_id que no pertenezca al mismo duel que la battle.
+
+- No puede resolverse con FK simple. Pero se debe validar estrictamente en loader:
+  - Que si battle pertenece a duelo por equipos, entonces duel_team_id no sea NULL.
+  - Que duel_team.duel_id == battle.duel_id.
+
+Es un punto frágil del modelo.
+
+### 7
+
+BattleParticipant permite cardinalidad > 2
+
+Modelo permite 3 o más participantes en battle.
+
+Si dominio exige 2 siempre, debes:
+
+Validarlo en loader
+
+O agregar check application-level
+
+No se puede resolver en DB sin trucos complejos.
+
+### 8
+
+Duel no valida coherencia entre winner y tipo de duelo
+
+Nada impide:
+
+Duel con winner_id
+
+Y también tener duel_teams cargados
+
+Es correcto relacionalmente,
+pero frágil semánticamente.
+
+Debe validarse en loader.

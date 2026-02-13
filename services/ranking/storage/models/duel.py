@@ -21,8 +21,11 @@ class Duel(Base, WithCode):
         Index("ix_duels_event_id", "event_id"),
         Index("ix_duels_winner_id", "winner_id"),
         Index("ix_duels_winner_team_id", "winner_team_id"),
-        UniqueConstraint("event_id", "sequence_number",
-                         name="uq_duel_event_sequence"),
+        UniqueConstraint(
+            "event_id",
+            "sequence_number",
+            name="uq_duel_event_sequence"
+        ),
         CheckConstraint(
             """
             (winner_id IS NOT NULL AND winner_team_id IS NULL)
@@ -36,11 +39,29 @@ class Duel(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     # Foreign keys
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
-    duel_type_id = Column(Integer, ForeignKey("duel_types.id"), nullable=False)
+    event_id = Column(
+        Integer,
+        ForeignKey("events.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    winner_id = Column(Integer, ForeignKey("players.id"), nullable=True)
-    winner_team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
+    duel_type_id = Column(
+        Integer,
+        ForeignKey("duel_types.id"),
+        nullable=False
+    )
+
+    winner_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=True
+    )
+
+    winner_team_id = Column(
+        Integer,
+        ForeignKey("teams.id", ondelete="RESTRICT"),
+        nullable=True
+    )
 
     # Fields
     sequence_number = Column(Integer, nullable=False)
@@ -55,17 +76,20 @@ class Duel(Base, WithCode):
     duel_participants = relationship(
         "DuelParticipant",
         back_populates="duel",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     duel_teams = relationship(
         "DuelTeam",
         back_populates="duel",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     battles = relationship(
         "Battle",
         back_populates="duel",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )

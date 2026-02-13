@@ -31,10 +31,29 @@ class Battle(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign keys
-    duel_id = Column(Integer, ForeignKey("duels.id"), nullable=False)
-    stage_id = Column(Integer, ForeignKey("stages.id"), nullable=False)
-    winner_id = Column(Integer, ForeignKey("players.id"), nullable=True)
-    loser_id = Column(Integer, ForeignKey("players.id"), nullable=True)
+    duel_id = Column(
+        Integer,
+        ForeignKey("duels.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    stage_id = Column(
+        Integer,
+        ForeignKey("stages.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    winner_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=True
+    )
+
+    loser_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=True
+    )
 
     # Fields
     is_draw = Column(Boolean, nullable=False, default=False)
@@ -50,10 +69,12 @@ class Battle(Base):
         "BattleParticipant",
         back_populates="battle",
         cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     rounds = relationship(
         "Round",
         back_populates="battle",
         cascade="all, delete-orphan",
+        passive_deletes=True
     )

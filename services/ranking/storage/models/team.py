@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Index
+from sqlalchemy import Column, Integer, String, Index, UniqueConstraint
 
 from services.ranking.storage.base import Base
 from services.ranking.storage.mixins import WithCode
@@ -9,6 +9,7 @@ class Team(Base, WithCode):
 
     __table_args__ = (
         Index("ix_teams_code", "code"),
+        UniqueConstraint("name", name="uq_team_name")
     )
 
     id = Column(Integer, primary_key=True)

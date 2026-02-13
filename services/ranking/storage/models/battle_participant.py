@@ -26,8 +26,17 @@ class BattleParticipant(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    battle_id = Column(Integer, ForeignKey("battles.id"), nullable=False)
-    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    battle_id = Column(
+        Integer,
+        ForeignKey("battles.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=False
+    )
 
     game_character_id = Column(
         Integer,
