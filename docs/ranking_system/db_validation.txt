@@ -1,0 +1,109 @@
+BASE DE DATOS – REGLAS DE VALIDACIÓN EXTERNAS
+
+Contexto El modelo relacional garantiza únicamente la estructura. La
+coherencia competitiva debe garantizarse en el loader o en la capa de
+aplicación. Estas reglas no pueden imponerse completamente mediante
+constraints SQL estándar.
+
+------------------------------------------------------------------------
+
+1.  WINNER DEBE PERTENECER AL CONJUNTO DE PARTICIPANTES
+
+Problema: No existe garantía estructural de que el winner pertenezca al
+conjunto real de participantes.
+
+Validaciones obligatorias:
+
+Battle: - winner_id y loser_id deben existir en BattleParticipant de esa
+battle.
+
+Round: - winner_id y loser_id deben existir en RoundResult de ese round.
+
+Duel individual: - winner_id debe existir en DuelParticipant.
+
+Duel de equipo: - winner_team_id debe existir en DuelTeam.
+
+------------------------------------------------------------------------
+
+2.  CARDINALIDAD MÍNIMA Y MÁXIMA DE PARTICIPANTES
+
+Duel: - Duel individual → mínimo 2 DuelParticipant. - Duel de equipo →
+exactamente 2 DuelTeam (según lógica competitiva actual).
+
+Battle: - Cada Battle debe tener exactamente 2 BattleParticipant.
+
+Round: - Cada Round debe tener exactamente 2 RoundResult.
+
+------------------------------------------------------------------------
+
+3.  COHERENCIA duel_team_id EN EVENTOS DE EQUIPOS
+
+BattleParticipant.duel_team_id puede ser NULL o inconsistente.
+
+Validaciones:
+
+Si el Duel es de equipo: - duel_team_id debe ser NOT NULL. -
+duel_team.duel_id debe coincidir con battle.duel_id.
+
+Si el Duel es individual: - duel_team_id debe ser NULL.
+
+------------------------------------------------------------------------
+
+4.  COHERENCIA ENTRE is_team_duel Y WINNER
+
+Regla obligatoria:
+
+Si is_team_duel = TRUE: - winner_team_id debe estar definido. -
+winner_id debe ser NULL.
+
+Si is_team_duel = FALSE: - winner_id debe estar definido. -
+winner_team_id debe ser NULL.
+
+------------------------------------------------------------------------
+
+5.  COHERENCIA ENTRE EventType Y is_team_duel
+
+El modelo permite inconsistencias estructurales.
+
+Debe validarse que:
+
+event.event_type == “team_tournament” ↔ existen duels con is_team_duel =
+TRUE
+
+Y recíprocamente:
+
+Si event_type != “team_tournament” → no deben existir duels con
+is_team_duel = TRUE
+
+------------------------------------------------------------------------
+
+6.  DuelTeamMember – CARDINALIDAD MÍNIMA
+
+El modelo permite crear DuelTeam sin miembros.
+
+Validación requerida: - Todo DuelTeam debe tener al menos un
+DuelTeamMember. - Los equipos deben representar jugadores reales.
+
+------------------------------------------------------------------------
+
+7.  Country – DIFERENCIACIÓN ENTRE code E iso_code
+
+-   code (mixin WithCode) se utiliza para URLs.
+-   iso_code representa el estándar ISO del país.
+
+No deben asumirse equivalentes. Debe mantenerse coherencia semántica
+entre ambos campos.
+
+------------------------------------------------------------------------
+
+8.  PRINCIPIO GENERAL
+
+Las validaciones anteriores son obligatorias para:
+
+-   Loader legacy
+-   Loader v2
+-   Exporter v2
+-   Cálculo de ranking
+
+El modelo de datos es estructural. La integridad competitiva depende del
+control en la capa de aplicación.

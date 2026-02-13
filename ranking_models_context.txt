@@ -95,6 +95,7 @@ class Battle(Base):
         Index("ix_battles_winner_id", "winner_id"),
         Index("ix_battles_loser_id", "loser_id"),
         Index("ix_battles_duel_winner", "duel_id", "winner_id"),
+        Index("ix_battles_duel_loser", "duel_id", "loser_id"),
         UniqueConstraint("duel_id", "sequence_number",
                          name="uq_battle_duel_sequence"),
         CheckConstraint(
@@ -258,7 +259,7 @@ class CharacterIdentity(Base, WithCode):
     # Foreign keys
     franchise_id = Column(
         Integer,
-        ForeignKey("franchises.id"),
+        ForeignKey("franchises.id", ondelete="RESTRICT"),
         nullable=False
     )
 
@@ -329,13 +330,10 @@ class Duel(Base, WithCode):
             "sequence_number",
             name="uq_duel_event_sequence"
         ),
-        CheckConstraint(
-            """
-            (winner_id IS NOT NULL AND winner_team_id IS NULL)
-            OR
-            (winner_id IS NULL AND winner_team_id IS NOT NULL)
-            """,
-            name="ck_duel_winner_consistency"
+        UniqueConstraint(
+            "event_id",
+            "team_duel_sequence_number",
+            name="uq_duel_event_team_sequence"
         ),
         CheckConstraint(
             """
@@ -346,8 +344,20 @@ class Duel(Base, WithCode):
             name="ck_duel_type_winner_alignment"
         ),
         CheckConstraint(
-            "winner_id IS NOT NULL OR winner_team_id IS NOT NULL",
-            name="ck_duel_must_have_winner"
+            """
+            (is_team_duel = TRUE AND team_duel_sequence_number IS NOT NULL)
+            OR
+            (is_team_duel = FALSE AND team_duel_sequence_number IS NULL)
+            """,
+            name="ck_duel_team_sequence_consistency"
+        ),
+        CheckConstraint(
+            """
+            (is_team_duel = TRUE AND team_duel_type_id IS NOT NULL)
+            OR
+            (is_team_duel = FALSE AND team_duel_type_id IS NULL)
+            """,
+            name="ck_duel_team_type_alignment"
         )
     )
 
@@ -362,8 +372,14 @@ class Duel(Base, WithCode):
 
     duel_type_id = Column(
         Integer,
-        ForeignKey("duel_types.id"),
+        ForeignKey("duel_types.id", ondelete="RESTRICT"),
         nullable=False
+    )
+
+    team_duel_type_id = Column(
+        Integer,
+        ForeignKey("duel_types.id", ondelete="RESTRICT"),
+        nullable=True
     )
 
     winner_id = Column(
@@ -386,7 +402,8 @@ class Duel(Base, WithCode):
 
     # Relationships
     event = relationship("Event", back_populates="duels")
-    duel_type = relationship("DuelType")
+    duel_type = relationship("DuelType", foreign_keys=[duel_type_id])
+    team_duel_type = relationship("DuelType", foreign_keys=[team_duel_type_id])
     winner = relationship("Player", foreign_keys=[winner_id])
     winner_team = relationship("Team", foreign_keys=[winner_team_id])
 
@@ -475,9 +492,17 @@ class DuelTeam(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    duel_id = Column(Integer, ForeignKey(
-        "duels.id", ondelete="CASCADE"), nullable=False)
-    team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
+    duel_id = Column(
+        Integer,
+        ForeignKey("duels.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    team_id = Column(
+        Integer,
+        ForeignKey("teams.id", ondelete="RESTRICT"),
+        nullable=False
+    )
 
     # Relationships
     duel = relationship("Duel", back_populates="duel_teams")
@@ -568,6 +593,7 @@ class Event(Base, WithCode):
         Index("ix_events_code", "code"),
         Index("ix_events_season_id", "season_id"),
         Index("ix_events_game_version_platform_id", "game_version_platform_id"),
+        Index("ix_events_event_date", "event_date"),
         UniqueConstraint("season_id", "sequence_number",
                          name="uq_event_season_sequence")
     )
@@ -752,8 +778,11 @@ class GameCharacter(Base, WithCode):
         nullable=False
     )
 
-    game_version_platform_id = Column(Integer, ForeignKey(
-        "game_version_platforms.id"), nullable=False)
+    game_version_platform_id = Column(
+        Integer,
+        ForeignKey("game_version_platforms.id", ondelete="RESTRICT"),
+        nullable=False
+    )
 
     # Relationships
     character_identity = relationship(
@@ -878,7 +907,11 @@ class Player(Base, WithCode):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    country_id = Column(Integer, ForeignKey("countries.id"), nullable=False)
+    country_id = Column(
+        Integer,
+        ForeignKey("countries.id", ondelete="RESTRICT"),
+        nullable=False
+    )
 
     # Fields
     nickname = Column(String, unique=True, nullable=False)
@@ -909,7 +942,11 @@ class PlayerAlias(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
     # Fields
     alias = Column(String, nullable=False)
@@ -988,8 +1025,12 @@ class Round(Base):
         Index("ix_rounds_battle_sequence", "battle_id", "sequence_number"),
         Index("ix_rounds_winner_id", "winner_id"),
         Index("ix_rounds_loser_id", "loser_id"),
-        UniqueConstraint("battle_id", "sequence_number",
-                         name="uq_round_battle_sequence"),
+        Index("ix_rounds_battle_sequence", "battle_id", "sequence_number"),
+        UniqueConstraint(
+            "battle_id",
+            "sequence_number",
+            name="uq_round_battle_sequence"
+        ),
         CheckConstraint(
             """
             (is_draw = TRUE AND winner_id IS NULL AND loser_id IS NULL)

@@ -1,0 +1,180 @@
+LOADERS – ESPECIFICACIÓN NORMALIZADA
+
+loaders specifications
+Este documento describe de forma estructurada y no ambigua el
+comportamiento del Loader Legacy y del Loader v2.
+
+============================================================ LOADER
+LEGACY ============================================================
+
+1.  ESTRUCTURA GENERAL
+
+- Cada fila representa una Battle.
+- Un Event contiene múltiples Duels.
+- Un Duel contiene múltiples Battles.
+- Una Battle contiene hasta 5 Rounds (FT3 → máximo 5 rounds).
+
+Jerarquía implícita: Event → Duel → Battle → Round
+
+---
+
+2.  IDENTIFICACIÓN Y SECUENCIAMIENTO
+
+season: - Nombre textual de temporada (S1, S2).
+
+event: - Determina tipo de evento por prefijo: - “SSLT {n}” →
+tournament - “SSLTT {n}” → team_tournament - “SSLL {n}” → league -
+“SSLTSE {n}” → special_tournament
+
+duel: - Entero. - Comienza en 1 por cada Event. - Incremental dentro del
+Event.
+
+combat: - Entero. - Comienza en 1 por cada Duel. - Incremental dentro
+del Duel.
+
+team_duel: - Solo presente en eventos team_tournament. - Entero. -
+Comienza en 1 por Event. - Identifica duelo entre equipos. - Agrupa
+múltiples duels (jugadores) bajo un mismo enfrentamiento de equipos.
+
+---
+
+3.  ENTIDADES COMPETITIVAS
+
+player1 / player2: - Jugadores participantes de la Battle.
+
+character1 / character2: - Personajes usados en la Battle.
+
+p1_team / p2_team: - Solo en team_tournament. - Equipo representado por
+cada jugador.
+
+duel_type: - Tipo de duelo entre jugadores (FT2, FT3, FT5, etc).
+
+t_duel_type: - Tipo de duelo entre equipos. - Solo en team_tournament.
+
+---
+
+4.  INFORMACIÓN CONTEXTUAL
+
+game: - Identifica juego. - Franquicia se infiere por mapper.
+
+version: - Versión del juego.
+
+platform: - Plataforma (PC, PS4).
+
+region: - Región competitiva.
+
+date: - Fecha ISO 8601 (YYYY-MM-DD).
+
+video: - Enlace YouTube del Duel.
+
+playlist: - Lista de reproducción del Event.
+
+brackets: - Enlace organizativo externo.
+
+stage: - Escenario de la Battle.
+
+---
+
+5.  RESULTADOS DE ROUND (LEGACY)
+
+Columnas: r1_p1 … r5_p1 r1_p2 … r5_p2
+
+Codificación posible: W = Win PW = Perfect Win LB = Loss Blue LY = Loss
+Yellow PL = Perfect Loss D = Draw 0 = No round jugado
+
+Reglas de coherencia:
+
+- PW ↔ PL
+- W ↔ (LB o LY)
+- D ↔ D
+- 0 ↔ 0
+
+Interpretación competitiva:
+
+Ganan round: W, PW
+
+Pierden round: LB, LY, PL
+
+Empate: D
+
+No jugado: 0
+
+---
+
+6.  INFERENCIAS EN LEGACY
+
+Round winner: - Se infiere desde el código del resultado.
+
+Battle winner: - Se infiere contando rounds ganados. - Mayor número de
+rounds ganados. - Puede existir empate de Battle.
+
+Duel winner: - Se infiere contando Battles ganadas. - Siempre existe
+ganador. - No hay empate en Duel.
+
+Team Duel winner: - Se infiere contando Duels ganados por cada equipo.
+
+---
+
+7.  RESTRICCIONES CONCEPTUALES
+
+- Battles son FT3 de rounds (máximo 5).
+- Duels pueden tener 2 o más participantes.
+- Team duel puede enfrentar 2 o más equipos.
+- team_duel, t_duel_type, p1_team y p2_team están vacíos si el evento no es
+  team_tournament.
+
+# ============================================================ LOADER V2
+
+1.  PRINCIPIOS FUNDAMENTALES
+
+- Cada fila representa un Round.
+- No se permiten inferencias de ganador.
+- Ganadores son datos primarios explícitos.
+
+Jerarquía explícita por fila: Event → Duel → Battle → Round
+
+---
+
+2.  COLUMNAS PRINCIPALES
+
+Se conservan (algunas renombradas):
+
+season event event_type p_duel (duel entre jugadores) t_duel (duel entre
+equipos) battle p1 p2 p1_ch p2_ch p1_country p2_country p1_team p2_team
+stage video date playlist brackets platform game version region
+duel_type
+
+---
+
+3.  RESULTADOS Y GANADORES EXPLÍCITOS
+
+p1_result p2_result
+
+r_winner → ganador de Round b_winner → ganador de Battle d_winner →
+ganador de Duel (jugadores) t_winner → ganador de Duel de equipos (solo
+team_tournament)
+
+event_type: - tournament - league - team_tournament - special_tournament
+
+---
+
+4.  DIFERENCIAS CLAVE RESPECTO A LEGACY
+
+- No existe código de resultado “0”.
+- Los ganadores no se infieren.
+- event_type es explícito.
+- La franquicia no requiere columna explícita.
+- El round es la unidad mínima de datos.
+
+---
+
+5.  PRINCIPIO DE DISEÑO V2
+
+Legacy: - Datos parcialmente implícitos. - Requiere inferencia.
+
+v2: - Datos completamente explícitos. - Modelo determinista. -
+Exportable sin pérdida de información.
+
+============================================================
+
+FIN DEL DOCUMENTO

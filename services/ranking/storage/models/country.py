@@ -15,4 +15,4 @@ class Country(Base, WithCode):
 
     # Fields
     iso_code = Column(String, unique=True, nullable=False)
-    name = Column(String, nullable=False)
+    name = Column(String, unique=True, nullable=False)

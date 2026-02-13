@@ -9,11 +9,13 @@ class Round(Base):
 
     __table_args__ = (
         Index("ix_rounds_battle_sequence", "battle_id", "sequence_number"),
-        Index("ix_rounds_winner_id", "winner_id"),
-        Index("ix_rounds_loser_id", "loser_id"),
-        Index("ix_rounds_battle_sequence", "battle_id", "sequence_number"),
-        UniqueConstraint("battle_id", "sequence_number",
-                         name="uq_round_battle_sequence"),
+        Index("ix_rounds_battle_winner", "battle_id", "winner_id"),
+        Index("ix_rounds_battle_loser", "battle_id", "loser_id"),
+        UniqueConstraint(
+            "battle_id",
+            "sequence_number",
+            name="uq_round_battle_sequence"
+        ),
         CheckConstraint(
             """
             (is_draw = TRUE AND winner_id IS NULL AND loser_id IS NULL)

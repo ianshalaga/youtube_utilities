@@ -26,8 +26,11 @@ class GameCharacter(Base, WithCode):
         nullable=False
     )
 
-    game_version_platform_id = Column(Integer, ForeignKey(
-        "game_version_platforms.id"), nullable=False)
+    game_version_platform_id = Column(
+        Integer,
+        ForeignKey("game_version_platforms.id", ondelete="RESTRICT"),
+        nullable=False
+    )
 
     # Relationships
     character_identity = relationship(

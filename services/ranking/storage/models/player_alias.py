@@ -14,7 +14,11 @@ class PlayerAlias(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
     # Fields
     alias = Column(String, nullable=False)

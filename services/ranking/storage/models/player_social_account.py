@@ -15,9 +15,17 @@ class PlayerSocialAccount(Base):
     id = Column(Integer, primary_key=True)
 
     # Foreign Keys
-    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
-    social_platform_id = Column(Integer, ForeignKey(
-        "social_platforms.id"), nullable=False)
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    social_platform_id = Column(
+        Integer,
+        ForeignKey("social_platforms.id", ondelete="RESTRICT"),
+        nullable=False
+    )
 
     # Fields
     handle = Column(String, nullable=False)

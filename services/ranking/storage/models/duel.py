@@ -28,6 +28,11 @@ class Duel(Base, WithCode):
             "sequence_number",
             name="uq_duel_event_sequence"
         ),
+        # UniqueConstraint(
+        #     "event_id",
+        #     "team_duel_sequence_number",
+        #     name="uq_duel_event_team_sequence"
+        # ),
         CheckConstraint(
             """
             (is_team_duel = TRUE AND winner_team_id IS NOT NULL AND winner_id IS NULL)
@@ -43,6 +48,30 @@ class Duel(Base, WithCode):
             (is_team_duel = FALSE AND team_duel_sequence_number IS NULL)
             """,
             name="ck_duel_team_sequence_consistency"
+        ),
+        CheckConstraint(
+            """
+            (is_team_duel = TRUE AND team_duel_type_id IS NOT NULL)
+            OR
+            (is_team_duel = FALSE AND team_duel_type_id IS NULL)
+            """,
+            name="ck_duel_team_type_alignment"
+        ),
+        CheckConstraint(
+            """
+            (
+                is_team_duel = FALSE
+                AND duel_type_id IS NOT NULL
+                AND team_duel_type_id IS NULL
+            )
+            OR
+            (
+                is_team_duel = TRUE
+                AND duel_type_id IS NOT NULL
+                AND team_duel_type_id IS NOT NULL
+            )
+            """,
+            name="ck_duel_type_consistency"
         )
     )
 
@@ -64,7 +93,7 @@ class Duel(Base, WithCode):
     team_duel_type_id = Column(
         Integer,
         ForeignKey("duel_types.id", ondelete="RESTRICT"),
-        nullable=False
+        nullable=True
     )
 
     winner_id = Column(
