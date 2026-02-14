@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from services.ranking.storage.session import SessionLocal
 from services.ranking.loaders.base import DataLoader
 from services.ranking.storage.base import Base
-from services.ranking.loaders.mappers.row_legacy_mapper import RowLegacyMapper
+from services.ranking.loaders.legacy.row_legacy_mapper import RowLegacyMapper
 from services.ranking.loaders.mappers.event_type_mapper import (
     resolve_event_type,
     EventType as EventTypeEnum

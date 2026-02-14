@@ -8,7 +8,7 @@ from apps.video_music.processor import VideoMusicProcessor
 from apps.video_joiner.processor import VideoJoinerProcessor
 from apps.ranking_system.create_db import create_db
 from apps.ranking_system.loaders.load_legacy import run as load_legacy_data
-from apps.ranking_system.processor import run_ranking
+# from apps.ranking_system.processor import run_ranking
 from apps.ranking_system.queries.builder import RankingQueryBuilder
 
 # SERVICES
@@ -20,11 +20,11 @@ from services.ranking.storage.session import SessionLocal
 config = ConfigManager()
 
 video_music = False
-video_joiner = False
+video_joiner = True
 video_converter = False
 db = False
 load_legacy = False
-ranking_system = True
+ranking_system = False
 
 
 csv_legacy_path = Path("F:/DESCARGAS/SSLEdb - SSLT.csv")
@@ -109,12 +109,12 @@ if ranking_system:
     filters = config.ranking_filters
     query = RankingQueryBuilder(session=session).build(filters=filters)
 
-    results = run_ranking(
-        session=session,
-        entity=config.ranking_entity,
-        query=query,
-    )
+    # results = run_ranking(
+    #     session=session,
+    #     entity=config.ranking_entity,
+    #     query=query,
+    # )
 
     # export simple (luego se refina)
-    for _, stats in results.items():
-        print(stats)
+    # for _, stats in results.items():
+    #     print(stats)
