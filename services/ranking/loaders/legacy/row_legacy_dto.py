@@ -42,9 +42,15 @@ class LegacyRowDTO:
     rounds_p2: tuple[str, ...]
 
     @classmethod
-    def from_mapper(cls, mapper: RowLegacyMapper) -> LegacyRowDTO:
+    def from_mapper(cls, mapper: RowLegacyMapper) -> "LegacyRowDTO":
         if mapper.event_date is None:
             raise ValueError("event_date is required.")
+
+        if mapper.duel_order is None:
+            raise ValueError("duel_order is required.")
+
+        if mapper.combat_order is None:
+            raise ValueError("combat_order is required.")
 
         # Convert rounds (ignore None)
         rounds_p1 = []
@@ -54,6 +60,9 @@ class LegacyRowDTO:
             r1 = mapper.round_result(i, 1)
             r2 = mapper.round_result(i, 2)
 
+            if r1 is None and r2 is None:
+                continue
+
             if (r1 is None) != (r2 is None):
                 raise ValueError(
                     f"Inconsistent round data at round {i}."
@@ -61,6 +70,15 @@ class LegacyRowDTO:
 
             rounds_p1.append(r1)
             rounds_p2.append(r2)
+
+        rounds_p1 = tuple(rounds_p1)
+        rounds_p2 = tuple(rounds_p2)
+
+        try:
+            event_date = date.fromisoformat(mapper.event_date)
+        except ValueError:
+            raise ValueError(
+                f"Invalid ISO date format: {mapper.event_date}")
 
         dto = cls(
             # Context
@@ -71,7 +89,7 @@ class LegacyRowDTO:
             # Season / Event
             season_name=mapper.season_name,
             event_name=mapper.event_name,
-            event_date=date.fromisoformat(mapper.event_date),
+            event_date=event_date,
             event_brackets=mapper.event_brackets,
             event_playlist=mapper.event_playlist,
             # Duel
@@ -122,6 +140,22 @@ class LegacyRowDTO:
 
         if self.combat_order <= 0:
             raise ValueError("combat_order must be positive.")
+
+        if self.individual_duel_type is None:
+            raise ValueError("individual_duel_type is required.")
+
+        if (self.player_1_team is None) != (self.player_2_team is None):
+            raise ValueError("Both players must have team or neither.")
+
+        if (self.team_duel_order is None) != (self.team_duel_type is None):
+            raise ValueError(
+                "team_duel_order and team_duel_type must be both set or both None.")
+
+        if any(r is None for r in self.rounds_p1):
+            raise ValueError("Round result cannot be None.")
+
+        if any(r is None for r in self.rounds_p2):
+            raise ValueError("Round result cannot be None.")
 
         # if self.player_1_name == self.player_2_name:
         #     raise ValueError("A player cannot fight against themselves.")
