@@ -1,0 +1,47 @@
+Recomendación estratégica antes de escribir el loader
+
+Antes de programarlo, define explícitamente:
+
+Un objeto intermedio LegacyRowDTO
+
+Una capa de normalización previa al ORM
+
+Una fase de validación previa a commit
+
+-----------------------------------------------
+
+Hay tres niveles de validación:
+
+Nivel 1 — Sintáctico (Mapper)
+
+Header existe.
+
+String limpio.
+
+Nada más.
+
+Nivel 2 — Estructural (DTO)
+
+duel_order convertible a int.
+
+fecha válida.
+
+rounds_p1 y rounds_p2 misma longitud.
+
+no más de 5 rounds.
+
+valores no vacíos inconsistentes.
+
+Nivel 3 — Dominio (RowValidator)
+
+PW ↔ PL coherente.
+
+W ↔ LB/LY coherente.
+
+No empate ilegal en duel.
+
+team_duel coherente con evento.
+
+round_result_code válido según scoring strategy.
+
+coherencia con especificación loaders.

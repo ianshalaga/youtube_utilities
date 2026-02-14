@@ -13,7 +13,7 @@ from datetime import datetime
 from services.ranking.storage.session import SessionLocal
 from services.ranking.loaders.base import DataLoader
 from services.ranking.storage.base import Base
-from services.ranking.loaders.v2.row_v2_mapper import RowV2Mapper
+from services.ranking.loaders.v2.mapper import RowV2Mapper
 from services.ranking.loaders.mappers.country_mapper import country_name_to_iso
 
 from services.ranking.storage.models import (
