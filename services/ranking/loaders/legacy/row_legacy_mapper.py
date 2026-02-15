@@ -25,22 +25,29 @@ class RowLegacyMapper:
 
     _FIELDS_MAP = {
         # El csv legacy contiene 34 campos
+
+        # Keys: logical names
+        # Values: physical names
+
         # Context
         "game_name": "game",
         "game_version": "version",
         "event_platform": "platform",
         "region_name": "region",
+
         # Season / Event
         "season_name": "season",
         "event_name": "event",
         "event_date": "date",
         "event_brackets": "brackets",
         "event_playlist": "playlist",
+
         # Duel
         "duel_order": "duel",
         "individual_duel_type": "duel_type",
         "duel_video": "video",
         "combat_order": "combat",
+
         # Battle
         "player_1_name": "player1",
         "player_2_name": "player2",
@@ -49,11 +56,13 @@ class RowLegacyMapper:
         "player_1_country": "p1_country",
         "player_2_country": "p2_country",
         "stage_name": "stage",
+
         # Team
         "player_1_team": "p1_team",
         "player_2_team": "p2_team",
         "team_duel_order": "team_duel",
         "team_duel_type": "t_duel_type",
+
         # Round
         "round_1_p1": "r1_p1",
         "round_2_p1": "r2_p1",
@@ -74,7 +83,8 @@ class RowLegacyMapper:
     def _get(self, logical_name: str):
         header = self._FIELDS_MAP[logical_name]
         value = self._row.get(header)
-        return value.strip() if value else None
+        value_strip = value.strip()
+        return value_strip if value_strip else None
 
     def _validate_row_headers(self):
         if not self._row:
@@ -207,15 +217,16 @@ class RowLegacyMapper:
             raise ValueError(f"Invalid round number: {round_number}")
 
         key = f"round_{round_number}_p{player}"
+
         return self._get(key)
 
     @classmethod
-    def _validate_field_map_definition(cls):
+    def _validate_fields_map_definition(cls):
         physical_names = list(cls._FIELDS_MAP.values())
 
         if len(physical_names) != len(set(physical_names)):
-            raise RuntimeError("Duplicate physical headers in _FIELDS_MAP.")
+            raise RuntimeError("Duplicate physical names in _FIELDS_MAP.")
 
 
-# Ejecutar en import-time
-RowLegacyMapper._validate_field_map_definition()
+# Import-time validation
+RowLegacyMapper._validate_fields_map_definition()

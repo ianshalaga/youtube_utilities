@@ -1,6 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import date
-from typing import Optional, List
+from typing import Optional, Tuple
+from typing import get_origin, get_args
+from types import UnionType
 
 from services.ranking.loaders.legacy import RowLegacyMapper
 
@@ -43,8 +45,8 @@ class LegacyRowDTO:
     team_duel_type: Optional[str]
 
     # Round
-    rounds_p1: tuple[str, ...]
-    rounds_p2: tuple[str, ...]
+    rounds_p1: Tuple[str, ...]
+    rounds_p2: Tuple[str, ...]
 
     @classmethod
     def from_mapper(cls, mapper: RowLegacyMapper) -> "LegacyRowDTO":
@@ -164,3 +166,26 @@ class LegacyRowDTO:
 
         # if self.player_1_name == self.player_2_name:
         #     raise ValueError("A player cannot fight against themselves.")
+
+    def _validate_required_fields(self):
+        missing = []
+
+        for f in fields(self):
+            field_type = f.type
+
+            # Detectar Optional[...] o X | None
+            origin = get_origin(field_type)
+            args = get_args(field_type)
+
+            is_optional = (
+                origin is UnionType and type(None) in args
+            ) or (
+                origin is not None and type(None) in args
+            )
+
+            if not is_optional:
+                if getattr(self, f.name) is None:
+                    missing.append(f.name)
+
+        if missing:
+            raise ValueError(f"Missing required fields: {missing}")
