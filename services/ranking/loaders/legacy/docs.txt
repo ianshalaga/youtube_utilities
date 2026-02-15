@@ -45,3 +45,49 @@ team_duel coherente con evento.
 round_result_code válido según scoring strategy.
 
 coherencia con especificación loaders.
+
+----------------------------------------------------
+
+6️⃣ Arquitectura refinada de responsabilidades
+Capa	Responsabilidad
+Mapper	Acceso estructural al CSV
+DTO	Tipado y coherencia estructural mínima
+Normalizer	Canonicalización + derivación determinista + limpieza semántica
+Validator	Reglas competitivas
+Scoring	Cálculo matemático
+ORM	Persistencia
+
+5️⃣ Resumen correcto de responsabilidades
+DTO
+
+Estructura
+
+Tipado
+
+Coherencia mínima
+
+No interpretación
+
+Normalizer
+
+Canonicalización textual
+
+Eliminación de valores neutros ("0")
+
+Derivación trivial (is_team_duel, event_type)
+
+No scoring
+
+No dominio competitivo
+
+No DB
+
+Validator
+
+Coherencia de resultados
+
+PW ↔ PL
+
+Determinación de winners
+
+Integridad competitiva

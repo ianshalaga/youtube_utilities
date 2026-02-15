@@ -13,17 +13,20 @@ class LegacyRowDTO:
     game_version: str
     event_platform: str
     region_name: str
+
     # Season / Event
     season_name: str
     event_name: str
     event_date: date
     event_brackets: Optional[str]
     event_playlist: Optional[str]
+
     # Duel
     duel_order: int
     individual_duel_type: str
     duel_video: Optional[str]
     combat_order: int
+
     # Battle
     player_1_name: str
     player_2_name: str
@@ -32,11 +35,13 @@ class LegacyRowDTO:
     player_1_country: Optional[str]
     player_2_country: Optional[str]
     stage_name: str
+
     # Team
     player_1_team: Optional[str]
     player_2_team: Optional[str]
     team_duel_order: Optional[int]
     team_duel_type: Optional[str]
+
     # Round
     rounds_p1: tuple[str, ...]
     rounds_p2: tuple[str, ...]
