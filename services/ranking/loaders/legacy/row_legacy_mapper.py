@@ -83,6 +83,10 @@ class RowLegacyMapper:
     def _get(self, logical_name: str):
         header = self._FIELDS_MAP[logical_name]
         value = self._row.get(header)
+
+        if value is None:
+            return None
+
         value_strip = value.strip()
         return value_strip if value_strip else None
 
