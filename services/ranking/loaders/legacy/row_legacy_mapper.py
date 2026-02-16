@@ -43,8 +43,8 @@ class RowLegacyMapper:
         "event_playlist": "playlist",
 
         # Duel
-        "duel_order": "duel",
-        "individual_duel_type": "duel_type",
+        "normal_duel_order": "duel",
+        "normal_duel_type": "duel_type",
         "duel_video": "video",
         "combat_order": "combat",
 
@@ -145,12 +145,12 @@ class RowLegacyMapper:
 
     # --- Duel ---
     @property
-    def duel_order(self):
-        return self._get("duel_order")
+    def normal_duel_order(self):
+        return self._get("normal_duel_order")
 
     @property
-    def individual_duel_type(self):
-        return self._get("individual_duel_type")
+    def normal_duel_type(self):
+        return self._get("normal_duel_type")
 
     @property
     def duel_video(self):

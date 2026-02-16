@@ -39,9 +39,9 @@
 
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Tenchu OST/01 Tenchu - Stealth Assassins/2 Tenchu - Stealth Assassins - Gamerip Tracks/videos",
+      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Tenchu OST/01 Tenchu - Stealth Assassins/compilation",
       "default_output_dir": "compilation",
-      "default_video_name": "Tenchu - Stealth Assassins OST - Gamerip Tracks",
+      "default_video_name": "Tenchu - Stealth Assassins",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,
