@@ -7,7 +7,7 @@ from services.ranking.loaders.legacy import RowLegacyMapper
 
 
 @dataclass(frozen=True)
-class LegacyRowDTO:
+class RowLegacyDTO:
     _REQUIRED_FIELDS: ClassVar[tuple[str, ...]]
 
     # Context
@@ -49,7 +49,7 @@ class LegacyRowDTO:
     rounds_p2: Tuple[str, ...]
 
     @classmethod
-    def from_mapper(cls, mapper: RowLegacyMapper) -> "LegacyRowDTO":
+    def from_mapper(cls, mapper: RowLegacyMapper) -> "RowLegacyDTO":
         # Convert rounds
         rounds_p1 = []
         rounds_p2 = []
@@ -212,7 +212,7 @@ class LegacyRowDTO:
 def _compute_required_fields():
     return tuple(
         f.name
-        for f in fields(LegacyRowDTO)
+        for f in fields(RowLegacyDTO)
         if not (
             (
                 get_origin(f.type) is UnionType
@@ -226,4 +226,4 @@ def _compute_required_fields():
     )
 
 
-LegacyRowDTO._REQUIRED_FIELDS = _compute_required_fields()
+RowLegacyDTO._REQUIRED_FIELDS = _compute_required_fields()
