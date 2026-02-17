@@ -3,8 +3,10 @@ from domain.ranking.scoring.base import RoundScoringStrategy
 
 class RoundScoringV1(RoundScoringStrategy):
 
-    _WIN = {"W", "PW"}
-    _LOSS = {"LB", "LY", "PL"}
+    _PERFECT_WIN = {"PW"}
+    _PERFECT_LOSS = {"PL"}
+    _WIN = {"W"}
+    _LOSS = {"LB", "LY"}
     _DRAW = {"D"}
 
     _SCORE_MAP = {
@@ -18,6 +20,12 @@ class RoundScoringV1(RoundScoringStrategy):
 
     def valid_codes(self):
         return set(self._SCORE_MAP.keys())
+
+    def is_perfect_win(self, code: str) -> bool:
+        return code in self._PERFECT_WIN
+
+    def is_perfect_loss(self, code: str) -> bool:
+        return code in self._PERFECT_LOSS
 
     def is_win(self, code: str) -> bool:
         return code in self._WIN

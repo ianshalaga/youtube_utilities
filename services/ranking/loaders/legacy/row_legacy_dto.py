@@ -66,8 +66,11 @@ class RowLegacyDTO:
                     f"Inconsistent round data at round {i}."
                 )
 
-            rounds_p1.append(r1)
-            rounds_p2.append(r2)
+            if r1 != "0":
+                rounds_p1.append(r1)
+
+            if r2 != "0":
+                rounds_p2.append(r2)
 
         rounds_p1 = tuple(rounds_p1)
         rounds_p2 = tuple(rounds_p2)
@@ -120,8 +123,11 @@ class RowLegacyDTO:
         if len(self.rounds_p1) != len(self.rounds_p2):
             raise ValueError("Round results length mismatch.")
 
-        if len(self.rounds_p1) > 5 or len(self.rounds_p2) > 5:
-            raise ValueError("Legacy format supports maximum 5 rounds.")
+        if len(self.rounds_p1) > 5 or len(self.rounds_p1) < 3:
+            raise ValueError("Round results length must be between 3 and 5.")
+
+        if len(self.rounds_p2) > 5 or len(self.rounds_p2) < 3:
+            raise ValueError("Round results length must be between 3 and 5.")
 
         # if self.normal_duel_order <= 0:
         #     raise ValueError("duel_order must be positive.")

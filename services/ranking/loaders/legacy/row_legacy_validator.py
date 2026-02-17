@@ -1,4 +1,7 @@
-from services.ranking.loaders.legacy.row_legacy_dto import LegacyRowDTO
+from typing import Tuple, Set
+
+from domain.ranking.scoring.scoring_v1 import RoundScoringV1
+from services.ranking.loaders.legacy.row_legacy_dto import RowLegacyDTO
 
 _VALID_CHARACTERS = (
     "2B",
@@ -78,18 +81,16 @@ class RowLegacyValidator:
     # ===============================
 
     @classmethod
-    def validate(cls, dto: LegacyRowDTO) -> None:
+    def validate(cls, dto: RowLegacyDTO) -> None:
         cls._validate_game_context(dto)
         cls._validate_event_context(dto)
         cls._validate_duel_context(dto)
         cls._validate_battle_context(dto)
         cls._validate_team_context(dto)
-
-        cls._validate_team_rules(dto)
-        cls._validate_context_rules(dto)
+        cls._validate_round_context(dto)
 
     @staticmethod
-    def _validate_game_context(dto: LegacyRowDTO) -> None:
+    def _validate_game_context(dto: RowLegacyDTO) -> None:
         if dto.game_name != "Soulcalibur VI":
             raise ValueError("Only Soulcalibur VI is supported.")
 
@@ -103,7 +104,7 @@ class RowLegacyValidator:
             raise ValueError("Only SAS region is supported.")
 
     @staticmethod
-    def _validate_event_context(dto: LegacyRowDTO) -> None:
+    def _validate_event_context(dto: RowLegacyDTO) -> None:
         if dto.season_name not in ("S1", "S2"):
             raise ValueError("Only S1 and S2 seasons are supported.")
 
@@ -123,7 +124,7 @@ class RowLegacyValidator:
                 )
 
     @staticmethod
-    def _validate_duel_context(dto: LegacyRowDTO) -> None:
+    def _validate_duel_context(dto: RowLegacyDTO) -> None:
         if dto.normal_duel_order <= 0:
             raise ValueError("normal_duel_order must be positive.")
 
@@ -159,7 +160,7 @@ class RowLegacyValidator:
         #             "team_duel_type must be None for non-team duel.")
 
     @staticmethod
-    def _validate_battle_context(dto: LegacyRowDTO) -> None:
+    def _validate_battle_context(dto: RowLegacyDTO) -> None:
         if dto.player_1_name == dto.player_2_name:
             raise ValueError("A player cannot fight against himself.")
 
@@ -179,7 +180,7 @@ class RowLegacyValidator:
             raise ValueError(f"Invalid stage name: {dto.stage_name}")
 
     @staticmethod
-    def _validate_team_context(dto: LegacyRowDTO) -> None:
+    def _validate_team_context(dto: RowLegacyDTO) -> None:
         team_fields = (
             dto.player_1_team,
             dto.player_2_team,
@@ -205,71 +206,47 @@ class RowLegacyValidator:
     # @@@@
 
     @staticmethod
-    def _validate_round_context(dto: LegacyRowDTO) -> None:
-        allowed_results = {"W", "L", "D"}  # Adjust to real domain values
+    def _validate_round_context(dto: RowLegacyDTO) -> None:
+        round_scoring = RoundScoringV1()
+        valid_results = round_scoring.valid_codes()
 
         for idx, (r1, r2) in enumerate(zip(dto.rounds_p1, dto.rounds_p2), start=1):
-            if r1 not in allowed_results:
+            # Round result validation
+            if r1 not in valid_results:
                 raise ValueError(
                     f"Invalid round result for p1 in round {idx}: {r1}")
 
-            if r2 not in allowed_results:
+            if r2 not in valid_results:
                 raise ValueError(
                     f"Invalid round result for p2 in round {idx}: {r2}")
 
-            # Basic symmetry rule
-            if r1 == "W" and r2 != "L":
-                raise ValueError(f"Inconsistent round {idx}: W must match L.")
-
-            if r1 == "L" and r2 != "W":
-                raise ValueError(f"Inconsistent round {idx}: L must match W.")
-
-            if r1 == "D" and r2 != "D":
-                raise ValueError(f"Inconsistent round {idx}: draw mismatch.")
-
-        RowLegacyValidator._validate_round_win_consistency(dto)
-
-    @staticmethod
-    def _validate_round_win_consistency(dto: LegacyRowDTO) -> None:
-        wins_p1 = dto.rounds_p1.count("W")
-        wins_p2 = dto.rounds_p2.count("W")
-
-        if wins_p1 == wins_p2:
-            # Could be draw depending on rules
-            pass
-
-        # Optional domain rule example:
-        # if wins_p1 > 3 or wins_p2 > 3:
-        #     raise ValueError("Too many wins for legacy duel format.")
-
-    # ===============================
-    # Team Rules
-    # ===============================
-
-    @staticmethod
-    def _validate_team_rules(dto: LegacyRowDTO) -> None:
-        if dto.player_1_team and dto.player_2_team:
-            if dto.player_1_team == dto.player_2_team:
+            # Win/loss consistency validation
+            if round_scoring.is_win(r1) and not round_scoring.is_loss(r2):
                 raise ValueError(
-                    "Both players cannot belong to the same team.")
+                    f"Round {idx} no respects win/loss rule for player 2 on: {r2}.")
 
-    # ===============================
-    # Context Rules
-    # ===============================
+            if round_scoring.is_loss(r1) and not round_scoring.is_win(r2):
+                raise ValueError(
+                    f"Round {idx} no respects win/loss rule for player 2 on: {r2}.")
 
-    @staticmethod
-    def _validate_context_rules(dto: LegacyRowDTO) -> None:
-        # if not dto.game_name:
-        #     raise ValueError("game_name is required.")
+            # Perfect win/loss consistency validation
+            if round_scoring.is_perfect_win(r1) and not round_scoring.is_perfect_loss(r2):
+                raise ValueError(
+                    f"Round {idx} no respects perfect win/perfect loss rule for player 2 on: {r2}."
+                )
 
-        # if not dto.event_name:
-        #     raise ValueError("event_name is required.")
+            if round_scoring.is_perfect_loss(r1) and not round_scoring.is_perfect_win(r2):
+                raise ValueError(
+                    f"Round {idx} no respects perfect win/perfect loss rule for player 2 on: {r2}."
+                )
 
-        # if not dto.stage_name:
-        #     raise ValueError("stage_name is required.")
+            # Draw consistency validation
+            if round_scoring.is_draw(r1) and not round_scoring.is_draw(r2):
+                raise ValueError(
+                    f"Round {idx} no respects draw rule for player 2 on: {r2}."
+                )
 
-        # Future extension:
-        # Validate region format
-        # Validate platform format
-        # Validate season naming conventions
-        ...
+            if round_scoring.is_draw(r2) and not round_scoring.is_draw(r1):
+                raise ValueError(
+                    f"Round {idx} no respects draw rule for player 1 on: {r1}."
+                )
