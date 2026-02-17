@@ -1,126 +1,164 @@
-from dataclasses import dataclass
-from typing import Optional
+# row_legacy_normalizer.py
 
-from services.ranking.loaders.legacy.row_legacy_dto import LegacyRowDTO
+from dataclasses import dataclass
+from datetime import date
+from typing import Optional, Tuple
+
+from domain.ranking.scoring.scoring_v1 import RoundScoringV1
+from services.ranking.loaders.legacy.row_legacy_dto import RowLegacyDTO
+
+
+# =========================
+# Aggregate Models
+# =========================
+
+@dataclass(frozen=True)
+class NormalizedEventData:
+    game_name: str
+    game_version: str
+    platform: str
+    region: str
+    season: str
+    event_name: str
+    event_date: date
+    brackets_url: Optional[str]
+    playlist_url: Optional[str]
 
 
 @dataclass(frozen=True)
-class NormalizedLegacyRow:
-
-    # Context
-    game_name: str
-    game_version: str
-    event_platform: str
-    region_name: str
-
-    # Event
-    season_name: str
-    event_name: str
-    event_date: str
-    event_brackets: Optional[str]
-    event_playlist: Optional[str]
-
-    # Duel
-    duel_sequence_number: int
-    individual_duel_type: str
-    duel_video: Optional[str]
-    battle_sequence_number: int
+class NormalizedDuelData:
+    duel_order: int
+    duel_type: str
     is_team_duel: bool
-
-    # Battle
-    player_1_name: str
-    player_2_name: str
-    character_1_name: str
-    character_2_name: str
-    player_1_country: Optional[str]
-    player_2_country: Optional[str]
-    stage_name: str
-
-    # Team
-    player_1_team: Optional[str]
-    player_2_team: Optional[str]
-    team_duel_sequence_number: Optional[int]
+    team_duel_order: Optional[int]
     team_duel_type: Optional[str]
+    video_url: Optional[str]
 
-    # Rounds
-    rounds_p1: tuple[str, ...]
-    rounds_p2: tuple[str, ...]
 
-    # Derived
-    event_type_name: str
-    franchise_name: str
+@dataclass(frozen=True)
+class NormalizedParticipant:
+    player_name: str
+    character_name: str
+    country: str
+    team_name: Optional[str]
 
+
+@dataclass(frozen=True)
+class NormalizedRound:
+    sequence_number: int
+    p1_code: str
+    p2_code: str
+
+
+@dataclass(frozen=True)
+class NormalizedBattleData:
+    combat_order: int
+    stage_name: str
+    is_draw: bool
+    winner_position: Optional[int]
+    loser_position: Optional[int]
+
+
+@dataclass(frozen=True)
+class NormalizedBattleAggregate:
+    event: NormalizedEventData
+    duel: NormalizedDuelData
+    battle: NormalizedBattleData
+    participants: Tuple[NormalizedParticipant, NormalizedParticipant]
+    rounds: Tuple[NormalizedRound, ...]
+
+
+# =========================
+# Normalizer
+# =========================
 
 class RowLegacyNormalizer:
 
     @staticmethod
-    def normalize(dto: LegacyRowDTO) -> NormalizedLegacyRow:
+    def normalize(dto: RowLegacyDTO) -> NormalizedBattleAggregate:
 
-        return NormalizedLegacyRow(
+        round_scoring = RoundScoringV1()
 
-            # Context
-            game_name=RowLegacyNormalizer._normalize_name(dto.game_name),
-            game_version=dto.game_version.strip(),
-            event_platform=dto.event_platform.strip(),
-            region_name=RowLegacyNormalizer._normalize_name(dto.region_name),
-
-            # Event
-            season_name=RowLegacyNormalizer._normalize_name(dto.season_name),
-            event_name=RowLegacyNormalizer._normalize_name(dto.event_name),
-            event_date=dto.event_date.isoformat(),
-            event_brackets=RowLegacyNormalizer._clean_optional(
-                dto.event_brackets),
-            event_playlist=RowLegacyNormalizer._clean_optional(
-                dto.event_playlist),
-
-            # Duel
-            duel_sequence_number=dto.duel_order,
-            duel_type=dto.individual_duel_type.strip(),
-            duel_video=RowLegacyNormalizer._clean_optional(dto.duel_video),
-            battle_sequence_number=dto.combat_order,
-            is_team_duel=dto.team_duel_order is not None,
-
-            # Battle
-            player_1_name=RowLegacyNormalizer._normalize_name(
-                dto.player_1_name),
-            player_2_name=RowLegacyNormalizer._normalize_name(
-                dto.player_2_name),
-            character_1_name=RowLegacyNormalizer._normalize_name(
-                dto.character_1_name),
-            character_2_name=RowLegacyNormalizer._normalize_name(
-                dto.character_2_name),
-            player_1_country=RowLegacyNormalizer._clean_optional(
-                dto.player_1_country),
-            player_2_country=RowLegacyNormalizer._clean_optional(
-                dto.player_2_country),
-            stage_name=RowLegacyNormalizer._normalize_name(dto.stage_name),
-
-            # Team
-            player_1_team=RowLegacyNormalizer._clean_optional(
-                dto.player_1_team),
-            player_2_team=RowLegacyNormalizer._clean_optional(
-                dto.player_2_team),
-            team_duel_sequence_number=dto.team_duel_order,
-            team_duel_type=RowLegacyNormalizer._clean_optional(
-                dto.team_duel_type),
-
-            # Rounds
-            rounds_p1=dto.rounds_p1,
-            rounds_p2=dto.rounds_p2,
+        # --- Derive winner ---
+        p1_wins = sum(
+            1 for r in dto.rounds_p1 if round_scoring.is_win_result(r)
+        )
+        p2_wins = sum(
+            1 for r in dto.rounds_p2 if round_scoring.is_win_result(r)
         )
 
-    @staticmethod
-    def _normalize_name(value: str) -> str:
-        """
-        Canonicaliza nombres:
-        - strip
-        - Title case
-        """
-        return value.strip().title()
+        if p1_wins == p2_wins:
+            is_draw = True
+            winner_position = None
+            loser_position = None
+        elif p1_wins > p2_wins:
+            is_draw = False
+            winner_position = 1
+            loser_position = 2
+        else:
+            is_draw = False
+            winner_position = 2
+            loser_position = 1
 
-    @staticmethod
-    def _clean_optional(value: Optional[str]) -> Optional[str]:
-        if value is None:
-            return None
-        value = value.strip()
-        return value if value else None
+        # --- Build event ---
+        event = NormalizedEventData(
+            game_name=dto.game_name,
+            game_version=dto.game_version,
+            platform=dto.event_platform,
+            region=dto.region_name,
+            season=dto.season_name,
+            event_name=dto.event_name,
+            event_date=dto.event_date,
+            brackets_url=dto.event_brackets,
+            playlist_url=dto.event_playlist,
+        )
+
+        # --- Build duel ---
+        is_team_duel = dto.player_1_team is not None
+
+        duel = NormalizedDuelData(
+            duel_order=dto.normal_duel_order,
+            duel_type=dto.normal_duel_type,
+            is_team_duel=is_team_duel,
+            team_duel_order=dto.team_duel_order,
+            team_duel_type=dto.team_duel_type,
+            video_url=dto.duel_video,
+        )
+
+        # --- Build participants ---
+        p1 = NormalizedParticipant(
+            player_name=dto.player_1_name,
+            character_name=dto.character_1_name,
+            country=dto.player_1_country,
+            team_name=dto.player_1_team,
+        )
+
+        p2 = NormalizedParticipant(
+            player_name=dto.player_2_name,
+            character_name=dto.character_2_name,
+            country=dto.player_2_country,
+            team_name=dto.player_2_team,
+        )
+
+        # --- Build rounds ---
+        rounds = tuple(
+            NormalizedRound(i + 1, r1, r2)
+            for i, (r1, r2) in enumerate(zip(dto.rounds_p1, dto.rounds_p2))
+        )
+
+        # --- Build battle ---
+        battle = NormalizedBattleData(
+            combat_order=dto.combat_order,
+            stage_name=dto.stage_name,
+            is_draw=is_draw,
+            winner_position=winner_position,
+            loser_position=loser_position,
+        )
+
+        return NormalizedBattleAggregate(
+            event=event,
+            duel=duel,
+            battle=battle,
+            participants=(p1, p2),
+            rounds=rounds,
+        )
