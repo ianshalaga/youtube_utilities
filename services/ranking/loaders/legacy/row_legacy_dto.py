@@ -129,15 +129,6 @@ class RowLegacyDTO:
         if len(self.rounds_p2) > 5 or len(self.rounds_p2) < 3:
             raise ValueError("Round results length must be between 3 and 5.")
 
-        # if self.normal_duel_order <= 0:
-        #     raise ValueError("duel_order must be positive.")
-
-        # if self.combat_order <= 0:
-        #     raise ValueError("combat_order must be positive.")
-
-        # if self.team_duel_order is not None and self.team_duel_order <= 0:
-        #     raise ValueError("team_duel_order must be positive.")
-
         # Los 4 campos opcionales de equipo deben estar todos o ninguno
         if (self.player_1_team is None) != (self.player_2_team is None):
             raise ValueError("Both players must have team or neither.")

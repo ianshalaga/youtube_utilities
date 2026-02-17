@@ -181,29 +181,13 @@ class RowLegacyValidator:
 
     @staticmethod
     def _validate_team_context(dto: RowLegacyDTO) -> None:
-        team_fields = (
-            dto.player_1_team,
-            dto.player_2_team,
-            dto.team_duel_order,
-            dto.team_duel_type,
-        )
-
-        all_none = all(field is None for field in team_fields)
-        all_not_none = all(field is not None for field in team_fields)
-
-        if not (all_none or all_not_none):
-            raise ValueError(
-                "All team fields must be set together or not at all.")
-
         if dto.player_1_team and dto.player_2_team:
             if dto.player_1_team == dto.player_2_team:
                 raise ValueError(
                     "A team cannot fight against itself.")
 
-        if dto.team_duel_order and dto.team_duel_order <= 0:
+        if dto.team_duel_order is not None and dto.team_duel_order <= 0:
             raise ValueError("team_duel_order must be positive.")
-
-    # @@@@
 
     @staticmethod
     def _validate_round_context(dto: RowLegacyDTO) -> None:
@@ -250,3 +234,20 @@ class RowLegacyValidator:
                 raise ValueError(
                     f"Round {idx} no respects draw rule for player 1 on: {r1}."
                 )
+
+        p1_wins = sum(
+            1 for r1 in dto.rounds_p1 if round_scoring.is_win_result(r1))
+        p2_wins = sum(
+            1 for r2 in dto.rounds_p2 if round_scoring.is_win_result(r2))
+        p1_losses = sum(
+            1 for r1 in dto.rounds_p1 if round_scoring.is_loss_result(r1))
+        p2_losses = sum(
+            1 for r2 in dto.rounds_p2 if round_scoring.is_loss_result(r2))
+
+        if p1_wins < p2_losses:
+            raise ValueError(
+                f"Player 1 wins {p1_wins} but player 2 losses {p2_losses}.")
+
+        if p2_wins < p1_losses:
+            raise ValueError(
+                f"Player 2 wins {p2_wins} but player 1 losses {p1_losses}.")
