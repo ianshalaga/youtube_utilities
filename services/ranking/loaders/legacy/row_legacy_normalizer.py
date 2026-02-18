@@ -1,5 +1,3 @@
-# row_legacy_normalizer.py
-
 from dataclasses import dataclass
 from datetime import date
 from typing import Optional, Tuple
@@ -13,12 +11,13 @@ from services.ranking.loaders.legacy.row_legacy_dto import RowLegacyDTO
 # =========================
 
 @dataclass(frozen=True)
-class NormalizedEventData:
+class NormalizedEventContext:
+    season_name: str
+    region_name: str
+    event_type_name: str
     game_name: str
     game_version: str
-    platform: str
-    region: str
-    season: str
+    platform_name: str
     event_name: str
     event_date: date
     brackets_url: Optional[str]
@@ -26,13 +25,29 @@ class NormalizedEventData:
 
 
 @dataclass(frozen=True)
-class NormalizedDuelData:
-    duel_order: int
-    duel_type: str
+class NormalizedDuelContext:
+    normal_sequence_number: int
+    duel_type_name: str
     is_team_duel: bool
-    team_duel_order: Optional[int]
-    team_duel_type: Optional[str]
+    team_sequence_number: Optional[int]
+    team_duel_type_name: Optional[str]
     video_url: Optional[str]
+
+
+@dataclass(frozen=True)
+class NormalizedBattleContext:
+    battle_sequence_number: int
+    stage_name: str
+    is_draw: bool
+    winner_position: Optional[int]
+    loser_position: Optional[int]
+
+
+@dataclass(frozen=True)
+class NormalizedRound:
+    sequence_number: int
+    p1_code: str
+    p2_code: str
 
 
 @dataclass(frozen=True)
@@ -44,26 +59,10 @@ class NormalizedParticipant:
 
 
 @dataclass(frozen=True)
-class NormalizedRound:
-    sequence_number: int
-    p1_code: str
-    p2_code: str
-
-
-@dataclass(frozen=True)
-class NormalizedBattleData:
-    combat_order: int
-    stage_name: str
-    is_draw: bool
-    winner_position: Optional[int]
-    loser_position: Optional[int]
-
-
-@dataclass(frozen=True)
 class NormalizedBattleAggregate:
-    event: NormalizedEventData
-    duel: NormalizedDuelData
-    battle: NormalizedBattleData
+    event: NormalizedEventContext
+    duel: NormalizedDuelContext
+    battle: NormalizedBattleContext
     participants: Tuple[NormalizedParticipant, NormalizedParticipant]
     rounds: Tuple[NormalizedRound, ...]
 
@@ -101,7 +100,7 @@ class RowLegacyNormalizer:
             loser_position = 1
 
         # --- Build event ---
-        event = NormalizedEventData(
+        event = NormalizedEventContext(
             game_name=dto.game_name,
             game_version=dto.game_version,
             platform=dto.event_platform,
@@ -116,7 +115,7 @@ class RowLegacyNormalizer:
         # --- Build duel ---
         is_team_duel = dto.player_1_team is not None
 
-        duel = NormalizedDuelData(
+        duel = NormalizedDuelContext(
             duel_order=dto.normal_duel_order,
             duel_type=dto.normal_duel_type,
             is_team_duel=is_team_duel,
@@ -147,7 +146,7 @@ class RowLegacyNormalizer:
         )
 
         # --- Build battle ---
-        battle = NormalizedBattleData(
+        battle = NormalizedBattleContext(
             combat_order=dto.combat_order,
             stage_name=dto.stage_name,
             is_draw=is_draw,
