@@ -1,0 +1,6 @@
+🔹 Notas de implementación al inicio del documento.
+🔹 Comentario descriptivo general tras los imports.
+🔹 Docstrings completos en clases y métodos.
+🔹 Comentarios internos relevantes y no redundantes.
+🔹 Mantener arquitectura intacta.
+🔹 Solo añadir documentación estructural y técnica.

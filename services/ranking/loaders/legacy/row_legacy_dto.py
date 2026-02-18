@@ -27,9 +27,9 @@ class RowLegacyDTO:
     normal_duel_order: int
     normal_duel_type: str
     duel_video: Optional[str]
-    combat_order: int
 
     # Battle
+    combat_order: int
     player_1_name: str
     player_2_name: str
     character_1_name: str
