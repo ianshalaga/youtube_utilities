@@ -1,3 +1,31 @@
+"""
+Row Legacy DTO
+==============
+
+Notas de implementación
+-----------------------
+
+Este módulo representa la segunda capa del pipeline legacy:
+
+    CSV → Mapper → DTO → Validator → Normalizer → Aggregator → Loader
+
+Responsabilidad del DTO:
+
+- Convertir datos estructurales (strings) provenientes del Mapper
+  a tipos Python fuertes (int, date, tuple).
+- Validar coherencia estructural interna.
+- Definir campos obligatorios dinámicamente.
+- Garantizar inmutabilidad (frozen dataclass).
+
+No:
+- Valida reglas de dominio (eso corresponde al Validator).
+- Accede a base de datos.
+- Deriva lógica agregada.
+- Persiste entidades.
+
+El DTO representa una fila tipada, estructuralmente coherente.
+"""
+
 from dataclasses import dataclass, fields
 from datetime import date, datetime
 from typing import Optional, Tuple, get_origin, get_args, ClassVar
@@ -6,29 +34,73 @@ from types import UnionType
 from services.ranking.loaders.legacy import RowLegacyMapper
 
 
+"""
+Descripción general
+-------------------
+
+RowLegacyDTO cumple tres funciones principales:
+
+1. Conversión tipada:
+   - Strings → int
+   - Strings → date
+   - Strings → Tuple[str, ...]
+
+2. Validación estructural:
+   - Campos obligatorios no nulos.
+   - Coherencia de rounds.
+   - Consistencia de campos de equipo.
+
+3. Protección de integridad:
+   - Inmutabilidad (frozen=True).
+   - Cálculo automático de campos obligatorios.
+
+Este objeto es el contrato estructural previo a validación semántica.
+"""
+
+
 @dataclass(frozen=True)
 class RowLegacyDTO:
+    """
+    Representa una fila legacy completamente tipada y estructuralmente válida.
+
+    Es inmutable.
+    No contiene lógica de dominio.
+    """
+
+    # Conjunto de campos obligatorios calculado dinámicamente
     _REQUIRED_FIELDS: ClassVar[tuple[str, ...]]
 
+    # =========================
     # Context
+    # =========================
+
     game_name: str
     game_version: str
     event_platform: str
     region_name: str
 
+    # =========================
     # Season / Event
+    # =========================
+
     season_name: str
     event_name: str
     event_date: date
     event_brackets: Optional[str]
     event_playlist: Optional[str]
 
+    # =========================
     # Duel
+    # =========================
+
     normal_duel_order: int
     normal_duel_type: str
     duel_video: Optional[str]
 
+    # =========================
     # Battle
+    # =========================
+
     combat_order: int
     player_1_name: str
     player_2_name: str
@@ -38,19 +110,39 @@ class RowLegacyDTO:
     player_2_country: str
     stage_name: str
 
+    # =========================
     # Team
+    # =========================
+
     player_1_team: Optional[str]
     player_2_team: Optional[str]
     team_duel_order: Optional[int]
     team_duel_type: Optional[str]
 
+    # =========================
     # Round
+    # =========================
+
     rounds_p1: Tuple[str, ...]
     rounds_p2: Tuple[str, ...]
 
+    # =========================================================
+    # Factory
+    # =========================================================
+
     @classmethod
     def from_mapper(cls, mapper: RowLegacyMapper) -> "RowLegacyDTO":
-        # Convert rounds
+        """
+        Construye un DTO a partir de un RowLegacyMapper.
+
+        - Convierte tipos.
+        - Normaliza rounds.
+        - Ejecuta validación estructural.
+
+        Lanza ValueError si existe inconsistencia estructural.
+        """
+
+        # --- Convert rounds ---
         rounds_p1 = []
         rounds_p2 = []
 
@@ -58,14 +150,14 @@ class RowLegacyDTO:
             r1 = mapper.round_result(i, 1)
             r2 = mapper.round_result(i, 2)
 
+            # Ambos deben existir
             if (r1 is None) and (r2 is None):
                 raise ValueError(f"Round {i} is missing.")
 
             if (r1 is None) or (r2 is None):
-                raise ValueError(
-                    f"Inconsistent round data at round {i}."
-                )
+                raise ValueError(f"Inconsistent round data at round {i}.")
 
+            # El código "0" representa ausencia de round jugado
             if r1 != "0":
                 rounds_p1.append(r1)
 
@@ -93,9 +185,9 @@ class RowLegacyDTO:
             normal_duel_order=cls._to_int(mapper.normal_duel_order),
             normal_duel_type=mapper.normal_duel_type,
             duel_video=mapper.duel_video,
-            combat_order=cls._to_int(mapper.combat_order),
 
             # Battle
+            combat_order=cls._to_int(mapper.combat_order),
             player_1_name=mapper.player_1_name,
             player_2_name=mapper.player_2_name,
             character_1_name=mapper.character_1_name,
@@ -117,56 +209,84 @@ class RowLegacyDTO:
 
         dto._validate_required_fields()
         dto._validate_structural_consistency()
+
         return dto
 
-    def _validate_structural_consistency(self):
+    # =========================================================
+    # Structural validation
+    # =========================================================
+
+    def _validate_structural_consistency(self) -> None:
+        """
+        Valida coherencia estructural interna del DTO.
+
+        No valida reglas de dominio.
+        """
+
+        # Longitud de rounds consistente
         if len(self.rounds_p1) != len(self.rounds_p2):
             raise ValueError("Round results length mismatch.")
 
-        if len(self.rounds_p1) > 5 or len(self.rounds_p1) < 3:
+        if not (3 <= len(self.rounds_p1) <= 5):
             raise ValueError("Round results length must be between 3 and 5.")
 
-        if len(self.rounds_p2) > 5 or len(self.rounds_p2) < 3:
+        if not (3 <= len(self.rounds_p2) <= 5):
             raise ValueError("Round results length must be between 3 and 5.")
 
-        # Los 4 campos opcionales de equipo deben estar todos o ninguno
+        # Campos de equipo deben estar todos o ninguno
         if (self.player_1_team is None) != (self.player_2_team is None):
             raise ValueError("Both players must have team or neither.")
 
         if (self.team_duel_order is None) != (self.team_duel_type is None):
             raise ValueError(
-                "team_duel_order and team_duel_type must be both set or both None.")
+                "team_duel_order and team_duel_type must be both set or both None."
+            )
 
         if (self.player_1_team is None) != (self.team_duel_order is None):
             raise ValueError(
-                "player_1_team and team_duel_order must be both set or both None.")
+                "player_1_team and team_duel_order must be both set or both None."
+            )
 
+        # No deben existir valores None dentro de rounds
         if any(r is None for r in self.rounds_p1):
             raise ValueError("Round result p1 cannot be None.")
 
         if any(r is None for r in self.rounds_p2):
             raise ValueError("Round result p2 cannot be None.")
 
-    def _validate_required_fields(self):
+    # ---------------------------------------------------------
+
+    def _validate_required_fields(self) -> None:
+        """
+        Verifica que todos los campos obligatorios estén presentes.
+        """
+
         for name in self._REQUIRED_FIELDS:
             if getattr(self, name) is None:
                 raise ValueError(f"Missing required field: {name}")
 
+    # =========================================================
+    # Converters
+    # =========================================================
+
     @staticmethod
     def _parse_date(value: str | None) -> date:
-        '''
-        Las fechas son datos estructurales, no texto libre.
-        '''
+        """
+        Convierte una fecha en string a objeto date.
+
+        Soporta múltiples formatos estructurales.
+        """
+
         if not value:
             raise ValueError("Date is required.")
 
         value = value.strip()
 
         formats = (
-            "%Y-%m-%d",     # YYYY-MM-DD (ISO 8601) Preferido
-            "%Y/%m/%d",     # YYYY/MM/DD
-            "%d/%m/%Y",     # DD/MM/YYYY
-            "%d-%m-%Y",     # DD-MM-YYYY
+            "%Y-%m-%d",
+            "%Y/%m/%d",
+            "%d/%m/%Y",
+            "%d-%m-%Y",
         )
 
         for fmt in formats:
@@ -177,17 +297,18 @@ class RowLegacyDTO:
 
         raise ValueError(f"Formato de fecha no reconocido: {value}")
 
-    @classmethod
-    def _to_int(value: object, *, nullable: bool = False) -> int | None:
-        """
-        Convierte a int de forma estricta.
+    # ---------------------------------------------------------
 
-        - Si nullable=False (default):
-            - None → ValueError
-            - Valor inválido → ValueError
+    @classmethod
+    def _to_int(cls, value: object, *, nullable: bool = False) -> int | None:
+        """
+        Conversión estricta a int.
+
+        - Si nullable=False:
+            None → error.
         - Si nullable=True:
-            - None → None
-            - Valor inválido → ValueError
+            None → None.
+        - Strings deben ser numéricos.
         """
 
         if value is None:
@@ -206,7 +327,15 @@ class RowLegacyDTO:
         raise ValueError(f"Invalid integer value: {value!r}")
 
 
+# =============================================================
+# Cálculo dinámico de campos obligatorios
+# =============================================================
+
 def _compute_required_fields():
+    """
+    Determina dinámicamente qué campos del DTO no son Optional.
+    """
+
     return tuple(
         f.name
         for f in fields(RowLegacyDTO)
