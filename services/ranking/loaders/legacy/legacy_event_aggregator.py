@@ -197,7 +197,7 @@ class LegacyEventAggregator:
         final_events: List[NormalizedEventAggregate] = []
 
         # Determinar sequence_number por season
-        for season_name, events in events_by_season.items():
+        for events in events_by_season.values():
 
             # Orden cronológico explícito por fecha
             events_sorted = sorted(
