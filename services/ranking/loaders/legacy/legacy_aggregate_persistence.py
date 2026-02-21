@@ -21,15 +21,16 @@ Es una capa de infraestructura.
 from typing import Tuple
 from sqlalchemy.orm import Session
 
-from services.ranking.loaders.legacy.legacy_season_aggregator import (
-    NormalizedSeasonAggregate,
-    NormalizedEventAggregate
-)
+from services.ranking.loaders.legacy.legacy_season_aggregator import NormalizedSeasonAggregate
+from services.ranking.loaders.legacy.legacy_event_aggregator import NormalizedEventAggregate
+from services.ranking.loaders.legacy.legacy_duel_aggregator import NormalizedDuelAggregate
+
 
 from services.ranking.storage.models import (
     Season, Event, Duel, Battle, Round,
     Region, Platform, EventType, Franchise,
-    Game, GameVersionPlatform
+    Game, GameVersionPlatform, DuelType,
+    Country
 )
 
 
@@ -76,7 +77,15 @@ class LegacyAggregatePersistence:
                 )
 
                 for duel in event.duels:
-                    duel_model = self._persist_duel(duel, event_model)
+                    duel_type_model = self._persist_duel_type(duel)
+                    team_duel_type_model = self._persist_team_duel_type(duel)
+
+                    duel_model = self._persist_duel(
+                        duel,
+                        event_model,
+                        duel_type_model,
+                        team_duel_type_model
+                    )
 
                     for battle in duel.battles:
                         battle_model = self._persist_battle(battle, duel_model)
@@ -194,8 +203,37 @@ class LegacyAggregatePersistence:
             }
         )
 
-    def _persist_duel(self, duel, event_model):
-        # create Duel ORM
+    def _persist_duel_type(self, duel: NormalizedDuelAggregate):
+        return self._get_or_create(
+            DuelType,
+            name=duel.duel.normal_duel_type_name
+        )
+
+    def _persist_team_duel_type(self, duel: NormalizedDuelAggregate):
+        return self._get_or_create(
+            DuelType,
+            name=duel.duel.team_duel_type_name
+        )
+
+    def _persist_country(self, country: NormalizedDuelAggregate):
+        ...
+
+    def _persist_player(self, player: NormalizedDuelAggregate):
+        ...
+
+    def _persist_duel(
+        self,
+        duel: NormalizedDuelAggregate,
+        event_model: Event,
+        duel_type_model: DuelType,
+        team_duel_type_model: DuelType
+    ):
+        return self._get_or_create(
+            Duel,
+            event_id=event_model.id,
+            duel_type_id=duel_type_model.id,
+            team_duel_type_id=team_duel_type_model.id
+        )
         ...
 
     def _persist_battle(self, battle, duel_model):
