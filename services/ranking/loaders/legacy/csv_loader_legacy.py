@@ -36,6 +36,7 @@ from services.ranking.loaders.legacy.row_legacy_normalizer import RowLegacyNorma
 from services.ranking.loaders.legacy.legacy_duel_aggregator import LegacyDuelAggregator
 from services.ranking.loaders.legacy.legacy_event_aggregator import LegacyEventAggregator
 from services.ranking.loaders.legacy.legacy_season_aggregator import LegacySeasonAggregator
+from services.ranking.loaders.legacy.legacy_aggregate_persistence import LegacyAggregatePersistence
 
 
 class CsvLegacyLoader:
@@ -99,7 +100,10 @@ class CsvLegacyLoader:
         # Phase 3: Persistence
         # ------------------------------
 
-        self._persist(seasons)
+        persistence = LegacyAggregatePersistence(self._session)
+        persistence.persist(seasons)
+
+        self._session.commit()
 
     # ---------------------------------------------------------
 
@@ -113,32 +117,3 @@ class CsvLegacyLoader:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 yield row
-
-    # ---------------------------------------------------------
-
-    def _persist(self, seasons) -> None:
-        """
-        Traduce aggregates en entidades ORM y las persiste.
-
-        Este método debe:
-        - Crear o recuperar Season.
-        - Crear Events.
-        - Crear Duels.
-        - Crear Battles.
-        - Crear Rounds.
-        - Hacer flush/commit.
-
-        Mantener la responsabilidad de persistencia
-        completamente separada de agregación.
-        """
-
-        # Aquí iría la traducción a ORM.
-        # Ejemplo conceptual:
-        #
-        # for season in seasons:
-        #     season_model = self._get_or_create_season(season)
-        #     ...
-        #
-        # self._session.commit()
-
-        raise NotImplementedError("Persistence layer not implemented yet.")
