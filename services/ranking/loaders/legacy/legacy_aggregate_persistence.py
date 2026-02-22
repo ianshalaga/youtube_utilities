@@ -24,14 +24,22 @@ from sqlalchemy.orm import Session
 from services.ranking.loaders.legacy.legacy_season_aggregator import NormalizedSeasonAggregate
 from services.ranking.loaders.legacy.legacy_event_aggregator import NormalizedEventAggregate
 from services.ranking.loaders.legacy.legacy_duel_aggregator import NormalizedDuelAggregate
+from services.ranking.loaders.legacy.row_legacy_normalizer import NormalizedParticipant
 
 
 from services.ranking.storage.models import (
     Season, Event, Duel, Battle, Round,
     Region, Platform, EventType, Franchise,
     Game, GameVersionPlatform, DuelType,
-    Country
+    Country, Player, Team, Stage
 )
+
+_COUNTRY_NAME_ISO_CODE_3166_ALPHA_2_MAP = {
+    "Argentina": "AR",
+    "Chile": "CL",
+    "Paraaguay": "PY",
+    "Brasil": "BR",
+}
 
 
 class LegacyAggregatePersistence:
@@ -79,16 +87,52 @@ class LegacyAggregatePersistence:
                 for duel in event.duels:
                     duel_type_model = self._persist_duel_type(duel)
                     team_duel_type_model = self._persist_team_duel_type(duel)
+                    players: set[Player] = set()
+                    teams: set[Team] = set()
+                    for battle in duel.battles:
+                        for participant in battle.participants:
+                            country_model = self._persist_country(participant)
+                            player_model = self._persist_player(
+                                participant, country_model)
+                            team_model = self._persist_team(participant)
+
+                            players.add(player_model)
+                            teams.add(team_model)
+
+                    winner_player_model = None
+                    for player in players:
+                        if player.nickname == duel.winner_player_name:
+                            winner_player_model = player
+                            break
+
+                    winner_team_model = None  # TODO
+                    # for team in teams:
+                    #     if team.name == duel.winner_team_name:
+                    #         winner_team_model = team
+                    #         break
 
                     duel_model = self._persist_duel(
                         duel,
                         event_model,
                         duel_type_model,
-                        team_duel_type_model
+                        team_duel_type_model,
+                        winner_player_model,
+                        winner_team_model
                     )
 
                     for battle in duel.battles:
-                        battle_model = self._persist_battle(battle, duel_model)
+                        stage_model = self._persist_stage(
+                            battle, game_version_platform_model)
+                        winner_model = None  # TODO
+                        loser_model = None  # TODO
+
+                        battle_model = self._persist_battle(
+                            battle,
+                            duel_model,
+                            stage_model,
+                            winner_model,
+                            loser_model
+                        )
 
                         self._persist_rounds(battle, battle_model)
                         self._persist_participants(battle, duel_model)
@@ -126,6 +170,7 @@ class LegacyAggregatePersistence:
 
         return instance
 
+    # SEASON persistence
     def _persist_season(self, season: NormalizedSeasonAggregate):
         return self._get_or_create(
             Season,
@@ -136,6 +181,7 @@ class LegacyAggregatePersistence:
             }
         )
 
+    # EVENT persistence
     def _persist_region(self, event: NormalizedEventAggregate):
         return self._get_or_create(
             Region,
@@ -203,6 +249,7 @@ class LegacyAggregatePersistence:
             }
         )
 
+    # DUEL persistence
     def _persist_duel_type(self, duel: NormalizedDuelAggregate):
         return self._get_or_create(
             DuelType,
@@ -215,26 +262,59 @@ class LegacyAggregatePersistence:
             name=duel.duel.team_duel_type_name
         )
 
-    def _persist_country(self, country: NormalizedDuelAggregate):
-        ...
+    def _persist_country(self, participant: NormalizedParticipant):
+        return self._get_or_create(
+            Country,
+            name=participant.country,
+            iso_code=_COUNTRY_NAME_ISO_CODE_3166_ALPHA_2_MAP[participant.country]
+        )
 
-    def _persist_player(self, player: NormalizedDuelAggregate):
-        ...
+    def _persist_player(self, participant: NormalizedParticipant, country_model: Country):
+        return self._get_or_create(
+            Player,
+            nickname=participant.player_name,
+            country_id=country_model.id
+        )
+
+    def _persist_team(self, participant: NormalizedParticipant):
+        return self._get_or_create(
+            Team,
+            name=participant.team_name
+        )
 
     def _persist_duel(
         self,
         duel: NormalizedDuelAggregate,
         event_model: Event,
         duel_type_model: DuelType,
-        team_duel_type_model: DuelType
+        team_duel_type_model: DuelType,
+        winner_player_model: Player,
+        winner_team_model: Team
     ):
         return self._get_or_create(
             Duel,
             event_id=event_model.id,
             duel_type_id=duel_type_model.id,
-            team_duel_type_id=team_duel_type_model.id
+            team_duel_type_id=team_duel_type_model.id,
+            winner_id=winner_player_model.id,
+            winner_team_id=winner_team_model.id,
+            defaults={
+                "is_team_duel": duel.duel.is_team_duel,
+                "sequence_number": duel.duel.normal_duel_sequence_number,
+                "team_duel_sequence_number": duel.duel.team_duel_sequence_number,
+                "video_url": duel.duel.duel_video_url
+            }
         )
-        ...
+
+    # BATTLE persistence
+    def _persist_stage(self, battle, game_version_platform_model):
+        return (
+            self._get_or_create(
+                Stage,
+                name=battle.stage_name,
+                game_version_platform_id=game_version_platform_model.id
+            )
+        )
 
     def _persist_battle(self, battle, duel_model):
         # create Battle ORM
