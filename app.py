@@ -7,7 +7,7 @@ from core.config_manager import ConfigManager  # Fuente de obtención de datos
 from apps.video_music.processor import VideoMusicProcessor
 from apps.video_joiner.processor import VideoJoinerProcessor
 from apps.ranking_system.create_db import create_db
-from apps.ranking_system.loaders.load_legacy import run as load_legacy_data
+# from apps.ranking_system.loaders.load_legacy import run as load_legacy_data
 # from apps.ranking_system.processor import run_ranking
 from apps.ranking_system.queries.builder import RankingQueryBuilder
 
@@ -100,8 +100,8 @@ if video_converter:
 if db:
     create_db()
 
-if load_legacy:
-    load_legacy_data(csv_legacy_path)
+# if load_legacy:
+#     load_legacy_data(csv_legacy_path)
 
 if ranking_system:
     session = SessionLocal()

@@ -24,8 +24,12 @@ from sqlalchemy.orm import Session
 from services.ranking.loaders.legacy.legacy_season_aggregator import NormalizedSeasonAggregate
 from services.ranking.loaders.legacy.legacy_event_aggregator import NormalizedEventAggregate
 from services.ranking.loaders.legacy.legacy_duel_aggregator import NormalizedDuelAggregate
-from services.ranking.loaders.legacy.row_legacy_normalizer import NormalizedParticipant
+from services.ranking.loaders.legacy.row_legacy_normalizer import (
+    NormalizedParticipant, NormalizedBattleAggregate,
+    NormalizedRoundContext
+)
 
+from domain.ranking.scoring.scoring_v1 import RoundScoringV1
 
 from services.ranking.storage.models import (
     Season, Event, Duel, Battle, Round,
@@ -63,10 +67,11 @@ class LegacyAggregatePersistence:
 
         Se asume que los aggregates son coherentes.
         """
-
+        # SEASON → EVENT
         for season in seasons:
             season_model = self._persist_season(season)
 
+            # EVENT → DUEL
             for event in season.events:
                 region_model = self._persist_region(event)
                 event_type_model = self._persist_event_type(event)
@@ -84,6 +89,7 @@ class LegacyAggregatePersistence:
                     game_version_platform_model
                 )
 
+                # DUEL → BATTLE
                 for duel in event.duels:
                     duel_type_model = self._persist_duel_type(duel)
                     team_duel_type_model = self._persist_team_duel_type(duel)
@@ -120,11 +126,41 @@ class LegacyAggregatePersistence:
                         winner_team_model
                     )
 
+                    # BATTLE → ROUND
                     for battle in duel.battles:
                         stage_model = self._persist_stage(
                             battle, game_version_platform_model)
-                        winner_model = None  # TODO
-                        loser_model = None  # TODO
+
+                        winner_model = None
+                        loser_model = None
+
+                        if battle.battle.is_draw is not None:
+                            winner_player = None
+                            loser_player = None
+
+                            if battle.battle.winner_position == 1:
+                                winner_player = battle.participants[0]
+                                loser_player = battle.participants[1]
+                            elif battle.battle.winner_position == 2:
+                                winner_player = battle.participants[1]
+                                loser_player = battle.participants[0]
+
+                            if winner_player is None or loser_player is None:
+                                raise ValueError(
+                                    "Battle is no a draw, must have a winner and a loser."
+                                )
+
+                            winner_country_model = self._persist_country(
+                                winner_player)
+                            loser_country_model = self._persist_country(
+                                loser_player)
+
+                            winner_model = self._persist_player(
+                                winner_player, winner_country_model
+                            )
+                            loser_model = self._persist_player(
+                                loser_player, loser_country_model
+                            )
 
                         battle_model = self._persist_battle(
                             battle,
@@ -134,8 +170,28 @@ class LegacyAggregatePersistence:
                             loser_model
                         )
 
-                        self._persist_rounds(battle, battle_model)
-                        self._persist_participants(battle, duel_model)
+                        # ROUND
+                        for round in battle.rounds:
+                            p1_result = round.p1_result_code
+                            p2_result = round.p2_result_code
+
+                            is_draw = False
+                            if p1_result == p2_result and RoundScoringV1.is_draw(p1_result):
+                                is_draw = True
+
+                            winner_model = None
+                            loser_model = None
+                            # if RoundScoringV1.is_win(p1_result) or RoundScoringV1.is_perfect_win(p1_result):
+
+                            self._persist_rounds(
+                                round,
+                                battle_model,
+                                winner_model,
+                                loser_model,
+                                is_draw
+                            )
+
+                        # self._persist_participants(battle, duel_model)
 
         self._session.flush()
 
@@ -143,7 +199,11 @@ class LegacyAggregatePersistence:
     # Private persistence helpers
     # ---------------------------------------------------------
 
-    def _get_or_create(self, model: type, defaults=dict[str: any] | None, **kwargs) -> object:
+    def _get_or_create(
+        self,
+        model: type, defaults=dict[str: any] | None,
+        **kwargs
+    ) -> object:
         """
         Patrón genérico get_or_create.
 
@@ -316,11 +376,35 @@ class LegacyAggregatePersistence:
             )
         )
 
-    def _persist_battle(self, battle, duel_model):
-        # create Battle ORM
-        ...
+    def _persist_battle(
+            self,
+            battle: NormalizedBattleAggregate,
+            duel_model: Duel,
+            stage_model: Stage,
+            winner_model: Player,
+            loser_model: Player
+    ):
+        return (
+            self._get_or_create(
+                Battle,
+                duel_id=duel_model.id,
+                stage_id=stage_model.id,
+                winner_id=winner_model.id,
+                loser_id=loser_model.id,
+                sequence_number=battle.battle.battle_sequence_number,
+                is_draw=battle.battle.is_draw
+            )
+        )
 
-    def _persist_rounds(self, battle, battle_model):
+    # ROUND persistence
+    def _persist_rounds(
+        self,
+        round: NormalizedRoundContext,
+        battle_model: Battle,
+        winner_model: Player,
+        loser_model: Player,
+        is_draw: bool
+    ):
         # create Round ORM
         ...
 
