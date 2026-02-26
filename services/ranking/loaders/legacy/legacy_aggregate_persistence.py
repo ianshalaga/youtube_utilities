@@ -35,7 +35,7 @@ from services.ranking.storage.models import (
     Season, Event, Duel, Battle, Round,
     Region, Platform, EventType, Franchise,
     Game, GameVersionPlatform, DuelType,
-    Country, Player, Team, Stage
+    Country, Player, Team, Stage, RoundResult
 )
 
 _COUNTRY_NAME_ISO_CODE_3166_ALPHA_2_MAP = {
@@ -134,7 +134,7 @@ class LegacyAggregatePersistence:
                         winner_model = None
                         loser_model = None
 
-                        if battle.battle.is_draw is not None:
+                        if not battle.battle.is_draw:
                             winner_player = None
                             loser_player = None
 
@@ -178,12 +178,40 @@ class LegacyAggregatePersistence:
                             is_draw = False
                             if p1_result == p2_result and RoundScoringV1.is_draw(p1_result):
                                 is_draw = True
+                                winner_model = None
+                                loser_model = None
 
-                            winner_model = None
-                            loser_model = None
-                            # if RoundScoringV1.is_win(p1_result) or RoundScoringV1.is_perfect_win(p1_result):
+                            player1_model = None
+                            player2_model = None
 
-                            self._persist_rounds(
+                            if RoundScoringV1.is_win(p1_result) or RoundScoringV1.is_perfect_win(p1_result):
+                                winner_country_model = self._persist_country(
+                                    battle.participants[0])
+                                winner_model = self._persist_player(
+                                    battle.participants[0], winner_country_model
+                                )
+                                loser_country_model = self._persist_country(
+                                    battle.participants[1])
+                                loser_model = self._persist_player(
+                                    battle.participants[1], loser_country_model
+                                )
+                                player1_model = winner_model
+                                player2_model = loser_model
+                            elif RoundScoringV1.is_win(p2_result) or RoundScoringV1.is_perfect_win(p2_result):
+                                winner_country_model = self._persist_country(
+                                    battle.participants[1])
+                                winner_model = self._persist_player(
+                                    battle.participants[1], winner_country_model
+                                )
+                                loser_country_model = self._persist_country(
+                                    battle.participants[0])
+                                loser_model = self._persist_player(
+                                    battle.participants[0], loser_country_model
+                                )
+                                player1_model = loser_model
+                                player2_model = winner_model
+
+                            round_model = self._persist_round(
                                 round,
                                 battle_model,
                                 winner_model,
@@ -191,7 +219,17 @@ class LegacyAggregatePersistence:
                                 is_draw
                             )
 
-                        # self._persist_participants(battle, duel_model)
+                            self._persist_round_result(
+                                p1_result,
+                                round_model,
+                                player1_model
+                            )
+
+                            self._persist_round_result(
+                                p2_result,
+                                round_model,
+                                player2_model
+                            )
 
         self._session.flush()
 
@@ -296,16 +334,16 @@ class LegacyAggregatePersistence:
     ):
         return self._get_or_create(
             Event,
-            name=event.event.event_name,
             season_id=season_model.id,
-            region_id=region_model.id,
-            event_type_id=event_type_model.id,
-            game_version_platform_id=game_version_platform_model.id,
+            sequence_number=event.sequence_number,
             defaults={
+                "name": event.event.event_name,
                 "event_date": event.event.event_date,
-                "sequence_number": event.event_sequence_number,
-                "bracket_url": event.event.brackets_url,
-                "playlist_url": event.event.playlist_url
+                "region_id": region_model.id,
+                "event_type_id": event_type_model.id,
+                "game_version_platform_id": game_version_platform_model.id,
+                "brackets_url": event.event.brackets_url,
+                "playlist_url": event.event.playlist_url,
             }
         )
 
@@ -354,15 +392,15 @@ class LegacyAggregatePersistence:
         return self._get_or_create(
             Duel,
             event_id=event_model.id,
-            duel_type_id=duel_type_model.id,
-            team_duel_type_id=team_duel_type_model.id,
-            winner_id=winner_player_model.id,
-            winner_team_id=winner_team_model.id,
+            sequence_number=duel.duel.normal_duel_sequence_number,
             defaults={
+                "duel_type_id": duel_type_model.id,
+                "team_duel_type_id": team_duel_type_model.id,
                 "is_team_duel": duel.duel.is_team_duel,
-                "sequence_number": duel.duel.normal_duel_sequence_number,
                 "team_duel_sequence_number": duel.duel.team_duel_sequence_number,
-                "video_url": duel.duel.duel_video_url
+                "video_url": duel.duel.duel_video_url,
+                "winner_id": winner_player_model.id,
+                "winner_team_id": winner_team_model.id,
             }
         )
 
@@ -397,7 +435,7 @@ class LegacyAggregatePersistence:
         )
 
     # ROUND persistence
-    def _persist_rounds(
+    def _persist_round(
         self,
         round: NormalizedRoundContext,
         battle_model: Battle,
@@ -405,9 +443,24 @@ class LegacyAggregatePersistence:
         loser_model: Player,
         is_draw: bool
     ):
-        # create Round ORM
-        ...
+        return self._get_or_create(
+            Round,
+            battle_id=battle_model.id,
+            winner_id=winner_model.id,
+            loser_id=loser_model.id,
+            is_draw=is_draw,
+            sequence_number=round.round_sequence_number,
+        )
 
-    def _persist_participants(self, battle, duel_model):
-        # create DuelParticipant ORM
-        ...
+    def _persist_round_result(
+        self,
+        result_code: str,
+        round_model: Round,
+        player_model: Player,
+    ):
+        return self._get_or_create(
+            RoundResult,
+            round_id=round_model.id,
+            player_id=player_model.id,
+            result_code=result_code
+        )

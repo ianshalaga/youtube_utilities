@@ -107,6 +107,8 @@ class NormalizedBattleContext:
     is_draw: bool  # derivado
     winner_position: Optional[int]  # derivado
     loser_position: Optional[int]  # derivado
+    winner_player_name: Optional[str]  # derivado
+    loser_player_name: Optional[str]  # derivado
 
 
 @dataclass(frozen=True)
@@ -128,6 +130,9 @@ class NormalizedRoundContext:
     round_sequence_number: int
     p1_result_code: str
     p2_result_code: str
+    is_draw: bool
+    winner_position: Optional[int]
+    loser_position: Optional[int]
 
 
 @dataclass(frozen=True)
@@ -221,6 +226,21 @@ class RowLegacyNormalizer:
             round_scoring,
         )
 
+        if battle_result.is_draw:
+            winner_name = None
+            loser_name = None
+        else:
+            winner_name = (
+                dto.player_1_name
+                if battle_result.winner_position == 1
+                else dto.player_2_name
+            )
+            loser_name = (
+                dto.player_2_name
+                if battle_result.winner_position == 1
+                else dto.player_1_name
+            )
+
         # --- Build battle context ---
         battle = NormalizedBattleContext(
             battle_sequence_number=dto.combat_order,
@@ -228,17 +248,43 @@ class RowLegacyNormalizer:
             is_draw=battle_result.is_draw,
             winner_position=battle_result.winner_position,
             loser_position=battle_result.loser_position,
+            winner_player_name=winner_name,
+            loser_player_name=loser_name
         )
 
         # --- Build round contexts ---
-        rounds = tuple(
-            NormalizedRoundContext(
-                round_sequence_number=i + 1,
-                p1_result_code=r1,
-                p2_result_code=r2,
+        rounds = []
+
+        for i, (r1, r2) in enumerate(zip(dto.rounds_p1, dto.rounds_p2), start=1):
+
+            p1_win = round_scoring.is_win_result(r1)
+            p2_win = round_scoring.is_win_result(r2)
+
+            if p1_win and not p2_win:
+                is_draw = False
+                winner_position = 1
+                loser_position = 2
+            elif p2_win and not p1_win:
+                is_draw = False
+                winner_position = 2
+                loser_position = 1
+            else:
+                is_draw = True
+                winner_position = None
+                loser_position = None
+
+            rounds.append(
+                NormalizedRoundContext(
+                    round_sequence_number=i,
+                    p1_result_code=r1,
+                    p2_result_code=r2,
+                    is_draw=is_draw,
+                    winner_position=winner_position,
+                    loser_position=loser_position,
+                )
             )
-            for i, (r1, r2) in enumerate(zip(dto.rounds_p1, dto.rounds_p2))
-        )
+
+        rounds = tuple(rounds)
 
         # --- Build participants ---
         p1 = NormalizedParticipant(

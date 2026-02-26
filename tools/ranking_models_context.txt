@@ -645,7 +645,7 @@ class Event(Base, WithCode):
     name = Column(String, nullable=False)
     event_date = Column(DateTime, nullable=False)
     sequence_number = Column(Integer, nullable=False)
-    bracket_url = Column(String, nullable=True)
+    brackets_url = Column(String, nullable=True)
     playlist_url = Column(String, nullable=True)
 
     # Relationships

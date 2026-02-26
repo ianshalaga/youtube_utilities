@@ -40,7 +40,7 @@ solo proyectar el resultado agregado.
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 from collections import defaultdict
 
 from services.ranking.loaders.legacy.row_legacy_normalizer import (
@@ -117,6 +117,8 @@ class NormalizedDuelAggregate:
     battles: Tuple[NormalizedBattleAggregate, ...]
     winner_player_name: str
     loser_player_names: Tuple[str, ...]
+    winner_team_name: Optional[str]
+    loser_team_names: Tuple[str, ...]
 
 
 # =========================
@@ -250,6 +252,25 @@ class LegacyDuelAggregator:
                 if player != top_player
             )
 
+            winner_team_name = None
+            loser_team_names = tuple()
+
+            if battles_sorted[0].duel.is_team_duel:
+
+                team_by_player = {}
+
+                for battle in battles_sorted:
+                    for p in battle.participants:
+                        team_by_player[p.player_name] = p.team_name
+
+                winner_team_name = team_by_player[top_player]
+
+                loser_team_names = tuple({
+                    team_by_player[p]
+                    for p in players_in_duel
+                    if p != top_player
+                })
+
             duel_aggregates.append(
                 NormalizedDuelAggregate(
                     event=battles_sorted[0].event,
@@ -257,6 +278,8 @@ class LegacyDuelAggregator:
                     battles=tuple(battles_sorted),
                     winner_player_name=top_player,
                     loser_player_names=losers,
+                    winner_team_name=winner_team_name,
+                    loser_team_names=loser_team_names
                 )
             )
 
