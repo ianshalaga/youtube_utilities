@@ -111,11 +111,11 @@ class LegacyAggregatePersistence:
                             winner_player_model = player
                             break
 
-                    winner_team_model = None  # TODO
-                    # for team in teams:
-                    #     if team.name == duel.winner_team_name:
-                    #         winner_team_model = team
-                    #         break
+                    winner_team_model = None
+                    for team in teams:
+                        if team.name == duel.winner_team_name:
+                            winner_team_model = team
+                            break
 
                     duel_model = self._persist_duel(
                         duel,

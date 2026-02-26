@@ -252,6 +252,9 @@ class LegacyDuelAggregator:
                 if player != top_player
             )
 
+            # Si el duelo es de equipo, determinar el equipo ganador
+            # y los equipos perdedores
+            # Analizar si esta implementación es correcta luego
             winner_team_name = None
             loser_team_names = tuple()
 
