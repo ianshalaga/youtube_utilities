@@ -19,6 +19,8 @@ Es una capa de infraestructura.
 """
 
 from typing import Tuple
+from collections import defaultdict
+
 from sqlalchemy.orm import Session
 
 from services.ranking.loaders.legacy.legacy_season_aggregator import NormalizedSeasonAggregate
@@ -35,7 +37,9 @@ from services.ranking.storage.models import (
     Season, Event, Duel, Battle, Round,
     Region, Platform, EventType, Franchise,
     Game, GameVersionPlatform, DuelType,
-    Country, Player, Team, Stage, RoundResult
+    Country, Player, Team, Stage, RoundResult,
+    CharacterIdentity, GameCharacter, PlayerAlias,
+    DuelParticipant, DuelTeam, DuelTeamMember
 )
 
 _COUNTRY_NAME_ISO_CODE_3166_ALPHA_2_MAP = {
@@ -92,30 +96,54 @@ class LegacyAggregatePersistence:
                 # DUEL → BATTLE
                 for duel in event.duels:
                     duel_type_model = self._persist_duel_type(duel)
-                    team_duel_type_model = self._persist_team_duel_type(duel)
+
+                    team_duel_type_model = None
+                    if duel.duel.is_team_duel:
+                        team_duel_type_model = self._persist_team_duel_type(
+                            duel)
+
                     players: set[Player] = set()
                     teams: set[Team] = set()
+                    players_by_team: defaultdict[Team, set[Player]]
                     for battle in duel.battles:
-                        for participant in battle.participants:
+                        for participant in enumerate(battle.participants):
                             country_model = self._persist_country(participant)
                             player_model = self._persist_player(
                                 participant, country_model)
-                            team_model = self._persist_team(participant)
+
+                            # @@@@ TODO: Revisar si se necesita la asignación
+                            player_alias_model = self._persist_player_alias(
+                                participant, player_model)
+
+                            character_identity_model = self._persist_character_identity(
+                                participant,
+                                game_franchise_model
+                            )
+
+                            # @@@@ TODO: Revisar si se necesita la asignación
+                            game_character_model = self._persist_game_character(
+                                character_identity_model,
+                                game_version_platform_model
+                            )
 
                             players.add(player_model)
-                            teams.add(team_model)
 
-                    winner_player_model = None
+                            if duel.duel.is_team_duel:
+                                team_model = self._persist_team(participant)
+                                teams.add(team_model)
+                                players_by_team[team_model].add(player_model)
+
                     for player in players:
                         if player.nickname == duel.winner_player_name:
                             winner_player_model = player
                             break
 
                     winner_team_model = None
-                    for team in teams:
-                        if team.name == duel.winner_team_name:
-                            winner_team_model = team
-                            break
+                    if duel.duel.is_team_duel:
+                        for team in teams:
+                            if team.name == duel.winner_team_name:
+                                winner_team_model = team
+                                break
 
                     duel_model = self._persist_duel(
                         duel,
@@ -125,6 +153,27 @@ class LegacyAggregatePersistence:
                         winner_player_model,
                         winner_team_model
                     )
+
+                    for player in players:
+                        # @@@@ TODO: Revisar si se necesita la asignación
+                        duel_participant_model = self._persist_duel_participant(
+                            duel_model,
+                            player_model
+                        )
+
+                    if duel.duel.is_team_duel and len(teams) > 0:
+                        for team in teams:
+                            duel_team_model = self._persist_duel_team(
+                                duel_model,
+                                team_model
+                            )
+
+                            for player in players_by_team[team]:
+                                # @@@@ TODO: Revisar si se necesita la asignación
+                                duel_team_member_model = self._persist_duel_team_member(
+                                    duel_team_model,
+                                    player_model
+                                )
 
                     # BATTLE → ROUND
                     for battle in duel.battles:
@@ -367,17 +416,54 @@ class LegacyAggregatePersistence:
             iso_code=_COUNTRY_NAME_ISO_CODE_3166_ALPHA_2_MAP[participant.country]
         )
 
-    def _persist_player(self, participant: NormalizedParticipant, country_model: Country):
+    def _persist_player(
+        self,
+        participant: NormalizedParticipant,
+        country_model: Country
+    ):
         return self._get_or_create(
             Player,
-            nickname=participant.player_name,
-            country_id=country_model.id
+            country_id=country_model.id,
+            nickname=participant.player_name.upper()
+        )
+
+    def _persist_player_alias(
+        self,
+        participant: NormalizedParticipant,
+        player_model: Player
+    ):
+        return self._get_or_create(
+            PlayerAlias,
+            player_id=player_model.id,
+            alias=participant.player_name
         )
 
     def _persist_team(self, participant: NormalizedParticipant):
         return self._get_or_create(
             Team,
             name=participant.team_name
+        )
+
+    def _persist_character_identity(
+        self,
+        participant: NormalizedParticipant,
+        game_franchise_model: Franchise
+    ):
+        return self._get_or_create(
+            CharacterIdentity,
+            franchise_id=game_franchise_model.id,
+            name=participant.character_name
+        )
+
+    def _persist_game_character(
+        self,
+        character_identity_model: CharacterIdentity,
+        game_version_platform_model: GameVersionPlatform
+    ):
+        return self._get_or_create(
+            GameCharacter,
+            character_identity_id=character_identity_model.id,
+            game_version_platform_id=game_version_platform_model.id
         )
 
     def _persist_duel(
@@ -402,6 +488,39 @@ class LegacyAggregatePersistence:
                 "winner_id": winner_player_model.id,
                 "winner_team_id": winner_team_model.id,
             }
+        )
+
+    def _persist_duel_participant(
+        self,
+        duel_model: Duel,
+        player_model: Player
+    ):
+        return self._get_or_create(
+            DuelParticipant,
+            duel_id=duel_model.id,
+            player_id=player_model.id
+        )
+
+    def _persist_duel_team(
+        self,
+        duel_model: Duel,
+        team_model: Team
+    ):
+        return self._get_or_create(
+            DuelTeam,
+            duel_id=duel_model.id,
+            team_id=team_model.id
+        )
+
+    def _persist_duel_team_member(
+        self,
+        duel_team_model: DuelTeam,
+        player_model: Player
+    ):
+        return self._get_or_create(
+            DuelTeamMember,
+            duel_team_id=duel_team_model.id,
+            player_id=player_model.id
         )
 
     # BATTLE persistence
