@@ -36,10 +36,15 @@ class VideoJoinerProcessor:
     Orquesta la unión de múltiples videos en uno o más archivos finales.
     """
 
-    def __init__(self, max_items_per_dir: int | None = None):
+    def __init__(
+        self,
+        mkvmerge_runner: MKVMergeRunner,
+        ffprobe_provider: FFProbeProvider,
+        max_items_per_dir: int | None = None
+    ):
         self._config = ConfigManager()
-        self._probe_provider = FFProbeProvider()
-        self._mkvmerge_runner = MKVMergeRunner()
+        self._probe_provider = ffprobe_provider
+        self._mkvmerge_runner = mkvmerge_runner
         self._validator = VideoCompatibilityValidator(self._probe_provider)
         self._partitioner = VideoPartitioner(self._probe_provider)
         self._end_screen_selector = EndScreenSelector()

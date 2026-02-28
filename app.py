@@ -22,8 +22,8 @@ from services.ranking.storage.session import SessionLocal
 
 config = ConfigManager()
 
-video_music = True
-video_joiner = False
+video_music = False
+video_joiner = True
 video_converter = False
 db = False
 load_legacy = False
@@ -65,7 +65,15 @@ if video_music:
 # ───────────────────────────────
 
 if video_joiner:
-    video_joiner_processor = VideoJoinerProcessor()
+    process_runner = ProcessRunner()
+
+    mkvmerge_runner = MKVMergeRunner(process_runner)
+    ffprobe_provider = FFProbeProvider(process_runner)
+
+    video_joiner_processor = VideoJoinerProcessor(
+        mkvmerge_runner=mkvmerge_runner,
+        ffprobe_provider=ffprobe_provider
+    )
 
     videos_dir = Path(config.video_joiner_default_videos_dir)
     output_dir = videos_dir / Path(config.video_joiner_default_output_dir)

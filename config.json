@@ -39,9 +39,9 @@
 
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/ObsCure/Nueva carpeta",
+      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Tenchu/02 Tenchu 2 - Birth of the Stealth Assassins/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "ObsCure Complete OST",
+      "default_video_name": "Tenchu 2 - Birth of the Stealth Assassins OST",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,
