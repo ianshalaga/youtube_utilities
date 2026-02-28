@@ -32,8 +32,8 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/ObsCure/disc2.mp4",
-      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/ObsCure/2 ObsCure II OST",
+      "default_video_path": "E:/Proyectos/games/Tenchu/02 Tenchu - Birth of the Stealth Assassins/video.mp4",
+      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/Tenchu/02 Tenchu 2 - Birth of the Stealth Assassins",
       "default_output_dir": "videos"
     },
 

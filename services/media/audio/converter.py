@@ -20,6 +20,7 @@ from pathlib import Path
 import subprocess
 
 from core.config_manager import ConfigManager
+from services.system.process_runner import ProcessRunner
 
 
 class AudioConverter:
@@ -41,6 +42,7 @@ class AudioConverter:
         Inicializa el convertidor de audio.
         """
         self._config = ConfigManager()
+        self._runner = ProcessRunner()
 
     def convert(self, src: Path, dst_dir: Path) -> Path:
         """
@@ -88,6 +90,6 @@ class AudioConverter:
             str(dst_path),
         ]
 
-        subprocess.run(cmd, check=True)
+        self._runner.run(cmd)
 
         return dst_path

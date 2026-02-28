@@ -17,6 +17,7 @@ import subprocess
 
 from core.config_manager import ConfigManager
 from services.media.media_provider import MediaProvider
+from services.system.process_runner import ProcessRunner
 
 
 class VideoConverter:
@@ -34,6 +35,7 @@ class VideoConverter:
     def __init__(self, media_provider: MediaProvider):
         self._config = ConfigManager()
         self._media_provider = media_provider
+        self._runner = ProcessRunner()
 
     def convert(
         self,
@@ -78,7 +80,7 @@ class VideoConverter:
             str(output_path),
         ]
 
-        subprocess.run(cmd, check=True)
+        self._runner.run(cmd)
 
         return output_path
 

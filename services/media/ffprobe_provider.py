@@ -6,6 +6,7 @@ from core.config_manager import ConfigManager
 from domain.media.base import MediaProvider
 from domain.media.video.video_encoding import VideoEncodingDescriptor
 from domain.media.video.video_signature import VideoSignature
+from services.system.process_runner import ProcessRunner
 
 
 class FFProbeProvider(MediaProvider):
@@ -41,6 +42,7 @@ class FFProbeProvider(MediaProvider):
         """
         self._cache: dict[Path, dict] = {}
         self._config = ConfigManager()
+        self._runner = ProcessRunner()
 
     def _ffprobe(self, path: Path) -> dict:
         """
@@ -76,12 +78,7 @@ class FFProbeProvider(MediaProvider):
                 str(path),
             ]
 
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True,
-            )
+            result = self._runner.run(cmd, capture_output=True)
 
             self._cache[path] = json.loads(result.stdout)
 
