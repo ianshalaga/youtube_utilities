@@ -50,11 +50,17 @@ class VideoMusicProcessor:
     "video + canciones".
     """
 
-    def __init__(self, max_items_per_dir: int | None = None):
+    def __init__(
+        self,
+        mkvmerge_runner: MKVMergeRunner,
+        audio_converter: AudioConverter,
+        ffprobe_provider: FFProbeProvider,
+        max_items_per_dir: int | None = None,
+    ):
         self._config = ConfigManager()
-        self._mkvmerge_runner = MKVMergeRunner()
-        self._audio_converter = AudioConverter()
-        self._ffprobe_provider = FFProbeProvider()
+        self._mkvmerge_runner = mkvmerge_runner
+        self._audio_converter = audio_converter
+        self._ffprobe_provider = ffprobe_provider
 
         self._max_items_per_dir = (
             max_items_per_dir

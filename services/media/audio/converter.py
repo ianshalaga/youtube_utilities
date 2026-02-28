@@ -37,12 +37,12 @@ class AudioConverter:
     del archivo temporal; esas responsabilidades pertenecen al caller.
     """
 
-    def __init__(self):
+    def __init__(self, process_runner: ProcessRunner):
         """
         Inicializa el convertidor de audio.
         """
         self._config = ConfigManager()
-        self._runner = ProcessRunner()
+        self._runner = process_runner
 
     def convert(self, src: Path, dst_dir: Path) -> Path:
         """

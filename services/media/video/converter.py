@@ -32,10 +32,10 @@ class VideoConverter:
     No paraleliza ni valida compatibilidad avanzada.
     """
 
-    def __init__(self, media_provider: MediaProvider):
+    def __init__(self, media_provider: MediaProvider, process_runner: ProcessRunner):
         self._config = ConfigManager()
         self._media_provider = media_provider
-        self._runner = ProcessRunner()
+        self._runner = process_runner
 
     def convert(
         self,

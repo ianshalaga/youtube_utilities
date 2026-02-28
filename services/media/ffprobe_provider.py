@@ -29,7 +29,7 @@ class FFProbeProvider(MediaProvider):
     - TimestampFileBuilder
     """
 
-    def __init__(self):
+    def __init__(self, process_runner: ProcessRunner):
         """
         Inicializa el proveedor de ffprobe.
 
@@ -42,7 +42,7 @@ class FFProbeProvider(MediaProvider):
         """
         self._cache: dict[Path, dict] = {}
         self._config = ConfigManager()
-        self._runner = ProcessRunner()
+        self._runner = process_runner
 
     def _ffprobe(self, path: Path) -> dict:
         """

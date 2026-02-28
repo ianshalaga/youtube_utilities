@@ -12,7 +12,10 @@ from apps.ranking_system.create_db import create_db
 from apps.ranking_system.queries.builder import RankingQueryBuilder
 
 # SERVICES
+from services.system.process_runner import ProcessRunner
 from services.media.video.converter import VideoConverter
+from services.media.video.mkvmerge_runner import MKVMergeRunner
+from services.media.audio.converter import AudioConverter
 from services.media.ffprobe_provider import FFProbeProvider
 from services.ranking.storage.session import SessionLocal
 
@@ -35,7 +38,17 @@ csv_legacy_path = Path("F:/DESCARGAS/SSLEdb - SSLT.csv")
 # ───────────────────────────────
 
 if video_music:
-    video_music_processor = VideoMusicProcessor()
+    process_runner = ProcessRunner()
+
+    mkvmerge_runner = MKVMergeRunner(process_runner)
+    audio_converter = AudioConverter(process_runner)
+    ffprobe_provider = FFProbeProvider(process_runner)
+
+    video_music_processor = VideoMusicProcessor(
+        mkvmerge_runner=mkvmerge_runner,
+        audio_converter=audio_converter,
+        ffprobe_provider=ffprobe_provider
+    )
 
     audios_dir = config.video_music_default_audios_dir
 
