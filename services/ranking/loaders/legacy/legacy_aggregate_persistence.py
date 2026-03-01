@@ -39,7 +39,8 @@ from services.ranking.storage.models import (
     Game, GameVersionPlatform, DuelType,
     Country, Player, Team, Stage, RoundResult,
     CharacterIdentity, GameCharacter, PlayerAlias,
-    DuelParticipant, DuelTeam, DuelTeamMember
+    DuelParticipant, DuelTeam, DuelTeamMember,
+    BattleParticipant
 )
 
 _COUNTRY_NAME_ISO_CODE_3166_ALPHA_2_MAP = {
@@ -81,18 +82,26 @@ class LegacyAggregatePersistence:
                 event_type_model = self._persist_event_type(event)
                 platform_model = self._persist_platform(event)
                 game_franchise_model = self._persist_game_franchise(event)
-                game_model = self._persist_game(event, game_franchise_model)
-                game_version_platform_model = self._persist_game_version_platform(
-                    event, game_model, platform_model)
 
-                event_model = self._persist_event(
-                    event,
-                    season_model,
-                    region_model,
-                    event_type_model,
-                    game_version_platform_model
+                game_model = self._persist_game(
+                    event=event,
+                    game_franchise_model=game_franchise_model
                 )
 
+                game_version_platform_model = self._persist_game_version_platform(
+                    event=event,
+                    game_model=game_model,
+                    platform_model=platform_model
+                )
+
+                event_model = self._persist_event(
+                    event=event,
+                    season_model=season_model,
+                    region_model=region_model,
+                    event_type_model=event_type_model,
+                    game_version_platform_model=game_version_platform_model
+                )
+                # @@@@
                 # DUEL → BATTLE
                 for duel in event.duels:
                     duel_type_model = self._persist_duel_type(duel)
@@ -180,36 +189,44 @@ class LegacyAggregatePersistence:
                         stage_model = self._persist_stage(
                             battle, game_version_platform_model)
 
-                        winner_model = None
-                        loser_model = None
+                        participant_1 = battle.participants[0]
+                        participant_2 = battle.participants[1]
 
-                        if not battle.battle.is_draw:
-                            winner_player = None
-                            loser_player = None
+                        country_model_1 = self._persist_country(participant_1)
+                        country_model_2 = self._persist_country(participant_2)
 
-                            if battle.battle.winner_position == 1:
-                                winner_player = battle.participants[0]
-                                loser_player = battle.participants[1]
-                            elif battle.battle.winner_position == 2:
-                                winner_player = battle.participants[1]
-                                loser_player = battle.participants[0]
+                        player_1_model = self._persist_player(
+                            participant_1, country_model_1)
+                        player_2_model = self._persist_player(
+                            participant_2, country_model_2)
 
-                            if winner_player is None or loser_player is None:
-                                raise ValueError(
-                                    "Battle is no a draw, must have a winner and a loser."
-                                )
+                        character_identity_1_model = self._persist_character_identity(
+                            participant_1,
+                            game_franchise_model
+                        )
+                        character_identity_2_model = self._persist_character_identity(
+                            participant_2,
+                            game_franchise_model
+                        )
 
-                            winner_country_model = self._persist_country(
-                                winner_player)
-                            loser_country_model = self._persist_country(
-                                loser_player)
+                        game_character_1_model = self._persist_game_character(
+                            character_identity_1_model,
+                            game_version_platform_model
+                        )
+                        game_character_2_model = self._persist_game_character(
+                            character_identity_2_model,
+                            game_version_platform_model
+                        )
 
-                            winner_model = self._persist_player(
-                                winner_player, winner_country_model
-                            )
-                            loser_model = self._persist_player(
-                                loser_player, loser_country_model
-                            )
+                        if battle.battle.is_draw:
+                            winner_model = None
+                            loser_model = None
+                        elif participant_1.player_name == battle.battle.winner_player_name:
+                            winner_model = player_1_model
+                            loser_model = player_2_model
+                        elif participant_2.player_name == battle.battle.winner_player_name:
+                            winner_model = player_2_model
+                            loser_model = player_1_model
 
                         battle_model = self._persist_battle(
                             battle,
@@ -217,6 +234,44 @@ class LegacyAggregatePersistence:
                             stage_model,
                             winner_model,
                             loser_model
+                        )
+
+                        duel_team_1_model = None
+                        duel_team_2_model = None
+                        if duel.duel.is_team_duel:
+                            team_1_model = self._persist_team(participant_1)
+                            team_2_model = self._persist_team(participant_2)
+                            duel_team_1_model = self._persist_duel_team(
+                                duel_model,
+                                team_1_model
+                            )
+                            duel_team_2_model = self._persist_duel_team(
+                                duel_model,
+                                team_2_model
+                            )
+
+                        if duel_team_1_model != duel_team_2_model:
+                            raise Exception(
+                                "El duelo de equipos de una batalla debe ser el mismo duelo de equipos")
+
+                        duel_team_model = duel_team_1_model
+
+                        # @@@@ TODO: Revisar si se necesita la asignación
+                        battle_participant_1_model = self._persist_battle_participant(
+                            position=1,
+                            battle_model=battle_model,
+                            player_model=player_1_model,
+                            game_character_model=game_character_1_model,
+                            duel_tema_model=duel_team_model
+                        )
+
+                        # @@@@ TODO: Revisar si se necesita la asignación
+                        battle_participant_2_model = self._persist_battle_participant(
+                            position=2,
+                            battle_model=battle_model,
+                            player_model=player_2_model,
+                            game_character_model=game_character_2_model,
+                            duel_tema_model=duel_team_model
                         )
 
                         # ROUND
@@ -318,7 +373,10 @@ class LegacyAggregatePersistence:
         return instance
 
     # SEASON persistence
-    def _persist_season(self, season: NormalizedSeasonAggregate):
+    def _persist_season(
+        self,
+        season: NormalizedSeasonAggregate
+    ):
         return self._get_or_create(
             Season,
             name=season.season_name,
@@ -329,31 +387,47 @@ class LegacyAggregatePersistence:
         )
 
     # EVENT persistence
-    def _persist_region(self, event: NormalizedEventAggregate):
+    def _persist_region(
+        self: LegacyAggregatePersistence,
+        event: NormalizedEventAggregate
+    ):
         return self._get_or_create(
             Region,
             name=event.region_name
         )
 
-    def _persist_event_type(self, event: NormalizedEventAggregate):
+    def _persist_event_type(
+        self: LegacyAggregatePersistence,
+        event: NormalizedEventAggregate
+    ):
         return self._get_or_create(
             EventType,
             name=event.event_type_name
         )
 
-    def _persist_platform(self, event: NormalizedEventAggregate):
+    def _persist_platform(
+        self: LegacyAggregatePersistence,
+        event: NormalizedEventAggregate
+    ):
         return self._get_or_create(
             Platform,
             name=event.platform_name
         )
 
-    def _persist_game_franchise(self, event: NormalizedEventAggregate):
+    def _persist_game_franchise(
+        self: LegacyAggregatePersistence,
+        event: NormalizedEventAggregate
+    ):
         return self._get_or_create(
             Franchise,
             name=event.game_franchise_name
         )
 
-    def _persist_game(self, event: NormalizedEventAggregate, game_franchise_model: Franchise):
+    def _persist_game(
+        self: LegacyAggregatePersistence,
+        event: NormalizedEventAggregate,
+        game_franchise_model: Franchise
+    ):
         return self._get_or_create(
             Game,
             name=event.game_name,
@@ -361,7 +435,7 @@ class LegacyAggregatePersistence:
         )
 
     def _persist_game_version_platform(
-        self,
+        self: LegacyAggregatePersistence,
         event: NormalizedEventAggregate,
         game_model: Game,
         platform_model: Platform
@@ -374,7 +448,7 @@ class LegacyAggregatePersistence:
         )
 
     def _persist_event(
-        self,
+        self: LegacyAggregatePersistence,
         event: NormalizedEventAggregate,
         season_model: Season,
         region_model: Region,
@@ -384,7 +458,7 @@ class LegacyAggregatePersistence:
         return self._get_or_create(
             Event,
             season_id=season_model.id,
-            sequence_number=event.sequence_number,
+            sequence_number=event.event_sequence_number,
             defaults={
                 "name": event.event.event_name,
                 "event_date": event.event.event_date,
@@ -417,7 +491,7 @@ class LegacyAggregatePersistence:
         )
 
     def _persist_player(
-        self,
+        self: LegacyAggregatePersistence,
         participant: NormalizedParticipant,
         country_model: Country
     ):
@@ -524,17 +598,21 @@ class LegacyAggregatePersistence:
         )
 
     # BATTLE persistence
-    def _persist_stage(self, battle, game_version_platform_model):
+    def _persist_stage(
+        self: LegacyAggregatePersistence,
+        battle: NormalizedBattleAggregate,
+        game_version_platform_model: GameVersionPlatform
+    ):
         return (
             self._get_or_create(
                 Stage,
-                name=battle.stage_name,
+                name=battle.battle.stage_name,
                 game_version_platform_id=game_version_platform_model.id
             )
         )
 
     def _persist_battle(
-            self,
+            self: LegacyAggregatePersistence,
             battle: NormalizedBattleAggregate,
             duel_model: Duel,
             stage_model: Stage,
@@ -551,6 +629,23 @@ class LegacyAggregatePersistence:
                 sequence_number=battle.battle.battle_sequence_number,
                 is_draw=battle.battle.is_draw
             )
+        )
+
+    def _persist_battle_participant(
+        self: LegacyAggregatePersistence,
+        position: int,
+        battle_model: Battle,
+        player_model: Player,
+        game_character_model: GameCharacter,
+        duel_team_model: DuelTeam
+    ):
+        return self._get_or_create(
+            BattleParticipant,
+            battle_id=battle_model.id,
+            player_id=player_model.id,
+            game_character_id=game_character_model.id,
+            duel_team_id=duel_team_model.id,
+            position=position
         )
 
     # ROUND persistence
