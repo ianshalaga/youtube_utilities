@@ -71,6 +71,8 @@ class LegacyAggregatePersistence:
 
         Se asume que los aggregates son coherentes.
         """
+        self._cache.clear()
+
         # SEASON → EVENT
         for season in seasons:
             season_model = self._persist_season(season)
@@ -144,7 +146,7 @@ class LegacyAggregatePersistence:
 
                     winner_player_model = None
                     for player in players:
-                        if player.nickname == duel.winner_player_name:
+                        if player.nickname == duel.winner_player_name.upper():
                             winner_player_model = player
                             break
 
@@ -158,6 +160,9 @@ class LegacyAggregatePersistence:
                             if team.name == duel.winner_team_name:
                                 winner_team_model = team
                                 break
+
+                    if duel.duel.is_team_duel and winner_team_model is None:
+                        raise ValueError("Winner team not found")
 
                     duel_model = self._persist_duel(
                         duel,
@@ -232,6 +237,8 @@ class LegacyAggregatePersistence:
                         elif participant_2.player_name == battle.battle.winner_player_name:
                             winner_model = player_2_model
                             loser_model = player_1_model
+                        else:
+                            raise ValueError("Battle winner mismatch")
 
                         battle_model = self._persist_battle(
                             battle,
@@ -463,10 +470,18 @@ class LegacyAggregatePersistence:
         )
 
     def _persist_country(self, participant: NormalizedParticipant):
+        iso_code = _COUNTRY_NAME_ISO_CODE_3166_ALPHA_2_MAP.get(
+            participant.country
+        )
+
+        if iso_code is None:
+            raise ValueError(
+                f"ISO code not defined for country: {participant.country}")
+
         return self._get_or_create(
             Country,
             name=participant.country,
-            iso_code=_COUNTRY_NAME_ISO_CODE_3166_ALPHA_2_MAP[participant.country]
+            iso_code=iso_code
         )
 
     def _persist_player(
