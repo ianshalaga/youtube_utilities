@@ -31,8 +31,6 @@ from services.ranking.loaders.legacy.row_legacy_normalizer import (
     NormalizedRoundContext
 )
 
-from domain.ranking.scoring.scoring_v1 import RoundScoringV1
-
 from services.ranking.storage.models import (
     Season, Event, Duel, Battle, Round,
     Region, Platform, EventType, Franchise,
@@ -60,6 +58,7 @@ class LegacyAggregatePersistence:
 
     def __init__(self, session: Session) -> None:
         self._session = session
+        self._cache = {}
 
     # ---------------------------------------------------------
 
@@ -113,9 +112,10 @@ class LegacyAggregatePersistence:
 
                     players: set[Player] = set()
                     teams: set[Team] = set()
-                    players_by_team: defaultdict[Team, set[Player]]
+                    players_by_team: defaultdict[Team,
+                                                 set[Player]] = defaultdict(set)
                     for battle in duel.battles:
-                        for participant in enumerate(battle.participants):
+                        for participant in battle.participants:
                             country_model = self._persist_country(participant)
                             player_model = self._persist_player(
                                 participant, country_model)
@@ -142,10 +142,15 @@ class LegacyAggregatePersistence:
                                 teams.add(team_model)
                                 players_by_team[team_model].add(player_model)
 
+                    winner_player_model = None
                     for player in players:
                         if player.nickname == duel.winner_player_name:
                             winner_player_model = player
                             break
+
+                    if winner_player_model is None:
+                        raise ValueError(
+                            f"Winner player not found: {duel.winner_player_name}")
 
                     winner_team_model = None
                     if duel.duel.is_team_duel:
@@ -174,7 +179,7 @@ class LegacyAggregatePersistence:
                         for team in teams:
                             duel_team_model = self._persist_duel_team(
                                 duel_model,
-                                team_model
+                                team
                             )
 
                             for player in players_by_team[team]:
@@ -250,19 +255,13 @@ class LegacyAggregatePersistence:
                                 team_2_model
                             )
 
-                        if duel_team_1_model != duel_team_2_model:
-                            raise Exception(
-                                "El duelo de equipos de una batalla debe ser el mismo duelo de equipos")
-
-                        duel_team_model = duel_team_1_model
-
                         # @@@@ TODO: Revisar si se necesita la asignación
                         battle_participant_1_model = self._persist_battle_participant(
                             position=1,
                             battle_model=battle_model,
                             player_model=player_1_model,
                             game_character_model=game_character_1_model,
-                            duel_tema_model=duel_team_model
+                            duel_tema_model=duel_team_1_model
                         )
 
                         # @@@@ TODO: Revisar si se necesita la asignación
@@ -271,68 +270,40 @@ class LegacyAggregatePersistence:
                             battle_model=battle_model,
                             player_model=player_2_model,
                             game_character_model=game_character_2_model,
-                            duel_tema_model=duel_team_model
+                            duel_tema_model=duel_team_2_model
                         )
 
                         # ROUND
                         for round in battle.rounds:
-                            p1_result = round.p1_result_code
-                            p2_result = round.p2_result_code
-
-                            is_draw = False
-                            if p1_result == p2_result and RoundScoringV1.is_draw(p1_result):
-                                is_draw = True
+                            if round.is_draw:
                                 winner_model = None
                                 loser_model = None
-
-                            player1_model = None
-                            player2_model = None
-
-                            if RoundScoringV1.is_win(p1_result) or RoundScoringV1.is_perfect_win(p1_result):
-                                winner_country_model = self._persist_country(
-                                    battle.participants[0])
-                                winner_model = self._persist_player(
-                                    battle.participants[0], winner_country_model
-                                )
-                                loser_country_model = self._persist_country(
-                                    battle.participants[1])
-                                loser_model = self._persist_player(
-                                    battle.participants[1], loser_country_model
-                                )
-                                player1_model = winner_model
-                                player2_model = loser_model
-                            elif RoundScoringV1.is_win(p2_result) or RoundScoringV1.is_perfect_win(p2_result):
-                                winner_country_model = self._persist_country(
-                                    battle.participants[1])
-                                winner_model = self._persist_player(
-                                    battle.participants[1], winner_country_model
-                                )
-                                loser_country_model = self._persist_country(
-                                    battle.participants[0])
-                                loser_model = self._persist_player(
-                                    battle.participants[0], loser_country_model
-                                )
-                                player1_model = loser_model
-                                player2_model = winner_model
+                            elif round.winner_position == 1:
+                                winner_model = player_1_model
+                                loser_model = player_2_model
+                            elif round.winner_position == 2:
+                                winner_model = player_2_model
+                                loser_model = player_1_model
 
                             round_model = self._persist_round(
-                                round,
-                                battle_model,
-                                winner_model,
-                                loser_model,
-                                is_draw
+                                round=round,
+                                battle_model=battle_model,
+                                winner_model=winner_model,
+                                loser_model=loser_model
                             )
 
-                            self._persist_round_result(
-                                p1_result,
+                            # @@@@ TODO: Revisar si se necesita la asignación
+                            round_result_1_model = self._persist_round_result(
+                                round.p1_result_code,
                                 round_model,
-                                player1_model
+                                player_1_model
                             )
 
-                            self._persist_round_result(
-                                p2_result,
+                            # @@@@ TODO: Revisar si se necesita la asignación
+                            round_result_2_model = self._persist_round_result(
+                                round.p2_result_code,
                                 round_model,
-                                player2_model
+                                player_2_model
                             )
 
         self._session.flush()
@@ -343,7 +314,8 @@ class LegacyAggregatePersistence:
 
     def _get_or_create(
         self,
-        model: type, defaults=dict[str: any] | None,
+        model: type,
+        defaults: dict[str: any] | None,
         **kwargs
     ) -> object:
         """
@@ -352,6 +324,10 @@ class LegacyAggregatePersistence:
         - Busca por kwargs.
         - Si no existe, crea con kwargs + defaults.
         """
+        key = (model, frozenset(kwargs.items()))
+
+        if key in self._cache:
+            return self._cache[key]
 
         instance = (
             self._session.query(model)
@@ -360,6 +336,7 @@ class LegacyAggregatePersistence:
         )
 
         if instance:
+            self._cache[key] = instance
             return instance
 
         params = dict(kwargs)
@@ -369,6 +346,8 @@ class LegacyAggregatePersistence:
         instance = model(**params)
         self._session.add(instance)
         self._session.flush()  # asegura PK disponible
+
+        self._cache[key] = instance
 
         return instance
 
@@ -502,7 +481,7 @@ class LegacyAggregatePersistence:
         )
 
     def _persist_player_alias(
-        self,
+        self: LegacyAggregatePersistence,
         participant: NormalizedParticipant,
         player_model: Player
     ):
@@ -512,14 +491,14 @@ class LegacyAggregatePersistence:
             alias=participant.player_name
         )
 
-    def _persist_team(self, participant: NormalizedParticipant):
+    def _persist_team(self: LegacyAggregatePersistence, participant: NormalizedParticipant):
         return self._get_or_create(
             Team,
             name=participant.team_name
         )
 
     def _persist_character_identity(
-        self,
+        self: LegacyAggregatePersistence,
         participant: NormalizedParticipant,
         game_franchise_model: Franchise
     ):
@@ -530,7 +509,7 @@ class LegacyAggregatePersistence:
         )
 
     def _persist_game_character(
-        self,
+        self: LegacyAggregatePersistence,
         character_identity_model: CharacterIdentity,
         game_version_platform_model: GameVersionPlatform
     ):
@@ -541,7 +520,7 @@ class LegacyAggregatePersistence:
         )
 
     def _persist_duel(
-        self,
+        self: LegacyAggregatePersistence,
         duel: NormalizedDuelAggregate,
         event_model: Event,
         duel_type_model: DuelType,
@@ -549,6 +528,13 @@ class LegacyAggregatePersistence:
         winner_player_model: Player,
         winner_team_model: Team
     ):
+        if duel.duel.is_team_duel:
+            winner_id = None
+            winner_team_id = winner_team_model.id
+        else:
+            winner_id = winner_player_model.id
+            winner_team_id = None
+
         return self._get_or_create(
             Duel,
             event_id=event_model.id,
@@ -559,8 +545,8 @@ class LegacyAggregatePersistence:
                 "is_team_duel": duel.duel.is_team_duel,
                 "team_duel_sequence_number": duel.duel.team_duel_sequence_number,
                 "video_url": duel.duel.duel_video_url,
-                "winner_id": winner_player_model.id,
-                "winner_team_id": winner_team_model.id,
+                "winner_id": winner_id,
+                "winner_team_id": winner_team_id,
             }
         )
 
@@ -619,13 +605,16 @@ class LegacyAggregatePersistence:
             winner_model: Player,
             loser_model: Player
     ):
+        winner_id = winner_model.id if winner_model else None
+        loser_id = loser_model.id if loser_model else None
+
         return (
             self._get_or_create(
                 Battle,
                 duel_id=duel_model.id,
                 stage_id=stage_model.id,
-                winner_id=winner_model.id,
-                loser_id=loser_model.id,
+                winner_id=winner_id,
+                loser_id=loser_id,
                 sequence_number=battle.battle.battle_sequence_number,
                 is_draw=battle.battle.is_draw
             )
@@ -639,35 +628,39 @@ class LegacyAggregatePersistence:
         game_character_model: GameCharacter,
         duel_team_model: DuelTeam
     ):
+        duel_team_id = duel_team_model.id if duel_team_model else None
+
         return self._get_or_create(
             BattleParticipant,
             battle_id=battle_model.id,
             player_id=player_model.id,
             game_character_id=game_character_model.id,
-            duel_team_id=duel_team_model.id,
+            duel_team_id=duel_team_id,
             position=position
         )
 
     # ROUND persistence
     def _persist_round(
-        self,
+        self: LegacyAggregatePersistence,
         round: NormalizedRoundContext,
         battle_model: Battle,
         winner_model: Player,
-        loser_model: Player,
-        is_draw: bool
+        loser_model: Player
     ):
+        winner_id = winner_model.id if winner_model else None
+        loser_id = loser_model.id if loser_model else None
+
         return self._get_or_create(
             Round,
             battle_id=battle_model.id,
-            winner_id=winner_model.id,
-            loser_id=loser_model.id,
-            is_draw=is_draw,
+            winner_id=winner_id,
+            loser_id=loser_id,
+            is_draw=round.is_draw,
             sequence_number=round.round_sequence_number,
         )
 
     def _persist_round_result(
-        self,
+        self: LegacyAggregatePersistence,
         result_code: str,
         round_model: Round,
         player_model: Player,
