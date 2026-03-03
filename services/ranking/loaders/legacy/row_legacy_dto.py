@@ -31,7 +31,7 @@ from datetime import date, datetime
 from typing import Optional, Tuple, get_origin, get_args, ClassVar
 from types import UnionType
 
-from services.ranking.loaders.legacy import RowLegacyMapper
+from services.ranking.loaders.legacy.row_legacy_mapper import RowLegacyMapper
 
 
 """
