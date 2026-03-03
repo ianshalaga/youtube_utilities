@@ -103,8 +103,6 @@ class CsvLegacyLoader:
         persistence = LegacyAggregatePersistence(self._session)
         persistence.persist(seasons)
 
-        self._session.commit()
-
     # ---------------------------------------------------------
 
     @staticmethod

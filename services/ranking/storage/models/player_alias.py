@@ -9,6 +9,7 @@ class PlayerAlias(Base):
 
     __table_args__ = (
         UniqueConstraint("player_id", "alias", name="uq_player_alias"),
+        UniqueConstraint("normalized_alias", name="uq_normalized_alias_global")
     )
 
     id = Column(Integer, primary_key=True)
@@ -22,6 +23,7 @@ class PlayerAlias(Base):
 
     # Fields
     alias = Column(String, nullable=False)
+    normalized_alias = Column(String, nullable=False)
 
     # Relationships
     player = relationship("Player", back_populates="aliases")

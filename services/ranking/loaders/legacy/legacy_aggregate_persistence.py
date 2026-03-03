@@ -146,7 +146,7 @@ class LegacyAggregatePersistence:
 
                     winner_player_model = None
                     for player in players:
-                        if player.nickname == duel.winner_player_name.upper():
+                        if player.canonical_name == self._normalize_player_name(duel.winner_player_name):
                             winner_player_model = player
                             break
 
@@ -228,13 +228,20 @@ class LegacyAggregatePersistence:
                             game_version_platform_model
                         )
 
+                        participant_1_name_normalized = self._normalize_player_name(
+                            participant_1.player_name)
+                        participant_2_name_normalized = self._normalize_player_name(
+                            participant_2.player_name)
+                        winner_player_name_normalized = self._normalize_player_name(
+                            battle.battle.winner_player_name)
+
                         if battle.battle.is_draw:
                             winner_model = None
                             loser_model = None
-                        elif participant_1.player_name == battle.battle.winner_player_name:
+                        elif participant_1_name_normalized == winner_player_name_normalized:
                             winner_model = player_1_model
                             loser_model = player_2_model
-                        elif participant_2.player_name == battle.battle.winner_player_name:
+                        elif participant_2_name_normalized == winner_player_name_normalized:
                             winner_model = player_2_model
                             loser_model = player_1_model
                         else:
@@ -268,7 +275,7 @@ class LegacyAggregatePersistence:
                             battle_model=battle_model,
                             player_model=player_1_model,
                             game_character_model=game_character_1_model,
-                            duel_tema_model=duel_team_1_model
+                            duel_team_model=duel_team_1_model
                         )
 
                         # @@@@ TODO: Revisar si se necesita la asignación
@@ -277,7 +284,7 @@ class LegacyAggregatePersistence:
                             battle_model=battle_model,
                             player_model=player_2_model,
                             game_character_model=game_character_2_model,
-                            duel_tema_model=duel_team_2_model
+                            duel_team_model=duel_team_2_model
                         )
 
                         # ROUND
@@ -318,6 +325,9 @@ class LegacyAggregatePersistence:
     # ---------------------------------------------------------
     # Private persistence helpers
     # ---------------------------------------------------------
+
+    def _normalize_player_name(self, name: str) -> str:
+        return name.strip().lower()
 
     def _get_or_create(
         self,
@@ -492,7 +502,9 @@ class LegacyAggregatePersistence:
         return self._get_or_create(
             Player,
             country_id=country_model.id,
-            nickname=participant.player_name.upper()
+            canonical_name=self._normalize_player_name(
+                participant.player_name),
+            display_name=participant.player_name
         )
 
     def _persist_player_alias(
@@ -503,7 +515,9 @@ class LegacyAggregatePersistence:
         return self._get_or_create(
             PlayerAlias,
             player_id=player_model.id,
-            alias=participant.player_name
+            alias=participant.player_name,
+            normalized_alias=self._normalize_player_name(
+                participant.player_name)
         )
 
     def _persist_team(self: LegacyAggregatePersistence, participant: NormalizedParticipant):

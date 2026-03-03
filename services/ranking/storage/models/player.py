@@ -22,7 +22,8 @@ class Player(Base, WithCode):
     )
 
     # Fields
-    nickname = Column(String, unique=True, nullable=False)
+    canonical_name = Column(String, unique=True, nullable=False)
+    display_name = Column(String, nullable=False)
 
     # Relationships
     country = relationship("Country")
