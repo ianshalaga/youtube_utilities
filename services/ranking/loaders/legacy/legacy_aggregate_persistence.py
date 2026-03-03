@@ -332,7 +332,7 @@ class LegacyAggregatePersistence:
     def _get_or_create(
         self,
         model: type,
-        defaults: dict[str: any] | None,
+        defaults: dict[str, any] | None = None,
         **kwargs
     ) -> object:
         """
@@ -389,7 +389,7 @@ class LegacyAggregatePersistence:
     ):
         return self._get_or_create(
             Region,
-            name=event.region_name
+            name=event.event.region_name
         )
 
     def _persist_event_type(
@@ -398,7 +398,7 @@ class LegacyAggregatePersistence:
     ):
         return self._get_or_create(
             EventType,
-            name=event.event_type_name
+            name=event.event.event_type_name
         )
 
     def _persist_platform(
@@ -407,7 +407,7 @@ class LegacyAggregatePersistence:
     ):
         return self._get_or_create(
             Platform,
-            name=event.platform_name
+            name=event.event.platform_name
         )
 
     def _persist_game_franchise(
@@ -416,7 +416,7 @@ class LegacyAggregatePersistence:
     ):
         return self._get_or_create(
             Franchise,
-            name=event.game_franchise_name
+            name=event.event.game_franchise_name
         )
 
     def _persist_game(
@@ -426,7 +426,7 @@ class LegacyAggregatePersistence:
     ):
         return self._get_or_create(
             Game,
-            name=event.game_name,
+            name=event.event.game_name,
             franchise_id=game_franchise_model.id
         )
 
@@ -440,7 +440,7 @@ class LegacyAggregatePersistence:
             GameVersionPlatform,
             game_id=game_model.id,
             platform_id=platform_model.id,
-            version=event.game_version
+            version=event.event.game_version
         )
 
     def _persist_event(

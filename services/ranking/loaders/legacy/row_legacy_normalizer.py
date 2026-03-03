@@ -201,8 +201,8 @@ class RowLegacyNormalizer:
             ),
             event_name=dto.event_name,
             event_date=dto.event_date,
-            brackets_url=dto.brackets_url,
-            playlist_url=dto.playlist_url,
+            brackets_url=dto.event_brackets,
+            playlist_url=dto.event_playlist,
         )
 
         # --- Build duel context ---
