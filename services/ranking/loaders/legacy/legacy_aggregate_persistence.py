@@ -18,10 +18,11 @@ No:
 Es una capa de infraestructura.
 """
 
-from typing import Tuple
+from typing import Tuple, Any
 from collections import defaultdict
 
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from services.ranking.loaders.legacy.legacy_season_aggregator import NormalizedSeasonAggregate
 from services.ranking.loaders.legacy.legacy_event_aggregator import NormalizedEventAggregate
@@ -44,7 +45,7 @@ from services.ranking.storage.models import (
 _COUNTRY_NAME_ISO_CODE_3166_ALPHA_2_MAP = {
     "Argentina": "AR",
     "Chile": "CL",
-    "Paraaguay": "PY",
+    "Paraguay": "PY",
     "Brasil": "BR",
 }
 
@@ -326,21 +327,32 @@ class LegacyAggregatePersistence:
     # Private persistence helpers
     # ---------------------------------------------------------
 
-    def _normalize_player_name(self, name: str) -> str:
+    def _normalize_player_name(self, name: str | None) -> str | None:
+        """
+        Normaliza el nombre de jugador para uso interno.
+
+        - strip
+        - lower
+
+        Si el nombre es None (ej. empate), devuelve None.
+        """
+        if name is None:
+            return None
+
         return name.strip().lower()
 
     def _get_or_create(
         self,
         model: type,
-        defaults: dict[str, any] | None = None,
+        defaults: dict[str, Any] | None = None,
         **kwargs
     ) -> object:
         """
-        Patrón genérico get_or_create.
-
-        - Busca por kwargs.
-        - Si no existe, crea con kwargs + defaults.
+        - Usa cache para evitar queries repetidas
+        - Maneja automáticamente UNIQUE violations
+        - Usa SAVEPOINT para no romper la transacción principal
         """
+
         key = (model, frozenset(kwargs.items()))
 
         if key in self._cache:
@@ -360,12 +372,19 @@ class LegacyAggregatePersistence:
         if defaults:
             params.update(defaults)
 
-        instance = model(**params)
-        self._session.add(instance)
-        self._session.flush()  # asegura PK disponible
+        try:
+            with self._session.begin_nested():
+                instance = model(**params)
+                self._session.add(instance)
+                self._session.flush()
+        except IntegrityError:
+            instance = (
+                self._session.query(model)
+                .filter_by(**kwargs)
+                .one()
+            )
 
         self._cache[key] = instance
-
         return instance
 
     # SEASON persistence
@@ -499,12 +518,15 @@ class LegacyAggregatePersistence:
         participant: NormalizedParticipant,
         country_model: Country
     ):
+        canonical = self._normalize_player_name(participant.player_name)
+
         return self._get_or_create(
             Player,
-            country_id=country_model.id,
-            canonical_name=self._normalize_player_name(
-                participant.player_name),
-            display_name=participant.player_name
+            canonical_name=canonical,
+            defaults={
+                "country_id": country_model.id,
+                "display_name": participant.player_name
+            }
         )
 
     def _persist_player_alias(
@@ -512,12 +534,14 @@ class LegacyAggregatePersistence:
         participant: NormalizedParticipant,
         player_model: Player
     ):
+        normalized = self._normalize_player_name(participant.player_name)
         return self._get_or_create(
             PlayerAlias,
             player_id=player_model.id,
-            alias=participant.player_name,
-            normalized_alias=self._normalize_player_name(
-                participant.player_name)
+            normalized_alias=normalized,
+            defaults={
+                "alias": participant.player_name
+            }
         )
 
     def _persist_team(self: LegacyAggregatePersistence, participant: NormalizedParticipant):
@@ -560,9 +584,11 @@ class LegacyAggregatePersistence:
         if duel.duel.is_team_duel:
             winner_id = None
             winner_team_id = winner_team_model.id
+            team_duel_type_id = team_duel_type_model.id
         else:
             winner_id = winner_player_model.id
             winner_team_id = None
+            team_duel_type_id = None
 
         return self._get_or_create(
             Duel,
@@ -570,7 +596,7 @@ class LegacyAggregatePersistence:
             sequence_number=duel.duel.normal_duel_sequence_number,
             defaults={
                 "duel_type_id": duel_type_model.id,
-                "team_duel_type_id": team_duel_type_model.id,
+                "team_duel_type_id": team_duel_type_id,
                 "is_team_duel": duel.duel.is_team_duel,
                 "team_duel_sequence_number": duel.duel.team_duel_sequence_number,
                 "video_url": duel.duel.duel_video_url,
@@ -637,16 +663,16 @@ class LegacyAggregatePersistence:
         winner_id = winner_model.id if winner_model else None
         loser_id = loser_model.id if loser_model else None
 
-        return (
-            self._get_or_create(
-                Battle,
-                duel_id=duel_model.id,
-                stage_id=stage_model.id,
-                winner_id=winner_id,
-                loser_id=loser_id,
-                sequence_number=battle.battle.battle_sequence_number,
-                is_draw=battle.battle.is_draw
-            )
+        return self._get_or_create(
+            Battle,
+            duel_id=duel_model.id,
+            sequence_number=battle.battle.battle_sequence_number,
+            defaults={
+                "stage_id": stage_model.id,
+                "winner_id": winner_id,
+                "loser_id": loser_id,
+                "is_draw": battle.battle.is_draw
+            }
         )
 
     def _persist_battle_participant(
@@ -655,17 +681,19 @@ class LegacyAggregatePersistence:
         battle_model: Battle,
         player_model: Player,
         game_character_model: GameCharacter,
-        duel_team_model: DuelTeam
+        duel_team_model: DuelTeam | None
     ):
         duel_team_id = duel_team_model.id if duel_team_model else None
 
         return self._get_or_create(
             BattleParticipant,
             battle_id=battle_model.id,
-            player_id=player_model.id,
-            game_character_id=game_character_model.id,
-            duel_team_id=duel_team_id,
-            position=position
+            position=position,
+            defaults={
+                "player_id": player_model.id,
+                "game_character_id": game_character_model.id,
+                "duel_team_id": duel_team_id,
+            }
         )
 
     # ROUND persistence
@@ -682,10 +710,12 @@ class LegacyAggregatePersistence:
         return self._get_or_create(
             Round,
             battle_id=battle_model.id,
-            winner_id=winner_id,
-            loser_id=loser_id,
-            is_draw=round.is_draw,
             sequence_number=round.round_sequence_number,
+            defaults={
+                "winner_id": winner_id,
+                "loser_id": loser_id,
+                "is_draw": round.is_draw
+            }
         )
 
     def _persist_round_result(
@@ -698,5 +728,7 @@ class LegacyAggregatePersistence:
             RoundResult,
             round_id=round_model.id,
             player_id=player_model.id,
-            result_code=result_code
+            defaults={
+                "result_code": result_code
+            }
         )
