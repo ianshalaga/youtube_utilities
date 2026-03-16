@@ -32,16 +32,16 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/Tenchu/02 Tenchu - Birth of the Stealth Assassins/video.mp4",
-      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/Tenchu/02 Tenchu 2 - Birth of the Stealth Assassins",
+      "default_video_path": "E:/Proyectos/games/Stray/video.mp4",
+      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/@@@@/Stray OST/Disc 1 - Extradiegetic Music",
       "default_output_dir": "videos"
     },
 
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/Tenchu/02 Tenchu 2 - Birth of the Stealth Assassins/videos",
+      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/@@@@/Stray OST/@",
       "default_output_dir": "compilation",
-      "default_video_name": "Tenchu 2 - Birth of the Stealth Assassins OST",
+      "default_video_name": "Stray Complete OST",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,

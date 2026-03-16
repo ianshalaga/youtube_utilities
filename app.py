@@ -26,7 +26,7 @@ video_music = False
 video_joiner = False
 video_converter = False
 db = False
-load_legacy = True
+load_legacy = False
 ranking_system = False
 
 

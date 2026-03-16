@@ -1,0 +1,145 @@
+#overlay-root {
+  width: 1920px;
+  height: 1080px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* HUD base */
+
+#hud {
+  position: relative;
+
+  padding: 30px 60px;
+
+  border: 2px solid rgba(255, 140, 60, 0.6);
+
+  background: rgba(0, 0, 0, 0.25);
+
+  box-shadow:
+    0 0 20px rgba(255, 140, 60, 0.5),
+    inset 0 0 20px rgba(255, 140, 60, 0.3);
+
+  backdrop-filter: blur(3px);
+}
+
+/* TIMER */
+
+#timer {
+  font-family: monospace;
+
+  font-size: 120px;
+
+  color: #ff8a2b;
+
+  letter-spacing: 8px;
+
+  text-shadow:
+    0 0 10px #ff8a2b,
+    0 0 25px #ff6a00;
+}
+
+/* TARGET LINES */
+
+#target-lines {
+  position: absolute;
+  inset: -20px;
+
+  pointer-events: none;
+}
+
+#target-lines::before,
+#target-lines::after {
+  content: "";
+
+  position: absolute;
+
+  width: 100%;
+  height: 100%;
+
+  border: 1px solid rgba(255, 140, 60, 0.25);
+
+  animation: targetPulse 3s infinite;
+}
+
+#target-lines::after {
+  inset: 10px;
+  animation-delay: 1.5s;
+}
+
+@keyframes targetPulse {
+  0% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.1;
+  }
+}
+
+/* HOLOGRAM SCANLINES */
+
+#scanlines {
+  position: absolute;
+  inset: 0;
+
+  background: repeating-linear-gradient(
+    transparent 0px,
+    transparent 2px,
+    rgba(255, 140, 60, 0.07) 3px
+  );
+
+  animation: scanMove 6s linear infinite;
+
+  pointer-events: none;
+}
+
+@keyframes scanMove {
+  from {
+    background-position-y: 0;
+  }
+  to {
+    background-position-y: 200px;
+  }
+}
+
+/* PAW SPLIT EFFECT */
+
+#paw-layer {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+}
+
+.paw {
+  position: absolute;
+
+  bottom: -10px;
+
+  font-size: 26px;
+
+  color: #ff8a2b;
+
+  animation: pawRise 1.5s ease forwards;
+}
+
+@keyframes pawRise {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.6);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(1);
+  }
+}

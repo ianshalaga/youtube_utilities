@@ -87,6 +87,7 @@ class AudioConverter:
             "-c:a", self._config.audio_target_codec,
             "-b:a", self._config.audio_target_bitrate,
             "-ar", str(self._config.audio_target_samplerate),
+            "-ac", "2",
             str(dst_path),
         ]
 

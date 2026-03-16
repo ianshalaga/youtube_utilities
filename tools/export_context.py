@@ -15,13 +15,14 @@ INPUT_PATHS = (
     # BASE_DIR / "services/ranking/loaders/legacy/row_legacy_dto.py",
     # BASE_DIR / "services/ranking/storage/models",
     BASE_DIR / "apps/video_music",
+    BASE_DIR / "apps/video_joiner",
     BASE_DIR / "domain/media",
     BASE_DIR / "services/media",
     BASE_DIR / "services/filesystem",
 
 )
 
-FILE_NAME = "video_music_app_context"
+FILE_NAME = "music_apps_context"
 
 OUTPUT_NAME = Path("tools") / f"{FILE_NAME}"
 
