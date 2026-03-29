@@ -1,0 +1,136 @@
+#overlay-root {
+  width: 1920px;
+  height: 1080px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* HOURGLASS */
+
+#hourglass {
+  position: relative;
+
+  width: 120px;
+  height: 200px;
+
+  transform-origin: center;
+}
+
+/* FRAME */
+
+.frame {
+  position: absolute;
+  inset: 0;
+
+  border: 2px solid rgba(200, 230, 255, 0.25);
+
+  box-shadow:
+    0 0 20px rgba(180, 220, 255, 0.25),
+    inset 0 0 10px rgba(180, 220, 255, 0.15);
+}
+
+/* SAND */
+
+.sand {
+  position: absolute;
+  left: 0;
+  width: 100%;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(200, 240, 255, 0.9),
+    rgba(120, 180, 255, 0.4)
+  );
+
+  filter: blur(0.5px);
+}
+
+.sand.top {
+  top: 0;
+  height: 50%;
+  transform-origin: bottom;
+  animation: drainTop 5s linear infinite;
+}
+
+.sand.bottom {
+  bottom: 0;
+  height: 0%;
+  animation: fillBottom 5s linear infinite;
+}
+
+/* ANIMATION */
+
+@keyframes drainTop {
+  0% {
+    height: 50%;
+  }
+  100% {
+    height: 0%;
+  }
+}
+
+@keyframes fillBottom {
+  0% {
+    height: 0%;
+  }
+  100% {
+    height: 50%;
+  }
+}
+
+/* FLIP */
+
+.flip {
+  animation: flipHG 0.8s ease;
+}
+
+@keyframes flipHG {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(180deg);
+  }
+}
+
+/* PARTICLES */
+
+#particles {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+
+  width: 3px;
+  height: 3px;
+
+  background: #cfefff;
+
+  border-radius: 50%;
+
+  opacity: 0.7;
+
+  animation: particleRise 2s ease forwards;
+}
+
+@keyframes particleRise {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-60px);
+    opacity: 0;
+  }
+}

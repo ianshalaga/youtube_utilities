@@ -14,15 +14,15 @@ INPUT_PATHS = (
     # BASE_DIR / "services/ranking/loaders/legacy/row_legacy_mapper.py",
     # BASE_DIR / "services/ranking/loaders/legacy/row_legacy_dto.py",
     # BASE_DIR / "services/ranking/storage/models",
-    BASE_DIR / "apps/video_music",
-    BASE_DIR / "apps/video_joiner",
-    BASE_DIR / "domain/media",
-    BASE_DIR / "services/media",
-    BASE_DIR / "services/filesystem",
-
+    # BASE_DIR / "apps/video_music",
+    # BASE_DIR / "apps/video_joiner",
+    # BASE_DIR / "domain/media",
+    # BASE_DIR / "services/media",
+    # BASE_DIR / "services/filesystem",
+    BASE_DIR / "apps/overlays",
 )
 
-FILE_NAME = "music_apps_context"
+FILE_NAME = "overlays_context"
 
 OUTPUT_NAME = Path("tools") / f"{FILE_NAME}"
 
@@ -51,12 +51,17 @@ DEFAULT_EXCLUDED_DIRS = {
 }
 
 DEFAULT_EXTENSIONS = {
+    # Python
     ".py",
     ".md",
     ".txt",
     ".yml",
     ".yaml",
     ".toml",
+    # HTML, CSS, JS
+    ".html",
+    ".css",
+    ".js",
 }
 
 DEFAULT_EXCLUDED_PATTERNS = {

@@ -1,0 +1,475 @@
+# GENERATED PROJECT CONTEXT
+# base_dir: F:\@Seyfer\Proyectos\youtube_utilities
+# total_files: 4
+
+# PROJECT STRUCTURE
+
+apps
+  overlays
+    chronometer
+      core
+        timer.js
+      index.html
+      skins
+        stray.css
+        the_last_guardian.css
+
+# FILES
+
+================================================================================
+FILE: apps\overlays\chronometer\core\timer.js
+================================================================================
+class OverlayTimer {
+
+    constructor(display) {
+
+        this.display = display
+        this.time = 0
+        this.running = false
+        this.interval = null
+        this.splits = []
+
+    }
+
+    format() {
+
+        let h = Math.floor(this.time / 3600)
+        let m = Math.floor((this.time % 3600) / 60)
+        let s = this.time % 60
+
+        return (
+            String(h).padStart(2, '0') + ":" +
+            String(m).padStart(2, '0') + ":" +
+            String(s).padStart(2, '0')
+        )
+
+    }
+
+    update() {
+
+        this.time++
+        this.display.textContent = this.format()
+
+    }
+
+    start() {
+
+        if (this.running) return
+
+        this.running = true
+        this.interval = setInterval(() => this.update(), 1000)
+
+    }
+
+    pause() {
+
+        this.running = false
+        clearInterval(this.interval)
+
+    }
+
+    reset() {
+
+        this.pause()
+        this.time = 0
+        this.display.textContent = "00:00:00"
+        this.splits = []
+
+    }
+
+    split() {
+
+        this.splits.push(this.time)
+        spawnPaw()
+
+    }
+
+}
+
+const timer = new OverlayTimer(
+    document.getElementById("timer")
+)
+
+timer.start()
+
+window.overlayTimer = timer
+
+function spawnPaw() {
+
+    const layer = document.getElementById("paw-layer")
+
+    const paw = document.createElement("div")
+    paw.className = "paw"
+    paw.textContent = "🐾"
+
+    paw.style.left = (Math.random() * 80 + 10) + "%"
+
+    layer.appendChild(paw)
+
+    setTimeout(() => paw.remove(), 1500)
+
+}
+
+================================================================================
+FILE: apps\overlays\chronometer\index.html
+================================================================================
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="skins/stray.css" />
+    <!-- <link rel="stylesheet" href="skins/the_last_guardian.css" /> -->
+  </head>
+
+  <body
+    class="w-screen h-screen bg-transparent flex items-center justify-center overflow-hidden"
+  >
+    <div id="overlay-root">
+      <div id="hud">
+        <div id="target-lines"></div>
+
+        <div id="timer">00:00:00</div>
+
+        <div id="scanlines"></div>
+
+        <div id="paw-layer"></div>
+      </div>
+    </div>
+
+    <script src="core/timer.js"></script>
+  </body>
+</html>
+
+
+================================================================================
+FILE: apps\overlays\chronometer\skins\stray.css
+================================================================================
+#overlay-root {
+  width: 1920px;
+  height: 1080px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* HUD base */
+
+#hud {
+  position: relative;
+
+  padding: 30px 60px;
+
+  border: 2px solid rgba(255, 140, 60, 0.6);
+
+  background: rgba(0, 0, 0, 0.25);
+
+  box-shadow:
+    0 0 20px rgba(255, 140, 60, 0.5),
+    inset 0 0 20px rgba(255, 140, 60, 0.3);
+
+  backdrop-filter: blur(3px);
+}
+
+/* TIMER */
+
+#timer {
+  font-family: monospace;
+
+  font-size: 120px;
+
+  color: #ff8a2b;
+
+  letter-spacing: 8px;
+
+  text-shadow:
+    0 0 10px #ff8a2b,
+    0 0 25px #ff6a00;
+}
+
+/* TARGET LINES */
+
+#target-lines {
+  position: absolute;
+  inset: -20px;
+
+  pointer-events: none;
+}
+
+#target-lines::before,
+#target-lines::after {
+  content: "";
+
+  position: absolute;
+
+  width: 100%;
+  height: 100%;
+
+  border: 1px solid rgba(255, 140, 60, 0.25);
+
+  animation: targetPulse 3s infinite;
+}
+
+#target-lines::after {
+  inset: 10px;
+  animation-delay: 1.5s;
+}
+
+@keyframes targetPulse {
+  0% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.1;
+  }
+}
+
+/* HOLOGRAM SCANLINES */
+
+#scanlines {
+  position: absolute;
+  inset: 0;
+
+  background: repeating-linear-gradient(
+    transparent 0px,
+    transparent 2px,
+    rgba(255, 140, 60, 0.07) 3px
+  );
+
+  animation: scanMove 6s linear infinite;
+
+  pointer-events: none;
+}
+
+@keyframes scanMove {
+  from {
+    background-position-y: 0;
+  }
+  to {
+    background-position-y: 200px;
+  }
+}
+
+/* PAW SPLIT EFFECT */
+
+#paw-layer {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+}
+
+.paw {
+  position: absolute;
+
+  bottom: -10px;
+
+  font-size: 26px;
+
+  color: #ff8a2b;
+
+  animation: pawRise 1.5s ease forwards;
+}
+
+@keyframes pawRise {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.6);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(1);
+  }
+}
+
+
+================================================================================
+FILE: apps\overlays\chronometer\skins\the_last_guardian.css
+================================================================================
+#overlay-root {
+  width: 1920px;
+  height: 1080px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* HUD PRINCIPAL */
+
+#hud {
+  position: relative;
+
+  padding: 35px 70px;
+
+  background: rgba(10, 18, 22, 0.45);
+
+  border: 2px solid rgba(120, 210, 230, 0.35);
+
+  border-radius: 6px;
+
+  box-shadow:
+    0 0 30px rgba(120, 210, 230, 0.25),
+    inset 0 0 20px rgba(120, 210, 230, 0.15);
+
+  backdrop-filter: blur(3px);
+}
+
+/* TEXTURA ANTIGUA */
+
+#hud::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: radial-gradient(
+    circle at center,
+    rgba(160, 230, 255, 0.15),
+    transparent 70%
+  );
+
+  pointer-events: none;
+}
+
+/* TIMER */
+
+#timer {
+  font-family: serif;
+
+  font-size: 120px;
+
+  letter-spacing: 6px;
+
+  color: #b9f2ff;
+
+  text-shadow:
+    0 0 6px rgba(160, 240, 255, 0.7),
+    0 0 18px rgba(120, 210, 255, 0.6),
+    0 0 30px rgba(120, 210, 255, 0.4);
+}
+
+/* RUNIC ENERGY LINES */
+
+#target-lines {
+  position: absolute;
+
+  inset: -15px;
+
+  pointer-events: none;
+}
+
+#target-lines::before,
+#target-lines::after {
+  content: "";
+
+  position: absolute;
+
+  width: 100%;
+  height: 100%;
+
+  border: 1px solid rgba(140, 230, 255, 0.18);
+
+  animation: runePulse 6s ease-in-out infinite;
+}
+
+#target-lines::after {
+  inset: 8px;
+  animation-delay: 3s;
+}
+
+@keyframes runePulse {
+  0% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0.1;
+  }
+}
+
+/* ENERGÍA MÍSTICA SUAVE */
+
+#scanlines {
+  position: absolute;
+
+  inset: 0;
+
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(160, 240, 255, 0.12),
+    transparent 70%
+  );
+
+  animation: energyBreath 8s ease-in-out infinite;
+
+  pointer-events: none;
+}
+
+@keyframes energyBreath {
+  0% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+}
+
+/* EFECTO DE SPLIT (HUELLAS DE TRICO) */
+
+#paw-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.paw {
+  position: absolute;
+
+  bottom: -10px;
+
+  font-size: 28px;
+
+  color: #9feaff;
+
+  opacity: 0.85;
+
+  animation: spiritRise 1.6s ease forwards;
+}
+
+@keyframes spiritRise {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.7);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-90px) scale(1.1);
+  }
+}
+
+
