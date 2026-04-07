@@ -1,8 +1,7 @@
 class AFKOverlay {
 
-    constructor(duration = 5000) {
+    constructor() {
 
-        this.duration = duration
         this.running = false
 
     }
@@ -20,58 +19,59 @@ class AFKOverlay {
 
         if (!this.running) return
 
-        this.animateCycle()
+        spawnParticle()
 
-        setTimeout(() => {
-            this.loop()
-        }, this.duration)
-
-    }
-
-    animateCycle() {
-
-        const hg = document.getElementById("hourglass")
-
-        hg.classList.remove("flip")
-        void hg.offsetWidth
-        hg.classList.add("flip")
-
-        spawnParticles()
+        requestAnimationFrame(() => this.loop())
 
     }
 
     stop() {
-
         this.running = false
-
     }
 
 }
 
-const afk = new AFKOverlay(5000)
-
+const afk = new AFKOverlay()
 afk.start()
 
 window.afkOverlay = afk
 
 /* PARTICLES */
 
-function spawnParticles() {
+function spawnParticle() {
 
-    const container = document.getElementById("particles")
+    const container = document.getElementById("global-particles")
 
-    for (let i = 0; i < 6; i++) {
+    const p = document.createElement("div")
+    p.className = "particle"
 
-        const p = document.createElement("div")
-        p.className = "particle"
+    /* POSICIÓN INICIAL ALEATORIA */
+    p.style.left = Math.random() * 1920 + "px"
+    p.style.top = "1080px"
 
-        p.style.left = Math.random() * 100 + "%"
-        p.style.animationDelay = Math.random() + "s"
+    /* DESTINO ALEATORIO */
+    const endX = Math.random() * 1920
+    const duration = 3000 + Math.random() * 2000
 
-        container.appendChild(p)
+    p.animate([
+        {
+            transform: "translate(0,0)",
+            opacity: 0
+        },
+        {
+            opacity: 1
+        },
+        {
+            transform: `translate(${endX - parseFloat(p.style.left)}px,-1200px)`,
+            opacity: 0
+        }
+    ], {
+        duration: duration,
+        easing: "ease-out"
+    })
 
-        setTimeout(() => p.remove(), 2000)
+    container.appendChild(p)
 
-    }
+    setTimeout(() => p.remove(), duration)
 
 }

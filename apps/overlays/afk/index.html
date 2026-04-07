@@ -8,17 +8,30 @@
     <link rel="stylesheet" href="skins/deaths_door.css" />
   </head>
 
-  <body
-    class="w-screen h-screen bg-transparent flex items-center justify-center overflow-hidden"
-  >
+  <body class="bg-transparent overflow-hidden">
     <div id="overlay-root">
-      <div id="hourglass">
-        <div class="sand top"></div>
-        <div class="sand bottom"></div>
+      <!-- BACKDROP -->
+      <div id="afk-backdrop"></div>
 
-        <div class="frame"></div>
+      <!-- GLOBAL PARTICLES -->
+      <div id="global-particles"></div>
 
-        <div id="particles"></div>
+      <!-- CENTER HUD -->
+      <div id="afk-content">
+        <div id="sigil-container">
+          <svg viewBox="0 0 200 200" id="sigil">
+            <circle cx="100" cy="100" r="85" class="ring outer" />
+            <circle cx="100" cy="100" r="60" class="ring mid" />
+            <circle cx="100" cy="100" r="35" class="ring inner" />
+
+            <g class="runes">
+              <line x1="100" y1="5" x2="100" y2="45" />
+              <line x1="195" y1="100" x2="155" y2="100" />
+              <line x1="100" y1="195" x2="100" y2="155" />
+              <line x1="5" y1="100" x2="45" y2="100" />
+            </g>
+          </svg>
+        </div>
       </div>
     </div>
 
