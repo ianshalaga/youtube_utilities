@@ -1,0 +1,353 @@
+{
+    "saga": "Assassin's Creed",
+    "games": [
+        {
+            "title": "Assassin's Creed",
+            "release_date": "2007-11-13",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Assassin's Creed Original Game Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/assassins-creed"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/assassins-creed-ost"
+                    ]
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Assassin's Creed Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/assassins-creed-gamerip"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/assassins-creed-gamerip"
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Assassin's Creed II",
+            "release_date": "2009-11-17",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Assassin's Creed II Original Game Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/assassins-creed-ii"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/assassins-creed-ii-ost"
+                    ]
+                },
+                {
+                    "is_official": true,
+                    "type": "Compilation",
+                    "album": "Assassin's Creed II: Complete Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/assassins-creed-ii-complete"
+                    ],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Assassin's Creed II Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                }
+            ]
+        },
+        {
+            "title": "Assassin's Creed: Brotherhood",
+            "release_date": "2010-11-16",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Assassin's Creed Brotherhood Original Game Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/assassins-creed-brotherhood"
+                    ],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Assassin's Creed Brotherhood Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                }
+            ]
+        },
+        {
+            "title": "Assassin's Creed: Revelations",
+            "release_date": "2011-11-15",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Assassin's Creed Revelations Original Game Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/assassins-creed-revelations"
+                    ],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Assassin's Creed Revelations Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                }
+            ]
+        },
+        {
+            "title": "Assassin's Creed III",
+            "release_date": "2012-10-30",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Assassin's Creed III Original Game Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/assassins-creed-iii"
+                    ],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": true,
+                    "type": "Arrangement",
+                    "album": "Assassin's Creed III: The Complete Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Assassin's Creed III Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                }
+            ]
+        },
+        {
+            "title": "Assassin's Creed IV: Black Flag",
+            "release_date": "2013-10-29",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Assassin's Creed IV Black Flag Original Game Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/assassins-creed-iv-black-flag"
+                    ],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": true,
+                    "type": "Compilation",
+                    "album": "Assassin's Creed IV Black Flag Sea Shanty Edition",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Assassin's Creed IV Black Flag Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                }
+            ]
+        },
+        {
+            "title": "Assassin's Creed Unity",
+            "release_date": "2014-11-11",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Assassin's Creed Unity Original Game Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Assassin's Creed Unity Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                }
+            ]
+        },
+        {
+            "title": "Assassin's Creed Syndicate",
+            "release_date": "2015-10-23",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Assassin's Creed Syndicate Original Game Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Assassin's Creed Syndicate Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                }
+            ]
+        },
+        {
+            "title": "Assassin's Creed Origins",
+            "release_date": "2017-10-27",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Assassin's Creed Origins Original Game Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Assassin's Creed Origins Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                }
+            ]
+        },
+        {
+            "title": "Assassin's Creed Odyssey",
+            "release_date": "2018-10-05",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Assassin's Creed Odyssey Original Game Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Assassin's Creed Odyssey Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                }
+            ]
+        },
+        {
+            "title": "Assassin's Creed Valhalla",
+            "release_date": "2020-11-10",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Assassin's Creed Valhalla Original Game Soundtrack",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": true,
+                    "type": "Compilation",
+                    "album": "Assassin's Creed Valhalla: The Wave of Giants",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Assassin's Creed Valhalla Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [],
+                    "archive_candidates": []
+                }
+            ]
+        }
+    ]
+}

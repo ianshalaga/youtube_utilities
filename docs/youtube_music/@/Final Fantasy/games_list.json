@@ -1,0 +1,227 @@
+{
+    "saga": "Final Fantasy",
+    "games": [
+        {
+            "title": "Final Fantasy",
+            "release_date": "1987-12-18",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "All Sounds of Final Fantasy I・II",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/all-sounds-of-final-fantasy-i-ii",
+                        "https://downloads.khinsider.com/game-soundtracks/album/final-fantasy-i"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/all-sounds-of-final-fantasy-i-ii",
+                        "https://archive.org/details/final-fantasy-i-ost"
+                    ]
+                },
+                {
+                    "is_official": true,
+                    "type": "Arrangement",
+                    "album": "Final Fantasy I・II Re:Birth II - Tsuyoshi Sekito Arrange Album",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/final-fantasy-i-ii-rebirth-ii"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/final-fantasy-i-ii-rebirth-ii"
+                    ]
+                },
+                {
+                    "is_official": true,
+                    "type": "Piano",
+                    "album": "Piano Collections Final Fantasy I・II・III",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/piano-collections-final-fantasy-i-ii-iii"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/piano-collections-final-fantasy-i-ii-iii"
+                    ]
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Final Fantasy (NES) Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/final-fantasy-nes-gamerip"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/final-fantasy-nes-gamerip"
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Final Fantasy II",
+            "release_date": "1988-12-17",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "All Sounds of Final Fantasy I・II",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/all-sounds-of-final-fantasy-i-ii"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/all-sounds-of-final-fantasy-i-ii"
+                    ]
+                },
+                {
+                    "is_official": true,
+                    "type": "Arrangement",
+                    "album": "Final Fantasy I・II Re:Birth II - Tsuyoshi Sekito Arrange Album",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/final-fantasy-i-ii-rebirth-ii"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/final-fantasy-i-ii-rebirth-ii"
+                    ]
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Final Fantasy II (Famicom) Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/final-fantasy-ii-gamerip"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/final-fantasy-ii-gamerip"
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Final Fantasy III",
+            "release_date": "1990-04-27",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Final Fantasy III Original Sound Version",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/final-fantasy-iii-original-sound-version"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/final-fantasy-iii-ost"
+                    ]
+                },
+                {
+                    "is_official": true,
+                    "type": "Arrangement",
+                    "album": "Final Fantasy III Yūkyū no Kaze Densetsu",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/final-fantasy-iii-yuukyuu-no-kaze-densetsu"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/final-fantasy-iii-yuukyuu-no-kaze-densetsu"
+                    ]
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Final Fantasy III (Famicom) Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/final-fantasy-iii-gamerip"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/final-fantasy-iii-gamerip"
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Final Fantasy IV",
+            "release_date": "1991-07-19",
+            "albums": [
+                {
+                    "is_official": true,
+                    "type": "OST",
+                    "album": "Final Fantasy IV Original Sound Version",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/final-fantasy-iv-original-sound-version"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/final-fantasy-iv-ost"
+                    ]
+                },
+                {
+                    "is_official": true,
+                    "type": "Arrangement",
+                    "album": "Final Fantasy IV Celtic Moon",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/final-fantasy-iv-celtic-moon"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/final-fantasy-iv-celtic-moon"
+                    ]
+                },
+                {
+                    "is_official": true,
+                    "type": "Piano",
+                    "album": "Piano Collections Final Fantasy IV",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/piano-collections-final-fantasy-iv"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/piano-collections-final-fantasy-iv"
+                    ]
+                },
+                {
+                    "is_official": false,
+                    "type": "Gamerip",
+                    "album": "Final Fantasy IV (SNES) Gamerip",
+                    "vgmdb_url": null,
+                    "khinsider_url": null,
+                    "archive_url": null,
+                    "khinsider_candidates": [
+                        "https://downloads.khinsider.com/game-soundtracks/album/final-fantasy-iv-gamerip"
+                    ],
+                    "archive_candidates": [
+                        "https://archive.org/details/final-fantasy-iv-gamerip"
+                    ]
+                }
+            ]
+        }
+    ]
+}

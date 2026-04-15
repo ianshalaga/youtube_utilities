@@ -1,0 +1,156 @@
+ICO ~Melody in the Mist~
+
+00:00:00 001 - prologue [Pre-main menu cutscene]
+00:00:36 002 - coffin [Introduction movie]
+00:02:10 003 - impression [Cutscene where Ico discovers Yorda in the cage]
+00:02:42 004 - Castle in the Mist [Trailer that plays while idle in the main menu, Credits]
+00:05:49 005 - beginning [Leaving the Altar area for the first time]
+00:07:16 006 - Who are you? [Cutscene where Yorda is freed from the cage]
+00:08:14 007 - darkness [Shadows appear]
+00:09:31 008 - heal [Saving the game]
+00:11:12 009 - The Gate [First cutscene at the Main Gate]
+00:11:51 010 - Queen [First cutscene at the Main Gate before the Queen battle]
+00:13:35 011 - continue [Continue screen music]
+00:15:03 012 - déjà vu [Ico's dream while unconscious]
+00:15:56 013 - Shadow [Fighting the horned children shadows]
+00:17:30 014 - Entity [Queen battle]
+00:19:41 015 - collapse [Ending cutscene]
+00:21:23 016 - ICO -You were there- [Credits]
+
+ICO - Perfect Music Files -
+
+00:25:51 017 - cave
+00:26:57 018 - sword
+00:27:33 019 - cage
+00:27:49 020 - hold hands
+00:28:07 021 - open I
+00:28:20 022 - open II
+00:28:32 023 - stairway I
+00:28:52 024 - open III
+00:29:09 025 - open IV
+00:29:24 026 - open V
+00:29:35 027 - reflector I
+00:29:51 028 - open VI
+00:30:21 029 - reflector II
+00:30:34 030 - reflector III
+00:30:50 031 - reflector IV
+00:31:23 032 - bridge I
+00:32:28 033 - bridge II
+00:33:07 034 - bridge III
+00:33:35 035 - falling down (nonomori)
+00:34:04 036 - impression (reprise) [ICO, Arranged]
+00:34:23 037 - reunion
+00:34:36 038 - stairway II
+00:34:52 039 - Queen (reprise) [ICO, Shotened]
+00:35:48 040 - ICO -You were there- (re-recording version) [ICO, Arranged]
+00:40:16 041 - Castle in the Mist (re-recording version) [ICO, Arranged]
+
+ICO Respect Arrange Album
+
+00:43:22 042 - Intro (Original)
+00:44:35 043 - Misty Wish -Hope in the castle- (Castle in the Mist, ICO, Arranged)
+00:48:50 044 - Not Continue (continue, ICO, Arranged)
+00:53:30 045 - Roots (beginning, ICO, Arranged)
+00:59:19 046 - Heal Me (heal, ICO, Arranged)
+01:04:12 047 - E (darkness, ICO, Arranged)
+01:10:26 048 - Opium Shop (heal, collapse, Castle in the Mist, ICO, Arranged)
+01:16:05 049 - I Wish You Sweet Dream (heal, ICO, Arranged)
+01:22:13 050 - We Were There -Remix- (ICO -You were there-, ICO, Arranged)
+01:24:55 051 - Outro (Original)
+
+Shadow of the Colossus OST: Roar of the Earth
+
+01:26:30 052 - Prologue -To the Ancient Land- [Intro]
+01:29:56 053 - Forbidden Arts [Intro, Ending]
+01:31:49 054 - Law [Intro, Emon and his men after defeating Colossus XII]
+01:33:43 055 - Black Blood [Intro, Colossus VIII, Ending]
+01:35:46 056 - Resurrection [Intro, Colossus I, Agro sacrifices, Ending]
+01:37:40 057 - Sign of the Colossus [Colossi: I, II & VI]
+01:39:32 058 - Grotesque Figures -Battle with the Colossus- [Colossi: I & VI]
+01:41:37 059 - A Path Opened -Battle with the Colossus- [Colossi: I, III, IV & XV]
+01:43:34 060 - End of the Battle [Death of a colossus, Ending]
+01:45:16 061 - Collapsing Idol [Idol collapses after defeating a colossus]
+01:45:50 062 - Verdant Hills [Colossus IV]
+01:46:23 063 - Violent Encounter -Battle with the Colossus- [Colossi: II & IX]
+01:48:20 064 - Revived Power -Battle with the Colossus- [Colossi: II, VI & IX]
+01:50:38 065 - Lakeside [Colossi: III & VII]
+01:51:04 066 - Silence -Battle Against the Colossus- [Colossi: V, VII & XIII]
+01:52:53 067 - In Awe of Power -Battle with the Colossus- [Colossi: III, VII, XII & XIII]
+01:55:05 068 - Wander's Death [Game over]
+01:55:51 069 - End of the Land [Agro idle screen, kite idle screen (NTSC)]
+01:59:14 070 - Shadows Creeping -Battle with the Colossus- [Colossi: IV & XII]
+02:01:01 071 - A Herald from Behind -Battle with the Colossus- [Colossus X]
+02:02:53 072 - Counterattack -Battle with the Colossus- [Colossi: X & XIII]
+02:04:57 073 - Sky Burial [Kite idle screen (PAL)]
+02:06:42 074 - Sealed City [Colossus XIV]
+02:07:12 075 - Guardian Unleashed -Battle with the Colossus- [Colossi: VIII, XI & XIV]
+02:09:19 076 - Farewell to Despair -Battle with the Colossus- [Colossi: V, VIII, XI & XIV]
+02:11:32 077 - Prayer [Colossus VIII, Ending]
+02:13:23 078 - Swift Hooves [Results screen (PAL)]
+02:15:08 079 - Warden of the Ruins -Battle with the Colossus- [Colossus XV]
+02:17:11 080 - Holy Ground [Colossus XVI, Ending]
+02:17:43 081 - Ritual's Conclusion -Battle with the Colossus- [Colossus XVI, Dormin mode]
+02:20:03 082 - Pursuers [Ending]
+02:20:33 083 - Augury of Rebirth [First idol collapses, Ending]
+02:21:23 084 - Epilogue -Those Who Remain- [Ending]
+02:28:32 085 - Hope [Ending]
+02:30:42 086 - Sun-Blessed Lands [Ending]
+02:32:13 087 - Memory [Gallery menu in Extras (PAL)]
+02:33:34 088 - Wasteland [Not heard in-game]
+02:34:02 089 - Voice of the Earth [Not heard in-game]
+02:34:29 090 - Marsh [Not heard in-game]
+02:34:59 091 - Rage [Not heard in-game]
+02:36:51 092 - Final Battle [Not heard in-game]
+02:38:45 093 - End of the Land (Reprise) [Not heard in-game]
+
+Shadow of the Colossus OST (2018)
+
+02:42:06 094 - Medley - Prayer & Hope
+
+Music 4Gamer #2 "Shadow of the Colossus" Piano & Orchestra Concert
+
+02:44:59 095 - Prologue / Forbidden Arts / Law / Black Blood / Resurrection
+02:53:04 096 - Violent Encounter -Battle With the Colossus- / Revived power -Battle With the Colossus-
+02:56:43 097 - Lakeside
+02:58:51 098 - Shadows Creeping -Battle With the Colossus-
+03:02:13 099 - Prayer
+03:03:53 100 - Wander's Death
+03:06:16 101 - Prologue / Forbidden Arts / Law / Black Blood / Resurrection
+03:18:23 102 - Sign Of The Colossus / Grotesque Figures -Battle With the Colossus- / A Path Opened -Battle With the Colossus- / End of the battle / Collapsing Idol
+03:25:12 103 - Violent Encounter -Battle With the Colossus- / Revived power -Battle With the Colossus- / Silence -Battle With the Colossus- / In Awe of Power -Battle With the Colossus-
+03:32:39 104 - End Of The Land
+03:36:28 105 - A Herald from Behind -Battle With the Colossus- / Counterattack -Battle With the Colossus- / Sky Burial / Guardian Unleashed -Battle With the Colossus- / Farewell to Despair -Battle With the Colossus- / Swift Hooves
+03:49:12 106 - Ritual's Conclusion -Battle With the Colossus- / Warden Of The Ruins / Warden of the Ruins -Battle With the Colossus-
+04:00:08 107 - Hope / Sun
+04:04:10 108 - Violent Encounter -Battle With the Colossus- / Revived power -Battle With the Colossus-
+
+Shadow of the Colossus: Gamerip Tracks
+
+04:07:30 109 - Violent Encounter -Battle with the Colossus- (SotC, Arranged) [Colossus XVI beta]
+
+The Last Guardian OST
+
+04:09:01 110 - Overture: Lore
+04:12:07 111 - Panorama
+04:12:45 112 - Forest
+04:14:51 113 - Sentinel I
+04:17:43 114 - The Tower
+04:18:35 115 - Falling Bridge
+04:22:16 116 - Hanging Gardens
+04:24:39 117 - Sentinel II
+04:27:11 118 - Victorious
+04:29:38 119 - Alone
+04:31:35 120 - The Nest
+04:34:59 121 - Flashback
+04:38:31 122 - Sanctuary
+04:41:05 123 - Condor Clash
+04:45:31 124 - Wounded
+04:48:39 125 - Finale I: Apex
+04:55:07 126 - Finale II: Escape
+05:01:47 127 - End Titles: The Last Guardian Suite
+05:09:37 128 - Epilogue
+05:11:28 129 - Homeward
+05:12:31 130 - The Cage
+05:13:16 131 - Vanquished
+05:14:31 132 - Mirrors
+05:15:00 133 - Courtyard

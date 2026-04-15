@@ -1,0 +1,41 @@
+00:00:00 01 Cool Down
+00:01:26 02 The Way you Compute Tonight
+00:02:16 03 Step on my Shard
+00:03:51 04 Tomorrows
+00:05:02 05 Sterilize
+00:07:06 06 Safe Mode
+00:08:07 07 Velocity Regression
+00:10:35 08 Docking Ring
+00:12:35 09 The Kindness of Strangers
+00:14:22 10 Refresh
+00:15:39 11 Eliza
+00:17:20 12 Critical Systems
+00:18:43 13 Petite valse (busker version)
+00:19:21 14 Ballad of the Lonely Robot (busker version)
+00:20:04 15 untitled (busker version)
+00:20:24 16 The Way you Compute Tonight (busker version)
+00:21:13 17 Tomorrows (busker version)
+00:21:59 18 Cool down (busker version)
+00:23:14 19 Mildly Important Information (busker version)
+00:23:41 20 (unreadable music) (busker version)
+00:24:10 21 A Sphere of Blue Light on a Marble Floor with Waves Coming from Every Direction
+00:27:55 22 Uwazumosurikae
+00:30:46 23 Bushido Calculus
+00:32:28 24 Ominous Music
+00:36:05 25 Loud Music
+00:38:45 26 Radio Edit (radio edit)
+00:40:09 27 Computational Song
+00:42:21 28 Error-22
+00:44:30 29 Pressure Suit
+00:47:05 30 Suitcase
+00:49:18 31 Sound of Something Falling
+00:50:17 32 Placeholder World
+00:51:32 33 I am a Satellite
+00:52:31 34 Static Sleep Loop
+00:53:36 35 Binary Sunset
+00:55:47 36 LDF_OF
+00:59:20 37 Baby Download
+01:02:44 38 Self-Destruct Sequence Initiated
+01:04:04 39 Default Club Sound
+01:07:20 40 Ugly Megamix
+01:16:13 41 Dummy Code Segment (see below)

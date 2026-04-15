@@ -1,0 +1,46 @@
+00:00 01 Opening
+01:18 02 How to Play
+03:56 03 Mode Select
+06:03 04 Character Select
+06:34 05 Character Data
+07:13 06 Challenger Appears - 1P Game
+07:20 07 Peach's Castle [Super Mario Bros.]
+10:15 08 Kongo Jungle [Donkey Kong Country]
+15:40 09 Hyrule Castle [The Legend of Zelda]
+17:08 10 Planet Zebes [Metroid]
+19:10 11 Yoshi's Island [Yoshi's Story]
+21:06 12 Dream Land [Kirby Super Star]
+23:21 13 Sector Z [Star Fox 64]
+25:21 14 Saffron City [Pokémon Red, Green & Blue]
+27:08 15 Mushroom Kingdom (30 Seconds Left)
+28:24 16 Stage Results
+28:31 17 Bonus Stage
+29:47 18 Bonus Results
+29:53 19 Bonus Fail
+30:00 20 Meta Crystal
+32:19 21 Duel Zone
+33:57 22 Challenger Appears - Master Hand
+34:07 23 Master Hand
+34:25 24 Final Destination
+36:52 25 Final Results
+37:49 26 Ending
+38:03 27 Staff Roll
+40:15 28 Challenger Appears
+40:21 29 Unlock
+40:35 30 Training Mode
+45:23 31 P Stage
+45:28 32 Victory! [Super Mario Bros.]
+45:37 33 Victory! [DK]
+45:47 34 Victory! [Link]
+45:57 35 Victory! [Samus]
+46:05 36 Victory! [Yoshi]
+46:16 37 Victory! [Kirby]
+46:23 38 Victory! [Fox]
+46:32 39 Victory! [Pokémon]
+46:42 40 Victory! [Ness]
+46:52 41 Victory! [Captain Falcon]
+47:00 42 vs. Results
+48:17 43 Continue
+48:25 44 Game Over
+48:35 45 Star Power
+48:54 46 Fanfare (Unused)

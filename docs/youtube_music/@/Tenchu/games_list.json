@@ -1,0 +1,158 @@
+{
+    "Tenchu: Stealth Assassins (1998)": [
+        {
+            "album": "Tenchu SOUNDTRACK",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": "https://vgmdb.net/album/1206",
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/tenchu-stealth-assassins"
+            ],
+            "archive_candidates": [
+                "https://archive.org/details/tenchu-ost"
+            ]
+        }
+    ],
+    "Tenchu 2: Birth of the Stealth Assassins (2000)": [
+        {
+            "album": "Tenchu 2 Original Soundtrack",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/tenchu-2"
+            ],
+            "archive_candidates": [
+                "https://archive.org/details/tenchu-2-ost"
+            ]
+        }
+    ],
+    "Tenchu: Wrath of Heaven (2003)": [
+        {
+            "album": "Tenchu 3 Original Soundtrack",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/tenchu-3"
+            ],
+            "archive_candidates": []
+        }
+    ],
+    "Tenchu: Fatal Shadows (2004)": [
+        {
+            "album": "Tenchu Kurenai Original Soundtrack",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/tenchu-kurenai"
+            ],
+            "archive_candidates": []
+        }
+    ],
+    "Tenchu: Time of the Assassins (2005)": [
+        {
+            "album": "Tenchu Shinobi Taizen Soundtrack",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/tenchu-time-of-the-assassins"
+            ],
+            "archive_candidates": []
+        }
+    ],
+    "Tenchu: Dark Secret (2006)": [
+        {
+            "album": "Tenchu Dark Secret Soundtrack",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/tenchu-dark-secret"
+            ],
+            "archive_candidates": []
+        }
+    ],
+    "Tenchu Z (2006)": [
+        {
+            "album": "Tenchu Senran Original Soundtrack",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/tenchu-z"
+            ],
+            "archive_candidates": []
+        }
+    ],
+    "Tenchu: Shadow Assassins (2008)": [
+        {
+            "album": "Tenchu 4 Original Soundtrack",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": "https://vgmdb.net/album/10291",
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/tenchu-4"
+            ],
+            "archive_candidates": [
+                "https://archive.org/details/tenchu-4-ost"
+            ]
+        }
+    ],
+    "Shinobido: Way of the Ninja (2005)": [
+        {
+            "album": "Shinobido Original Soundtrack",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/shinobido"
+            ],
+            "archive_candidates": [
+                "https://archive.org/details/shinobido-ost"
+            ]
+        }
+    ],
+    "Shinobido: Tales of the Ninja (2006)": [
+        {
+            "album": "Shinobido Tales of the Ninja Soundtrack",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/shinobido-tales"
+            ],
+            "archive_candidates": []
+        }
+    ],
+    "Shinobido 2: Revenge of Zen (2011)": [
+        {
+            "album": "Shinobido 2 Original Soundtrack",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/shinobido-2"
+            ],
+            "archive_candidates": [
+                "https://archive.org/details/shinobido-2-ost"
+            ]
+        }
+    ],
+    "Sekiro: Shadows Die Twice (2019)": [
+        {
+            "album": "Sekiro: Shadows Die Twice Original Soundtrack",
+            "khinsider_url": null,
+            "archive_url": null,
+            "vgmdb_url": "https://vgmdb.net/album/93488",
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/sekiro-shadows-die-twice"
+            ],
+            "archive_candidates": [
+                "https://archive.org/details/sekiro-ost"
+            ]
+        }
+    ]
+}

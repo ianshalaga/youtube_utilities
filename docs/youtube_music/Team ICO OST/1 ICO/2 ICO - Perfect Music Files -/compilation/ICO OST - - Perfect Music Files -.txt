@@ -1,0 +1,41 @@
+00:00:00 01 - prologue [Pre-main menu cutscene]
+00:00:36 02 - cave
+00:01:42 03 - sword
+00:02:18 04 - coffin [Introduction movie]
+00:03:52 05 - déjà vu [Ico's dream while unconscious]
+00:04:45 06 - impression [Cutscene where Ico discovers Yorda in the cage]
+00:05:17 07 - cage
+00:05:33 08 - Who are you? [Cutscene where Yorda is freed from the cage]
+00:06:31 09 - hold hands
+00:06:49 10 - open I
+00:07:02 11 - beginning [Leaving the Altar area for the first time]
+00:08:29 12 - heal [Saving the game]
+00:10:10 13 - open II
+00:10:22 14 - darkness [Shadows appear]
+00:11:39 15 - stairway I
+00:11:59 16 - The Gate [First cutscene at the Main Gate]
+00:12:38 17 - Queen [First cutscene at the Main Gate before the Queen battle]
+00:14:22 18 - continue [Continue screen music]
+00:15:50 19 - open III
+00:16:07 20 - open IV
+00:16:22 21 - open V
+00:16:33 22 - reflector I
+00:16:49 23 - open VI
+00:17:19 24 - reflector II
+00:17:32 25 - reflector III
+00:17:48 26 - reflector IV
+00:18:21 27 - bridge I
+00:19:26 28 - bridge II
+00:20:05 29 - bridge III
+00:20:33 30 - falling down (nonomori)
+00:21:02 31 - impression (reprise) [ICO, Arranged]
+00:21:21 32 - reunion
+00:21:34 33 - Shadow [Fighting the horned children shadows]
+00:23:08 34 - stairway II
+00:23:24 35 - Queen (reprise) [ICO, Shotened]
+00:24:20 36 - Entity [Queen battle]
+00:26:31 37 - collapse [Ending cutscene]
+00:28:13 38 - ICO -You were there- [Credits]
+00:32:41 39 - Castle in the Mist [Trailer that plays while idle in the main menu, Credits]
+00:35:48 40 - ICO -You were there- (re-recording version) [ICO, Arranged]
+00:40:16 41 - Castle in the Mist (re-recording version) [ICO, Arranged]

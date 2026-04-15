@@ -1,0 +1,12 @@
+Marcas de tiempo:
+00:00:00 01 - Broken Destiny [Opening]
+00:01:21 02 - Battle Cry [Main Menu]
+00:03:12 03 - One's Mark in History [Character Select Screen]
+00:04:48 04 - Afterglow, a Silent Prayer (Immaculate Pledge, SCIV, Arranged) [Sophitia Stage BGM, Thesmophoros' Imperial Garden: Sunset]
+00:08:33 05 - To the Wind (SCIV, Arranged) [Talim & Rock Stage BGM, Sleeping Marsh]
+00:10:33 06 - Destiny Will Tell (SCIV, Arranged) [Nightmare Stage BGM, Tower of Remembrance: Omen]
+00:14:25 07 - Innocent Vision (SCIV, Arranged) [Setsuka, Mitsurugi & Yoshimitsu Stage BGM, Jyurakudai Villa: Twill Damask and Brocade]
+00:17:44 08 - Halcyon Harbor (SCIV, Arranged) [Maxi, Seong Mi-na & Cervantes Stage BGM, Sailor's Rest: Twilight]
+00:21:16 09 - Midnight Mystique [Dampierre Stage BGM, Voiceless Volpe Bridge (Hushed Volpe Bridge)]
+00:23:57 10 - Who's Stepped on Her Tail [Some The Gauntlet events BGM]
+00:25:59 11 - The Isle of Creation [Kratos Stage BGM, Challenge of the Gods]

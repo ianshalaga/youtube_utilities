@@ -1,0 +1,52 @@
+00:00:00 01 Opening Select Screen
+00:00:12 02 D.N.A Select Screen
+00:00:23 03 Solomon's Temple
+00:00:30 04 Spill the Beans
+00:00:40 05 The Creed
+00:00:51 06 Knives Out
+00:01:03 07 Masyaf
+00:01:13 08 Masyaf | Fight Or Flight | Yellow Belly
+00:01:24 09 Masyaf | Fight Or Flight | Red in the Face
+00:01:34 10 Masyaf | Under Siege | Part 1
+00:01:45 11 Masyaf | Under Siege | Part 2
+00:01:56 12 Masyaf | Under Siege | Part 3
+00:02:07 13 Masyaf | Under Siege | Part 4
+00:02:19 14 Office Space
+00:02:32 15 Kingdom 1
+00:02:43 16 Kingdom 2
+00:05:45 17 Masyaf Horse Ride
+00:09:45 18 Damascus
+00:11:15 19 Assassin's H.Q.
+00:15:50 20 Good Job
+00:16:14 21 Dirty Deeds | Damascus
+00:20:55 22 Damascus | Fight Or Flight | Yellow Belly
+00:24:56 23 Damascus | Fight Or Flight | Red in the Face
+00:29:23 24 Tamir
+00:34:59 25 Damascus | Horse Ride
+00:39:29 26 Acre
+00:41:00 27 Dirty Deeds | Acre
+00:45:27 28 Acre | Fight or Flight | Yellow Belly
+00:49:46 29 Acre | Fight or Flight | Red in the Face
+00:53:37 30 Garn'er De Napouse
+01:04:14 31 Acre | Horse Ride
+01:07:58 32 Jerusalem
+01:11:08 33 Dirty Deeds | Jerusalem
+01:13:56 34 Jerusalem | Fight or Flight | Yellow Belly
+01:17:21 35 Jerusalem | Fight or Flight | Red in the Face
+01:21:01 36 Ta'al
+01:27:45 37 Jerusalem | Horse Ride
+01:32:41 38 Abul Nuqoud
+01:40:06 39 William
+01:47:50 40 Majd Addin
+01:53:52 41 Sibrand
+02:03:07 42 Juban Al Hakim
+02:09:34 43 Arsuf
+02:11:50 44 Robert De Sable
+02:14:04 45 Return to Masyaf | Part 1
+02:21:02 46 Return to Masyaf | Part 2
+02:24:54 47 Return to Masyaf | Part 3
+02:27:42 48 Return to Masyaf | Part 4
+02:28:15 49 Access the Animus | Part 1 | Red in the Face
+02:32:50 50 Access the Animus | Part 2 | Yellow Belly
+02:38:04 51 Access the Animus | Part 3 | On High Alert
+02:43:30 52 Golden Globe

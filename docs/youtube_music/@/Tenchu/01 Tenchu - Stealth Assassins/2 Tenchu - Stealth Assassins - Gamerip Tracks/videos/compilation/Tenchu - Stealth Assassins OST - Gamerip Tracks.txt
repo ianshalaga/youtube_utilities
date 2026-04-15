@@ -1,0 +1,12 @@
+00:00 01 Activision Logo
+00:17 02 Sony Music Entertainment (Japan) Inc. logo
+00:29 03 Title Screen
+00:47 04 Character Selection
+01:45 05 Training Course (Stage 0)
+04:31 06 Cross the Checkpoint (Stage 4)
+09:04 07 Execute the Corrupt Minister (Stage 5)
+14:14 08 Crisis 2 (Foreign Pirate)
+16:20 09 Crisis 3 (Onikage)
+19:50 10 Crisis 4 (Mei-Oh)
+22:45 11 Mission Failed
+23:13 12 Mission Complete

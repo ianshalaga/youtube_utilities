@@ -1,0 +1,158 @@
+{
+    "Bloody Roar (1997)": [
+        {
+            "is_official": true,
+            "type": "OST",
+            "album": "Bloody Roar Original Soundtrack",
+            "vgmdb_url": "https://vgmdb.net/album/2085",
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar"
+            ],
+            "archive_candidates": []
+        },
+        {
+            "is_official": false,
+            "type": "Gamerip",
+            "album": "Bloody Roar (PlayStation Gamerip)",
+            "vgmdb_url": null,
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar-ps1"
+            ],
+            "archive_candidates": []
+        }
+    ],
+    "Bloody Roar 2 (1998)": [
+        {
+            "is_official": true,
+            "type": "OST",
+            "album": "Bloody Roar 2 Original Soundtrack",
+            "vgmdb_url": "https://vgmdb.net/album/2086",
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar-2"
+            ],
+            "archive_candidates": []
+        },
+        {
+            "is_official": false,
+            "type": "Gamerip",
+            "album": "Bloody Roar 2 (PlayStation Gamerip)",
+            "vgmdb_url": null,
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar-2-ps1"
+            ],
+            "archive_candidates": []
+        }
+    ],
+    "Bloody Roar 3 (2000)": [
+        {
+            "is_official": true,
+            "type": "OST",
+            "album": "Bloody Roar 3 Original Soundtrack",
+            "vgmdb_url": "https://vgmdb.net/album/2087",
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar-3"
+            ],
+            "archive_candidates": []
+        },
+        {
+            "is_official": false,
+            "type": "Gamerip",
+            "album": "Bloody Roar 3 (PlayStation 2 Gamerip)",
+            "vgmdb_url": null,
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar-3-ps2"
+            ],
+            "archive_candidates": []
+        }
+    ],
+    "Bloody Roar Primal Fury (2002)": [
+        {
+            "is_official": true,
+            "type": "OST",
+            "album": "Bloody Roar Primal Fury Original Soundtrack",
+            "vgmdb_url": null,
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar-primal-fury"
+            ],
+            "archive_candidates": []
+        },
+        {
+            "is_official": false,
+            "type": "Gamerip",
+            "album": "Bloody Roar Primal Fury (GameCube Gamerip)",
+            "vgmdb_url": null,
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar-primal-fury-gamecube"
+            ],
+            "archive_candidates": []
+        }
+    ],
+    "Bloody Roar Extreme (2002)": [
+        {
+            "is_official": true,
+            "type": "OST",
+            "album": "Bloody Roar Extreme Original Soundtrack",
+            "vgmdb_url": null,
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar-extreme"
+            ],
+            "archive_candidates": []
+        },
+        {
+            "is_official": false,
+            "type": "Gamerip",
+            "album": "Bloody Roar Extreme (Xbox Gamerip)",
+            "vgmdb_url": null,
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar-extreme-xbox"
+            ],
+            "archive_candidates": []
+        }
+    ],
+    "Bloody Roar 4 (2003)": [
+        {
+            "is_official": true,
+            "type": "OST",
+            "album": "Bloody Roar 4 Original Soundtrack",
+            "vgmdb_url": null,
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar-4"
+            ],
+            "archive_candidates": []
+        },
+        {
+            "is_official": false,
+            "type": "Gamerip",
+            "album": "Bloody Roar 4 (PlayStation 2 Gamerip)",
+            "vgmdb_url": null,
+            "khinsider_url": null,
+            "archive_url": null,
+            "khinsider_candidates": [
+                "https://downloads.khinsider.com/game-soundtracks/album/bloody-roar-4-ps2"
+            ],
+            "archive_candidates": []
+        }
+    ]
+}

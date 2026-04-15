@@ -42,9 +42,9 @@
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/@/A Plague Tale/2 A Plague Tale - Requiem/1 OST/@",
+      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/@/A Plague Tale/2 A Plague Tale - Requiem/2 Deluxe Edition/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "A Plague Tale - Requiem OST",
+      "default_video_name": "A Plague Tale - Requiem OST - Deluxe Edition",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,

@@ -1,0 +1,35 @@
+00:00:00 01 Bridge of Spirits
+00:00:18 02 Befriending Spirits
+00:02:41 03 I Know Your Kind
+00:03:56 04 Sprout
+00:06:18 05 Village
+00:10:03 06 Hat Cart
+00:12:33 07 Kurulung
+00:14:24 08 Ascending the Mountain
+00:16:27 09 Rusu's Counsel
+00:19:23 10 Wood Knight
+00:21:48 11 Kotekan
+00:23:58 12 Angin Kaulu II
+00:25:28 13 Clearing the Path
+00:28:00 14 Shrine Guardian
+00:31:56 15 Summoning Taro
+00:33:20 16 Corrupt Taro
+00:39:40 17 Taro's Spirit Dive
+00:45:25 18 Storehouse
+00:46:54 19 Adira's Mask
+00:47:42 20 The Ancient Well
+00:50:28 21 Stone Guardian
+00:53:43 22 A Corrupted Heart
+00:56:58 23 Corrupt Woodsmith
+01:00:46 24 Adira's Spirit Dive
+01:06:07 25 Kena's Spirit Dive
+01:11:39 26 Mask Maker Path
+01:14:11 27 Mask Maker
+01:21:04 28 Warrior Path
+01:23:35 29 The Hunter Approaches
+01:24:14 30 Toshi's Regret
+01:25:00 31 Summoning Toshi
+01:26:05 32 Corrupt Toshi
+01:27:40 33 Corrupt Rot God
+01:35:51 34 Toshi's Spirit Dive
+01:42:39 35 Mountain Shrine
