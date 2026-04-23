@@ -36,15 +36,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/A Plague Tale/2 A Plague Tale - Requiem/video3.mp4",
-      "default_audios_dir": "F:/DESCARGAS/Música/YouTube/@/A Plague Tale/2 A Plague Tale - Requiem/2 Deluxe Edition",
+      "default_video_path": "E:/Proyectos/games/Destiny/1 Destiny/2 Destiny OST/video.mp4",
+      "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Destiny/1 Destiny/2 Destiny OST",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/Música/YouTube/@/A Plague Tale/2 A Plague Tale - Requiem/2 Deluxe Edition/videos",
+      "default_videos_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Destiny/1 Destiny/2 Destiny OST/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "A Plague Tale - Requiem OST - Deluxe Edition",
+      "default_video_name": "Destiny OST",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,
