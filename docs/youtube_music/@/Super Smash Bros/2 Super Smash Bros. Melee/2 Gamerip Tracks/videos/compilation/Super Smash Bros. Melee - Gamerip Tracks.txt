@@ -1,0 +1,88 @@
+00:00:00 01 Opening
+00:01:34 02 Announcer - Super Smash Bros. Melee
+00:01:41 03 Menu 1
+00:03:38 04 How to Play
+00:05:23 05 Menu 2
+00:07:30 06 Princess Peach's Castle (Ground - Underground Theme - Super Mario Bros.)
+00:10:17 07 Rainbow Cruise (Slider - Super Mario 64 - Underwater Theme - Super Mario Bros.)
+00:13:18 08 Kongo Jungle (DK Rap - Donkey Kong 64)
+00:20:20 09 Jungle Japes (DK Island Swing - Donkey Kong Country)
+00:26:29 10 Great Bay (Overworld Theme - The Legend of Zelda)
+00:28:00 11 Hyrule Temple (Temple - Zelda II - Adventure of Link)
+00:30:59 12 Brinstar (Brinstar - Entrance Fanfare - Title - Metroid)
+00:36:42 13 Brinstar Depths (Kraid's Lair - Secret Area - Metroid)
+00:41:34 14 Yoshi's Story (Yoshi's Song - Yoshi's Story)
+00:45:28 15 Yoshi's Island (Athletic Theme - Super Mario World)
+00:47:09 16 Green Greens (Green Greens - Kirby's Dream Land - Kirby's Triumphant Return - Kirby Super Star)
+00:50:27 17 Fountain of Dreams (Gourmet Race - Kirby Super Star)
+00:55:50 18 Corneria (Venom Level 1 - 3 - Map - Space Armada - Star Fox)
+00:58:05 19 Venom (Main Theme - Star Fox 64)
+01:00:09 20 Pokémon Stadium (Main Theme - Pokemon Red - Blue)
+01:02:04 21 Poké Floats (Trainer Battle - Gym Leader Battle - Wild Pokemon - Pokemon Red - Blue))
+01:06:56 22 Mute City (Endless Challenge - F-Zero X)
+01:10:26 23 Big Blue (Decide in the Eyes - F-Zero X)
+01:14:23 24 Mother (Bein' Friends - Eight Melodies - Title - Battle Fanfare - EarthBound Beginnings)
+01:18:15 25 EarthBound (The Metropolis of Fourside - Dangerous Caves - Eight Melodies - EarthBound)
+01:22:09 26 Mushroom Kingdom (Overworld - Super Mario Bros.)
+01:25:16 27 Mushroom Kingdom Finale
+01:26:38 28 Mushroom Kingdom II (Overworld - Super Mario Bros. 2)
+01:28:18 29 Mushroom Kingdom II Finale
+01:28:49 30 Icicle Mountain (Title - Stage - Ice Climber)
+01:32:24 31 Flat Zone
+01:36:03 32 Kongo Jungle N64 (DK Island Swing - Donkey Kong Country)
+01:41:28 33 Yoshi's Island N64 (Yoshi's Song - Yoshi's Story)
+01:43:30 34 Dream Land N64 (Gourmet Race - Kirby Super Star)
+01:45:53 35 Super Mario Bros. 3 (Overworld - Grass Land - Super Mario Bros. 3)
+01:49:12 36 Saria's Song (Saria's Song - The Legend of Zelda - Ocarina of Time)
+01:50:30 37 Pokémon Battle! (Wild Pokemon - Red Battle - Pokemon Gold - Silver)
+01:53:44 38 Fire Emblem (Story 5 Meeting - Main Theme - Fire Emblem)
+01:57:53 39 Mach Rider (Title - Game Start - Map - Stage BGM - Mach Rider)
+02:02:04 40 Mother 2 (Polyanna (I Believe in You) - EarthBound Beginnings)
+02:08:08 41 Dr. Mario (Fever - Dr. Mario)
+02:10:42 42 Balloon Fight (Balloon Trip - Balloon Fight)
+02:12:42 43 Metal Battle
+02:14:40 44 Battlefield
+02:17:32 45 Final Destination
+02:20:36 46 Ending
+02:20:43 47 Adventure Intro
+02:20:51 48 Classic Intro
+02:20:55 49 Break the Targets
+02:22:23 50 Multi-Man Melee 1
+02:25:42 51 Multi-Man Melee 2
+02:28:49 52 All-Star Rest Area (Save Hut - Kirby Super Star)
+02:29:51 53 Tournament 1
+02:31:00 54 Tournament 2
+02:32:08 55 Trophy
+02:33:56 56 Giga Bowser
+02:36:58 57 Retro Mix
+02:37:24 58 Stage Clear 1
+02:37:30 59 Stage Clear 2
+02:37:37 60 Bad Fanfare
+02:37:40 61 Good Fanfare
+02:37:44 62 DK's Victory
+02:37:52 63 Fire Emblem Team Victory
+02:38:03 64 Mr Game and Watch's Victory
+02:38:10 65 Fox's Victory
+02:38:17 66 Captain Falcon's Victory
+02:38:24 67 Ice Climber's Victory
+02:38:32 68 Kirby's Victory
+02:38:37 69 Zelda Team Victory
+02:38:45 70 Mario's Victory
+02:38:54 71 Ness' Victory
+02:39:04 72 Pokemon Victory
+02:39:12 73 Samus'  Victory
+02:39:18 74 Yoshi's Victory
+02:39:29 75 Challenger!
+02:39:35 76 Continue
+02:39:42 77 Warning Siren
+02:41:55 78 Step 1
+02:41:59 79 Step 2
+02:42:03 80 Step 3
+02:42:08 81 New Feature 1
+02:42:12 82 New Feature 2
+02:42:16 83 New Feature 3
+02:42:19 84 New Trophy
+02:42:22 85 Rare Trophy
+02:42:27 86 Hammer
+02:42:48 87 Starman
+02:43:07 88 Game Over
