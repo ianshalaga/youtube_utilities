@@ -1,0 +1,33 @@
+00:00 01 SEGA
+00:03 02 Emerald Hill Zone
+01:44 03 Chemical Plant Zone
+04:03 04 Aquatic Ruin Zone
+05:36 05 Casino Night Zone
+08:00 06 Hill Top Zone
+09:49 07 Mystic Cave Zone
+11:59 08 Oil Ocean Zone
+13:52 09 Metropolis Zone
+15:45 10 Mystic Cave Zone (2P)
+17:52 11 Casino Night Zone (2P)
+19:39 12 Death Egg Zone (Part 1)
+21:48 13 Death Egg Zone (Part 2)
+23:55 14 Emerald Hill Zone (2P)
+25:28 15 Sky Chase Zone
+27:04 16 Wing Fortress Zone
+28:57 17 Special Stage
+30:39 18 Power Up
+31:09 19 Title
+31:19 20 All Clear
+32:34 21 Boss
+34:09 22 Super Sonic
+35:05 23 Option
+35:30 24 Staff Roll
+38:11 25 Game Results
+39:54 26 Unused Song
+41:56 27 1up
+42:00 28 Stage Clear
+42:07 29 Game Over
+42:20 30 Continue
+42:30 31 Drowning
+42:45 32 Chaos Emerald
+42:49 33 Sound Effects

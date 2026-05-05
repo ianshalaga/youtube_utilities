@@ -36,15 +36,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/Super Smash Bros/2 Super Smash Bros. Melee/2 Super Smash Bros. Melee - Gamerip Tracks/video.mp4",
-      "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Super Smash Bros/2 Super Smash Bros. Melee/2 Gamerip Tracks",
+      "default_video_path": "E:/Proyectos/games/@OSTs/video.mp4",
+      "default_audios_dir": "F:/DESCARGAS/undertale-2015-ost⁄undertale-2015-ost/undertale-2015-ost/undertale-2015-ost",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Super Smash Bros/2 Super Smash Bros. Melee/2 Gamerip Tracks/videos",
+      "default_videos_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Tekken/1 Tekken/2 Tekken OST - Silver/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Super Smash Bros. Melee - Gamerip Tracks",
+      "default_video_name": "Tekken OST - Silver",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,

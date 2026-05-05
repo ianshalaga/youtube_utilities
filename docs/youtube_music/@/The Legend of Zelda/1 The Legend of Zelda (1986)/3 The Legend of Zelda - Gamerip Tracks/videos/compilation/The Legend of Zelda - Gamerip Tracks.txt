@@ -1,0 +1,23 @@
+00:00 01 Disk System Theme
+00:10 02 Title Theme
+03:11 03 Overworld Theme
+04:57 04 Underworld Theme
+06:02 05 Death Mountain Theme
+07:41 06 Game Over
+08:25 07 Recorder Melody
+08:31 08 Important Item Acquired
+08:37 09 Got a Triforce Segment
+08:49 10 Ganon Is Defeated
+08:56 11 Zelda Is Saved
+09:06 12 Ending Theme
+11:35 13 Title Theme (NES Version)
+14:36 14 Overworld Theme (NES Version)
+16:22 15 Underworld Theme (NES Version)
+17:27 16 Death Mountain Theme (NES Version)
+19:10 17 Game Over (NES Version)
+19:54 18 Recorder Melody (NES Version)
+20:00 19 Important Item Acquired (NES Version)
+20:06 20 Got a Triforce Segment (NES Version)
+20:18 21 Ganon Is Defeated (NES Version)
+20:25 22 Zelda Is Saved (NES Version)
+20:34 23 Ending Theme (NES Version)
