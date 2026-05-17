@@ -1,0 +1,70 @@
+DISC 1 | FINAL FANTASY I
+
+00:00:00 01 Opening Movie
+00:02:02 02 Opening Movie +SE
+00:04:04 03 Opening Demo
+00:06:02 04 Prelude
+00:07:48 05 Opening Theme
+00:09:40 06 Kouneria Shiro
+00:11:56 07 Main Theme
+00:14:33 08 Kaosu no Shinten
+00:16:19 09 Matouya no Doukutsu
+00:18:47 10 Machi
+00:20:41 11 Misa
+00:22:03 12 Fune
+00:23:41 13 Gaitei Shinten
+00:25:23 14 Dungeon
+00:26:53 15 Menu Gamen
+00:27:52 16 Hikuusen
+00:29:22 17 Gurugu Kasan
+00:31:58 18 Fuyuu Shiro
+00:34:26 19 Sentou Scene
+00:36:06 20 Shouri
+00:36:56 21 Dead Music
+00:37:53 22 Save Music
+00:38:05 23 Kyoukai
+00:40:03 24 Sutareta Shira
+00:42:15 25 Lute
+00:42:51 26 Hashi o Kakero
+00:43:33 27 Fukaki Basho e
+00:43:51 28 Fanfair
+00:44:00 29 Crystal Fukkatsu
+00:44:16 30 Daiji na Mono Get
+00:44:26 31 Yadoya
+00:45:48 32 Chuu
+00:47:22 33 Boss Battle A
+00:49:33 34 Boss Battle B
+00:51:47 35 Last Battle
+00:53:39 36 Ending Theme
+
+DISC 2 | FINAL FANTASY II
+
+00:55:46 37 Opening Movie
+00:58:23 38 Opening Movie +SE
+01:01:03 39 Opening Theme
+01:02:32 40 Prelude
+01:04:06 41 Sentou Scene 1
+01:05:44 42 Ikikaeri no Ma
+01:07:10 43 Saikai
+01:07:23 44 Hanrangun no Theme
+01:09:50 45 Machi
+01:11:47 46 Main Theme
+01:14:38 47 Pandemonium Shiro
+01:15:57 48 Teikokugun no Theme
+01:18:52 49 Chocobo no Theme
+01:19:24 50 Madoushi no Tou
+01:20:58 51 Dasshutsu!
+01:22:13 52 Kojou
+01:24:58 53 Dungeon
+01:26:53 54 Koutei Fukkatsu
+01:27:43 55 Shouri
+01:28:29 56 Waltz
+01:29:20 57 Oujo no Yuuwaku
+01:31:08 58 Dead Music
+01:32:05 59 Fanfair
+01:32:14 60 Nakama ni Kuwaeru
+01:32:23 61 Yadoya
+01:32:33 62 Sentou Scene A
+01:34:58 63 Sentou Scene B
+01:37:03 64 Sentou Scene 2
+01:39:23 65 Finale

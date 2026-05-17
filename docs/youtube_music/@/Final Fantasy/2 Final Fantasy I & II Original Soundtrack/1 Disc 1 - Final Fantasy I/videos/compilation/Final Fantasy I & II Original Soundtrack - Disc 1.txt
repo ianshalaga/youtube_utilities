@@ -1,0 +1,36 @@
+00:00 01 Opening Movie
+02:02 02 Opening Movie +SE
+04:04 03 Opening Demo
+06:02 04 Prelude
+07:48 05 Opening Theme
+09:40 06 Kouneria Shiro
+11:56 07 Main Theme
+14:33 08 Kaosu no Shinten
+16:19 09 Matouya no Doukutsu
+18:47 10 Machi
+20:41 11 Misa
+22:03 12 Fune
+23:41 13 Gaitei Shinten
+25:23 14 Dungeon
+26:53 15 Menu Gamen
+27:52 16 Hikuusen
+29:22 17 Gurugu Kasan
+31:58 18 Fuyuu Shiro
+34:26 19 Sentou Scene
+36:06 20 Shouri
+36:56 21 Dead Music
+37:53 22 Save Music
+38:05 23 Kyoukai
+40:03 24 Sutareta Shira
+42:15 25 Lute
+42:51 26 Hashi o Kakero
+43:33 27 Fukaki Basho e
+43:51 28 Fanfair
+44:00 29 Crystal Fukkatsu
+44:16 30 Daiji na Mono Get
+44:26 31 Yadoya
+45:48 32 Chuu
+47:22 33 Boss Battle A
+49:33 34 Boss Battle B
+51:47 35 Last Battle
+53:39 36 Ending Theme
