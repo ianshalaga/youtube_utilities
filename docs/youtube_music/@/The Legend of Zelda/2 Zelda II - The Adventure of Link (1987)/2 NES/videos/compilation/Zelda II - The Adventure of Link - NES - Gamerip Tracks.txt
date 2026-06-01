@@ -1,0 +1,20 @@
+00:00 01 Title Theme
+02:19 02 Overworld Theme
+03:51 03 Battle Theme
+05:02 04 Level Up
+05:07 05 Town Theme
+07:28 06 Indoors Theme
+08:08 07 Magic Acquired
+08:12 08 Palace Theme
+11:22 09 The Fairies
+11:27 10 Boss Fights
+11:56 11 Palace Cleared
+12:03 12 Flute Melody
+12:08 13 Secret Entrance
+12:14 14 Defeated
+12:20 15 Game Over
+12:24 16 Great Palace Theme
+13:44 17 Final Boss
+14:29 18 Triforce Acquired
+14:36 19 Princess Zelda
+15:10 20 The End

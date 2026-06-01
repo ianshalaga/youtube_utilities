@@ -1,0 +1,48 @@
+DISC 1
+
+00:00:00 01 Spring Thunder (STREET FIGHTER II ARRANGE VERSION)
+00:04:49 02 THE STRATOSPHERE FLIGHT (U.S. NAVY ARRANGE VERSION)
+00:09:33 03 A TRICK OF THE PALE (MAGIC SWORD ARRANGE VERSION)
+00:14:38 04 LOSE IN TWILIGHT (FINAL FIGHT ARRANGE VERSION)
+00:19:56 05 ①Credit/Player Select ②Strategy Directives∙Weapon Select ③Take-Off from the Aircraft Carrier
+00:21:49 06 ①MISSION 1 Capital City Recovery Operation~Achieving Air Superiority ②BOSS 1 (1 STAGE BOSS The Bomber Blackjack, 8 STAGE BOSS 1 Mobile Gun Battery) ③Stage Clear~Aircraft Carrier Landing
+00:24:35 07 ①MISSION 2 Capital City Recovery Operation~Defeating the Occupying Enemy Force ②BOSS 2 (2 STAGE BOSS The Mobile Fortress Murachyof, 7 STAGE BOSS The Revised Bomber Blackjack, 8 STAGE BOSS 2 The Mobile Gun Battery Carl)
+00:28:05 08 ①MISSION 3 Obstructing the Enemy Fleet's Landing Operation ②BOSS 3 (3 STAGE BOSS The Missile Cruiser Kirov, 6 STAGE BOSS The Nuclear Submarine Typhoon III, 10 STAGE BOSS 1 The Space Shuttle "Bran")
+00:31:26 09 ①MISSION 4 Shipyard Destruction Operation ②BOSS 4 (4 STAGE BOSS The Aircraft Carrier Tbilisi)
+00:34:02 10 ①MISSION 5 Weapons Experiment Area Strike Operation 1 (Aerial Battle) ②BOSS 5 (5 STAGE BOSS The AWACS Mainstay, 9 STAGE BOSS The Laser Gun Battery Gamma)
+00:36:13 11 ①MISSION 6 Weapons Experiment Area Strike Operation 2 (Ground Battle) ②MISSION 7 Attack on the Enemy Bomber Formation
+00:39:42 12 ①MISSION 8 Desert Base Strike Operation ②MISSION 9 Fortress Strike Operation
+00:43:50 13 ①MISSION 10 Stratosphere ②BOSS 6 (10 STAGE BOSS 2 Laser Satellite)
+00:48:00 14 ①Ending 1 ②Ending 2 ③Game Over
+00:53:22 15 ①Credit (Leaving on a Journey)/The Road to the Tower (Round 1) ②The Dragon Tower 1 (Round 2)
+00:57:17 16 ①The Dragon Tower 2 (Scroll A Group) ②Floor of Flame (Fire Stage) ③Red Dragon (Round 2 Boss) ④Round Clear
+00:59:51 17 ①The Dragon Tower 3 (Round 3) ②Floor of Water (Water Stage) ③Mage Kimaira (Round 3 Boss)
+01:03:51 18 ①The Dragon Tower 4 (Round 4) ②King Crawler (Round 4 Boss)
+01:07:05 19 ①The Dragon Tower 5 (Round 5) ②Double Dragon (Round 5 Boss) ③The Dragon Tower 6 (Round 6) ④Mage Kimaira 2 (Round 6 Boss)
+01:09:48 20 ①Top Floor (50th Floor) ②Drachma's Final Moments 1 ③Drachma's Final Moments 2 ④End Demo (Returning Alive) ⑤Game Over/Ranking Display
+01:13:20 21 You/Win/Lose/Perfect/Fight/Japan/Brazil/U.S.A./China/U.S.S.R./India/Spain/Thailand/Round
+01:14:03 22 1/2/3/4/5/6/7/8/9/Final
+01:14:32 23 "Shoryuken"/"Tatsumaki Senpyukaku"/"Dozu Koi"/Blanka's Howl/"Fire"/"Flame"/"Sonic Boom"/Defense(1)/Defense(2)/"Spinning Bird Kick"/"Hadouken"/Balrog's Voice/"Tiger"/"Uppercut"
+
+DISC 2
+
+01:15:20 24 ①Title Demo/Credit ②Player Select ③V.S. Screen
+01:16:40 25 ①Japan (Ryu) ②Stage End
+01:18:55 26 ①Brazil (Blanka) ②America (Guile)
+01:24:23 27 ①China (Chun-Li) ②Bonus Stage/New Challenger Fanfare
+01:27:14 28 ①Japan (E. Honda) ②America (Ken)
+01:32:41 29 ①Soviet (Zangief) ②India (Dhalsim)
+01:37:07 30 ①America (M. Bison) ②Spain (Balrog)
+01:42:01 31 ①Thailand (Sagat) ②Thailand (Vega)
+01:46:49 32 ①Ending (Ryu) ②Ending (Blanka) ③Ending (Guile) ④Ending (Chun-Li)
+01:51:20 33 ①Ending (E. Honda) ②Ending (Ken) ③Ending (Zangief) ④Ending (Dhalsim) ⑤Continue/Game Over ⑥Ranking Display
+01:55:48 34 ①Give it your best shot (Credit)/Naming+Round Select ②Journey ③Boss Theme ④Round Clear ⑤Theme of God
+01:59:50 35 ①Up in the Sky... (Round 2) ②Typhoon Kid (Secret) ③Bonus Stage/Perfect Fanfare
+02:04:18 36 ①Undersea... (Round 3) ②Dragon Blue Eyes (Optional Round Clear Demo 1) ③Hidden Door (Optional Round Clear Demo 2)
+02:07:21 37 ①Discovering the Monster Castle!! (Round 4-1) ②Starting the Infiltration (Round 4-2)
+02:10:56 38 ①Frightening Dungeon (Round 4-3) ②Tall Tower (Round 4-4)
+02:13:50 39 ①The Time for Battle Has Come! (Round 4-5) ②The Great Demon Lord Roeppi's Theme
+02:18:16 40 ①Escape (Round 5-1) ②Heading for Home (Round 5-2) ③Overwhelming Victory! (Final Round Clear)
+02:21:52 41 ①And then to Paradise (Ending 1) ②And then to Paradise (Ending 2)
+02:24:07 42 Staff Roll
+02:26:04 43 ①Chiki Chiki Boys (Chiki Chiki Boys Main Theme) ②Continue/Game Over ③1st Place Ranking ④Ranking Display

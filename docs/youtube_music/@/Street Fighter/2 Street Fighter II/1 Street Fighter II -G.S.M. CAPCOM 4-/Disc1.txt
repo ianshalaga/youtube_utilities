@@ -1,0 +1,23 @@
+01 Spring Thunder (STREET FIGHTER II ARRANGE VERSION)
+02 THE STRATOSPHERE FLIGHT (U.S. NAVY ARRANGE VERSION)
+03 A TRICK OF THE PALE (MAGIC SWORD ARRANGE VERSION)
+04 LOSE IN TWILIGHT (FINAL FIGHT ARRANGE VERSION)
+05 ①Credit/Player Select ②Strategy Directives∙Weapon Select ③Take-Off from the Aircraft Carrier
+06 ①MISSION 1 Capital City Recovery Operation~Achieving Air Superiority ②BOSS 1 (1 STAGE BOSS The Bomber Blackjack, 8 STAGE BOSS 1 Mobile Gun Battery) ③Stage Clear~Aircraft Carrier Landing
+07 ①MISSION 2 Capital City Recovery Operation~Defeating the Occupying Enemy Force ②BOSS 2 (2 STAGE BOSS The Mobile Fortress Murachyof, 7 STAGE BOSS The Revised Bomber Blackjack, 8 STAGE BOSS 2 The Mobile Gun Battery Carl)
+08 ①MISSION 3 Obstructing the Enemy Fleet's Landing Operation ②BOSS 3 (3 STAGE BOSS The Missile Cruiser Kirov, 6 STAGE BOSS The Nuclear Submarine Typhoon III, 10 STAGE BOSS 1 The Space Shuttle "Bran")
+09 ①MISSION 4 Shipyard Destruction Operation ②BOSS 4 (4 STAGE BOSS The Aircraft Carrier Tbilisi)
+10 ①MISSION 5 Weapons Experiment Area Strike Operation 1 (Aerial Battle) ②BOSS 5 (5 STAGE BOSS The AWACS Mainstay, 9 STAGE BOSS The Laser Gun Battery Gamma)
+11 ①MISSION 6 Weapons Experiment Area Strike Operation 2 (Ground Battle) ②MISSION 7 Attack on the Enemy Bomber Formation
+12 ①MISSION 8 Desert Base Strike Operation ②MISSION 9 Fortress Strike Operation
+13 ①MISSION 10 Stratosphere ②BOSS 6 (10 STAGE BOSS 2 Laser Satellite)
+14 ①Ending 1 ②Ending 2 ③Game Over
+15 ①Credit (Leaving on a Journey)/The Road to the Tower (Round 1) ②The Dragon Tower 1 (Round 2)
+16 ①The Dragon Tower 2 (Scroll A Group) ②Floor of Flame (Fire Stage) ③Red Dragon (Round 2 Boss) ④Round Clear
+17 ①The Dragon Tower 3 (Round 3) ②Floor of Water (Water Stage) ③Mage Kimaira (Round 3 Boss)
+18 ①The Dragon Tower 4 (Round 4) ②King Crawler (Round 4 Boss)
+19 ①The Dragon Tower 5 (Round 5) ②Double Dragon (Round 5 Boss) ③The Dragon Tower 6 (Round 6) ④Mage Kimaira 2 (Round 6 Boss)
+20 ①Top Floor (50th Floor) ②Drachma's Final Moments 1 ③Drachma's Final Moments 2 ④End Demo (Returning Alive) ⑤Game Over/Ranking Display
+21 You/Win/Lose/Perfect/Fight/Japan/Brazil/U.S.A./China/U.S.S.R./India/Spain/Thailand/Round
+22 1/2/3/4/5/6/7/8/9/Final
+23 "Shoryuken"/"Tatsumaki Senpyukaku"/"Dozu Koi"/Blanka's Howl/"Fire"/"Flame"/"Sonic Boom"/Defense(1)/Defense(2)/"Spinning Bird Kick"/"Hadouken"/Balrog's Voice/"Tiger"/"Uppercut"

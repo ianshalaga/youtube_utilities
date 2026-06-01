@@ -36,15 +36,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/Fallout/2 Fallout 2/4 Vault Archives/video.mp4",
-      "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Fallout/2 Fallout 2/4 Vault Archives",
+      "default_video_path": "E:/Proyectos/games/Destiny/1 Destiny/3 Destiny - The Taken King OST/video2.mp4",
+      "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Destiny/1 Destiny/3 Destiny - The Taken King OST/Disc 2",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Fallout/2 Fallout 2/2 OST GOG/videos",
+      "default_videos_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Destiny/1 Destiny/3 Destiny - The Taken King OST/@",
       "default_output_dir": "compilation",
-      "default_video_name": "Fallout 2 GOG OST",
+      "default_video_name": "Destiny - The Taken King OST",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,
