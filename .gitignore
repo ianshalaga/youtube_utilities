@@ -185,3 +185,4 @@ cython_debug/
 *.flac
 *.mkv
 *.mka
+*.m4a
