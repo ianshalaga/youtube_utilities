@@ -1,0 +1,23 @@
+00:00 01 Title
+00:26 02 Password
+02:19 03 Mission Briefing
+03:01 04 Jungle Infiltration
+04:50 05 Enemy Alert
+06:24 06 Comrade Captured
+06:54 07 Jungle Base - Theme of Tara - Metal Gear
+09:00 08 Boss Battle
+10:12 09 Self-Destruction Theme
+11:14 10 Underground Corridor
+12:35 11 Munitions Compound
+14:45 12 Arms-Cargo Transit
+16:18 13 Metal Gear Fortress
+17:54 14 Big Boss Theme
+19:30 15 Missile Launch Countdown
+20:41 16 Metal Gear
+21:51 17 Mission Success
+21:56 18 Ending
+23:22 19 Mission Failed
+23:29 20 Jungle Infiltration (No intro)
+25:09 21 -!-
+25:13 22 Helicopter
+28:11 23 Sound Effects

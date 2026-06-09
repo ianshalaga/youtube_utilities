@@ -1,0 +1,16 @@
+00:00 01 Prologue
+01:06 02 Title Screen
+02:32 03 Streets
+03:32 04 Sewer 1
+04:54 05 Miniboss
+06:07 06 Miniboss Beaten
+06:13 07 Save the Dam!
+07:28 08 Building
+08:53 09 Boss
+10:08 10 Sewer 2
+11:26 11 Footclan Base
+12:38 12 Hurry!!!
+13:45 13 Boss Beaten
+13:54 14 Lose a Turtle
+13:59 15 Ending
+14:40 16 Game Over

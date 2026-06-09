@@ -186,3 +186,5 @@ cython_debug/
 *.mkv
 *.mka
 *.m4a
+*.jpg
+*.ogg
