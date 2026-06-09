@@ -19,10 +19,11 @@ INPUT_PATHS = (
     # BASE_DIR / "domain/media",
     # BASE_DIR / "services/media",
     # BASE_DIR / "services/filesystem",
-    BASE_DIR / "apps/overlays",
+    # BASE_DIR / "apps/overlays",
+    BASE_DIR,
 )
 
-FILE_NAME = "overlays_context"
+FILE_NAME = "project_context"
 
 OUTPUT_NAME = Path("tools") / f"{FILE_NAME}"
 
