@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import MultipleResultsFound
 
-from apps.ranking_system.resolvers.base import (
+from applications.ranking_system.resolvers.base import (
     EntityNotFoundError,
     MultipleEntitiesFoundError,
 )

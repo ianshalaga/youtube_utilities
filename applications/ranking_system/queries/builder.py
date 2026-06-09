@@ -11,7 +11,7 @@ from services.ranking.storage.models import (
     Country
 )
 
-from apps.ranking_system.resolvers.common import resolve_id_by_name
+from applications.ranking_system.resolvers.common import resolve_id_by_name
 
 
 class RankingQueryBuilder:
