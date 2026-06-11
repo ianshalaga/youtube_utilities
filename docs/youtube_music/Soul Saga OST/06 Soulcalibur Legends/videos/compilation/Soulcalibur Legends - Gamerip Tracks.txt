@@ -1,0 +1,27 @@
+00:00:00 01 Channel Menu
+00:00:34 02 Opening (SFX)
+00:01:06 03 History's Door
+00:02:30 04 Eternal History
+00:07:01 05 Warriors' Destiny
+00:08:17 06 Battle's Blue
+00:14:39 07 Lake Arena
+00:19:13 08 Chapter Start
+00:19:20 09 Weapon Unlock
+00:19:28 10 Defeat All in Front
+00:24:46 11 Guardian Battle
+00:29:09 12 Quest Complete
+00:29:16 13 Quest Complete (Lloyd)
+00:29:23 14 Quest Failed
+00:29:30 15 Cyprus Arena
+00:34:05 16 Deep in Church
+00:38:27 17 Castle Warfare
+00:39:29 18 Temple of Ammon
+00:44:39 19 Moon in Fuma
+00:49:50 20 Like a Glint of Light
+00:53:27 21 Fatalize
+00:56:00 22 Barbaros
+01:00:00 23 Evil Imperial Army
+01:04:02 24 Evil Battles
+01:08:42 25 Versus Iska
+01:13:04 26 A Changed World
+01:16:45 27 Credits
