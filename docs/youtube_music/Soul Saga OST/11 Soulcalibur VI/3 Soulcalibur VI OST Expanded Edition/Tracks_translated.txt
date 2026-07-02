@@ -1,0 +1,87 @@
+Disc 1
+
+01 The Brave New Stage of History | A Newly Told Stage of History | Character Select Screen
+02 Undying Legend | Revived Legend | Master Swordsman's Cave: Where Water Meets the Sky
+03 Standing Against the Storm | Even If the Storm Rages | Indian Port: The Coming Storm
+04 Under a Pledge | A Vow Untarnished by the Passage of Time | Eurydice Shrine: Sanctuary Above the Sea of Clouds
+05 Darkest Shadow | Axis of Darkness | Ostrheinsburg Castle: Hall of Investiture
+06 Diabolous Amalgam | Forbidden Fusion | Kunpaetku Temple: Feast of the Serpent
+07 Following the Wind Trail | Chasing the Distant Wind | Windswept Plains
+08 The Lionhearted | The Unyielding | Silver Wolf's Duel Ground
+09 Who Dare to Tread | Crossing the Scorching Path | Ruins Buried Beneath the Blazing Sands
+10 Moon of Oblivion | Fleeting Moonlight | Deep Forest Under the Hazy Moon
+11 Myriad Souls | Countless Souls Crossing the Heavens | Astral Chaos: Tides of Causality
+12 Deadland Call | The Beckoning of the Dead | Event Battle: Crisis
+13 Chaos Eclipse | Corruption Beyond Reason | Event Battle: Astral Hole
+14 Fortune Favors the Brave | Turning Courage into the Final Weapon | Event Battle: Rival Battle
+15 Lineage of Destiny | Bloodline of Destiny | Event Battle: Nemesis Battle
+16 A Worthy Opponent | Facing a Formidable Foe | Rival Appears
+17 Onslaught | Sudden Assault | Versus Screen
+18 Ferrum Recipere | Accept the Iron Sword | Battle Results: Defeat
+19 A Laurel Crown | Laurel Crown of Victory | Battle Results: Victory
+20 Eternal Tales | A Story Passed Down for Eternity | Soul Chronicle Opening
+21 Hell on Earth | Hellfire Unleashed | Soul Chronicle 3D Demo: Evil Spawn
+22 The Chronicle of Souls | The Journey of the Souls | Soul Chronicle Timeline Menu
+23 Prelude | Prelude of the Soul | Soul Chronicle Episode Preview
+24 Presage of Destiny | Premonition of Approaching Destiny | Soul Chronicle Story Introduction (Light)
+25 Foreshadowed by Darkness | Omen of Darkness | Soul Chronicle Story Introduction (Darkness)
+26 Fated Soul | One Who Bears Destiny Within | Soul Chronicle: Kilik's Theme
+27 In Full Bloom | Flowers in Full Bloom | Soul Chronicle: Xianghua's Theme
+28 Man of Fortitude | The Man with an Unbreakable Spirit | Soul Chronicle: Maxi's Theme
+29 Fidelity in Shrouds | The Loyal Blade Clad in Black | Soul Chronicle: Grøh's Theme
+30 A Zealous Herald | Herald of Fanaticism | Soul Chronicle: Azwel's Theme
+31 Crux of Evil | Core of Evil | Soul Chronicle: Soul Edge's Theme
+32 Fate's Crossing | Intertwining Destinies | Soul Chronicle 3D Demo: Kilik and Grøh
+33 To Overcome Fate | To Defeat Destiny | Soul Chronicle 3D Demo: Final Battle
+34 The Evil Flame | Blasphemous Flame | Event Battle: Inferno
+35 Conviction | Strike of Conviction | Soul Chronicle 3D Demo: Destruction of the Evil Sword
+36 In Memory : To Those Who Shed Blood | Memory of Souls: To Those Who Shed Their Crimson Blood | Soul Chronicle Ending
+37 Destiny in Flux | Ever-Changing Destiny | Main Menu: Story
+38 Destiny in Flux: Steel Echo | Ever-Changing Destiny: Echoes of Steel | Main Menu: Battle
+39 Destiny in Flux: Deep Reflection | Ever-Changing Destiny: Deep Contemplation | Main Menu: Other
+40 Defiant Soul | One Who Defies Destiny | Creation Mode: Story Progress
+41 The Libra of Soul | The Swaying Balance of Souls | Libra of Soul: Prologue Map
+42 The Hunt for the Fissures | In Search of Dimensional Fissures | Libra of Soul: Chapter 1 Map
+43 A Bitter Decision | A Painful Decision | Libra of Soul: Chapter 2 Map
+44 Into the Fray | To the Front Lines of Conflict | Libra of Soul: Chapter 3 Map
+45 Time of Trial | Heaven-Given Trial | Libra of Soul: Chapter 4 Map
+46 Chasing the Beast | Pursuing the Black Beast | Libra of Soul: Chapter 5 Map
+47 Endless Quest | Journey Without End | Libra of Soul: Map After Chapter 5
+48 Unforeseen Challenge | An Unexpected Encounter | Libra of Soul: Encounter Scene
+49 An Unexpected Visitor | An Unforeseen Visitor | Libra of Soul 3D Demo: Mitsurugi and Geralt
+50 Avenging Sword | Sword of Vengeance | Libra of Soul 3D Demo: Grøh and Azwel
+51 Doomsday | Hour of Judgment | Event Battle: Azwel
+52 Thwarted Ambition | Shattered Ambition | Libra of Soul 3D Demo: Azwel's Defeat
+53 The Nameless Ordeal | Trial Woven in Blood | Event Battle: Grøh
+54 Destiny Unfolds | Destiny Revealed | Libra of Soul 3D Demo: Final Confrontation with Grøh
+
+Disc 2
+
+01 Pure Anger | Incarnation of Wrath | Story: Rage
+02 Fate at Its Limit | Destiny on the Brink | Story: Crisis
+03 Inevitable Clash | An Unavoidable Battle | Story: Threat
+04 Agony | Tormenting Agony | Story: Tension
+05 Approaching Hope | Hope Lies Ahead | Story: Peace
+06 Peace Within | The Tranquility One Should Hold Within | Story: Serenity
+07 A Lone Soul | The Solitary Wanderer | Story: Destiny
+08 Gentle Breeze | Melody of the Gentle Breeze | Story: Grace
+09 At the End of a Journey | At the End of a Long Journey | Story: Emotional Scene
+10 Solemn Vow | The Time to Make a Vow | Story: Resolution
+11 Fate Against Her | Lest She Become a Servant of Fate | Story: Tragedy
+12 Emerging from the Abyss | One Born from the Deep Abyss | Story: Ominous
+13 B for Bravery | Now Is the Time to Show Your Courage | Story: Journey
+14 Days Gone By | Memories of Days Long Past | Story: Everyday Life
+15 A Graceful Soul | A Soul of Elegant Grace | Story: Liberation
+16 Soul Engraver | Sculptor of Souls | Creation
+17 Healing Winds: Reminiscences | Winds That Heal the Warrior: Beyond Reminiscence | Museum
+18 Resolute Vanguard | Vanguard of Determination | Sanctuary of the Silver Wolves
+19 Ancestral Darkness | Darkness Passed Down Since Ancient Times | Underground Great Labyrinth: Sealed Corridor
+20 Call of the Legend | Though the Legend Belongs to the Past | Master Swordsman's Cave: Night
+21 A Day for Celebration | An Auspicious Day for the Master and Disciple | Soul Chronicle: Setsuka Chapter – Everyday Life
+22 Shrouded in Mist | Silent Boat Hidden in the Mist | Soul Chronicle: Setsuka Chapter – Legend
+23 Empty Vengeance | The Futile Flower of Vengeance | Murakumo Shrine Precincts
+24 Savior in the Shadows | Secret Messenger of Salvation | Soul Chronicle: Hwang Chapter – Infiltration
+25 Hidden Saga | Chronicle of the Hidden Sword Hero | Sky Ridge Ruins
+26 Shadow Judgment | One Who Cuts Through the Darkness of the Age | Soul Chronicle: Hwang's Theme
+27 Blade, Malice, Catalyst | Sword, Malice, and Awakening | Soul Chronicle: Evil Sword Theme
+28 Battle-worn Soul | A Soul Honed by the Blade | Soul Chronicle: Event Battle – Mitsurugi's Deadly Duel

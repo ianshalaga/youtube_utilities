@@ -19,8 +19,8 @@ INPUT_PATHS = (
     # BASE_DIR / "domain/media",
     # BASE_DIR / "services/media",
     # BASE_DIR / "services/filesystem",
-    # BASE_DIR / "apps/overlays",
-    BASE_DIR,
+    BASE_DIR / "applications/overlays",
+    # BASE_DIR,
 )
 
 FILE_NAME = "project_context"

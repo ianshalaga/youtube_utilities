@@ -1,0 +1,45 @@
+00:00:00 01 Opening
+00:00:48 02 Opening (Japanese)
+00:01:33 03 Berstorizer (Attraction)
+00:02:08 04 Paranoiac Capture (Player Select)
+00:04:16 05 Character Select
+00:05:17 06 Brake Pavement (Downtown)
+00:09:47 07 Fresh Fish (Aquarium)
+00:12:53 08 From Dusk (Evening Beach)
+00:18:03 09 Ma!ki@bi$shi (Den of Ninjas)
+00:22:42 10 Unusual Suspicion (Intrusion)
+00:22:47 11 Kenka Bancho (Abattoir)
+00:26:32 12 Cosmic Vegetation (Greenhouse)
+00:31:22 13 Confidential #271 (Bionic Lab)
+00:35:39 14 Rushing Bound (Tyron Bldg. #1)
+00:40:20 15 Spirit of Volcano (Tyron Bldg. #2)
+00:44:57 16 No One Can Stop Me (Yugo)
+00:46:30 17 Scourge of the Night (Bakuryu)
+00:48:12 18 Heavenly (Long)
+00:49:53 19 Nap Time (Shina)
+00:51:35 20 This One's for You (Alice)
+00:53:20 21 It's My Turn Now (Stun)
+00:54:47 22 Ready (Uriko)
+00:56:21 23 Want Some More (Jenny)
+00:58:06 24 No Joke (Busuzima)
+00:59:39 25 While You Still Can (Gado)
+01:01:24 26 You're Dead (Shen Long)
+01:03:13 27 Wild Bruise (Lose)
+01:03:21 28 Atrocious Zipping (Win)
+01:03:27 29 Astro-conscious (Continue)
+01:05:35 30 Continue
+01:05:50 31 Leg Cramps (Game Over)
+01:05:57 32 Game Over
+01:06:12 33 Age..... (Staff Roll)
+01:07:29 34 Lust in Peace (Staff Roll)
+01:09:34 35 Story Mode Opening
+01:10:40 36 Vertical Zodiac (Name Entry, Ranking)
+01:15:30 37 Ranking
+01:16:41 38 Silent Achievement (Winning Over)
+01:16:51 39 Thank You For Playing
+01:17:06 40 Unused 1
+01:18:08 41 Unused 2
+01:19:16 42 Unused 3
+01:20:23 43 Unused 4
+01:21:29 44 Unused 5
+01:22:57 45 Unused 6

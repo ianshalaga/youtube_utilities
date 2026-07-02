@@ -1,0 +1,92 @@
+html,
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #050505;
+}
+
+#scene {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+
+  background: radial-gradient(circle, #2a0000, #050505 70%);
+}
+
+/* NIEBLA */
+
+#fog {
+  position: absolute;
+  inset: -20%;
+
+  background: radial-gradient(circle, rgba(255, 60, 60, 0.12), transparent 70%);
+
+  filter: blur(120px);
+}
+
+/* PARTÍCULAS */
+
+#particles {
+  position: absolute;
+  inset: 0;
+}
+
+.particle {
+  position: absolute;
+
+  width: 4px;
+  height: 4px;
+
+  background: #ffb0b0;
+
+  border-radius: 50%;
+
+  box-shadow: 0 0 8px #ff5050;
+}
+
+/* ENGRANAJES */
+
+.gear {
+  position: absolute;
+
+  border-radius: 50%;
+
+  border: 2px solid rgba(255, 90, 90, 0.25);
+
+  box-shadow: 0 0 15px rgba(255, 60, 60, 0.25);
+}
+
+/* CÍRCULO */
+
+#magic-circle {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 620px;
+  height: 620px;
+
+  transform: translate(-50%, -50%);
+}
+
+#magic-circle circle {
+  fill: none;
+
+  stroke: #ff7070;
+
+  filter: drop-shadow(0 0 10px red);
+}
+
+.outer {
+  stroke-width: 4;
+}
+
+.middle {
+  stroke-width: 3;
+}
+
+.inner {
+  stroke-width: 2;
+}

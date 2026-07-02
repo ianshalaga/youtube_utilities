@@ -1,0 +1,789 @@
+# GENERATED PROJECT CONTEXT
+# base_dir: F:\@Seyfer\Proyectos\youtube_utilities
+# total_files: 7
+
+# PROJECT STRUCTURE
+
+applications
+  overlays
+    afk
+      core
+        afk.js
+      index.html
+      skins
+        deaths_door.css
+    chronometer
+      core
+        timer.js
+      index.html
+      skins
+        stray.css
+        the_last_guardian.css
+
+# FILES
+
+================================================================================
+FILE: applications\overlays\afk\core\afk.js
+================================================================================
+class AFKOverlay {
+
+    constructor() {
+
+        this.running = false
+
+    }
+
+    start() {
+
+        if (this.running) return
+
+        this.running = true
+        this.loop()
+
+    }
+
+    loop() {
+
+        if (!this.running) return
+
+        spawnParticle()
+
+        requestAnimationFrame(() => this.loop())
+
+    }
+
+    stop() {
+        this.running = false
+    }
+
+}
+
+const afk = new AFKOverlay()
+afk.start()
+
+window.afkOverlay = afk
+
+/* PARTICLES */
+
+function spawnParticle() {
+
+    const container = document.getElementById("global-particles")
+
+    const p = document.createElement("div")
+    p.className = "particle"
+
+    /* POSICIÓN INICIAL ALEATORIA */
+    p.style.left = Math.random() * 1920 + "px"
+    p.style.top = "1080px"
+
+    /* DESTINO ALEATORIO */
+    const endX = Math.random() * 1920
+    const duration = 3000 + Math.random() * 2000
+
+    p.animate([
+        {
+            transform: "translate(0,0)",
+            opacity: 0
+        },
+        {
+            opacity: 1
+        },
+        {
+            transform: `translate(${endX - parseFloat(p.style.left)}px,-1200px)`,
+            opacity: 0
+        }
+    ], {
+        duration: duration,
+        easing: "ease-out"
+    })
+
+    container.appendChild(p)
+
+    setTimeout(() => p.remove(), duration)
+
+}
+
+================================================================================
+FILE: applications\overlays\afk\index.html
+================================================================================
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="skins/deaths_door.css" />
+  </head>
+
+  <body class="bg-transparent overflow-hidden">
+    <div id="overlay-root">
+      <!-- BACKDROP -->
+      <div id="afk-backdrop"></div>
+
+      <!-- GLOBAL PARTICLES -->
+      <div id="global-particles"></div>
+
+      <!-- CENTER HUD -->
+      <div id="afk-content">
+        <div id="sigil-container">
+          <svg viewBox="0 0 200 200" id="sigil">
+            <circle cx="100" cy="100" r="85" class="ring outer" />
+            <circle cx="100" cy="100" r="60" class="ring mid" />
+            <circle cx="100" cy="100" r="35" class="ring inner" />
+
+            <g class="runes">
+              <line x1="100" y1="5" x2="100" y2="45" />
+              <line x1="195" y1="100" x2="155" y2="100" />
+              <line x1="100" y1="195" x2="100" y2="155" />
+              <line x1="5" y1="100" x2="45" y2="100" />
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <script src="core/afk.js"></script>
+  </body>
+</html>
+
+
+================================================================================
+FILE: applications\overlays\afk\skins\deaths_door.css
+================================================================================
+#overlay-root {
+  width: 1920px;
+  height: 1080px;
+
+  position: relative;
+  overflow: hidden;
+}
+
+/* BACKDROP MEJORADO */
+
+#afk-backdrop {
+  position: absolute;
+  inset: 0;
+
+  /* OPACIDAD 85% */
+  background: rgba(0, 0, 0, 0.85);
+
+  /* fallback visual para simular blur */
+  box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.9);
+
+  /* blur real (si el motor lo soporta) */
+  backdrop-filter: blur(12px);
+}
+
+/* CONTENIDO CENTRAL */
+
+#afk-content {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* SIGIL */
+
+#sigil-container {
+  width: 420px;
+  height: 420px;
+
+  position: relative;
+}
+
+/* SVG */
+
+#sigil {
+  width: 100%;
+  height: 100%;
+}
+
+/* RINGS */
+
+.ring {
+  fill: none;
+
+  filter: drop-shadow(0 0 25px rgba(200, 240, 255, 1));
+}
+
+.outer {
+  stroke: #e6fbff;
+  stroke-width: 3;
+  animation: rotateSlow 25s linear infinite;
+}
+
+.mid {
+  stroke: #bfefff;
+  stroke-width: 2.5;
+  animation: rotateReverse 18s linear infinite;
+}
+
+.inner {
+  stroke: #9feaff;
+  stroke-width: 2;
+  animation: pulse 3.5s ease-in-out infinite;
+}
+
+/* RUNES */
+
+.runes {
+  stroke: #ffffff;
+  stroke-width: 3;
+
+  filter: drop-shadow(0 0 15px rgba(200, 240, 255, 1));
+
+  animation: rotateReverse 30s linear infinite;
+}
+
+/* ENERGÍA */
+
+#sigil-container::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: radial-gradient(
+    circle at center,
+    rgba(180, 240, 255, 0.5),
+    transparent 70%
+  );
+
+  animation: energyPulse 5s ease-in-out infinite;
+}
+
+/* PARTICULAS GLOBALES */
+
+#global-particles {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+}
+
+/* PARTICULA */
+
+.particle {
+  position: absolute;
+
+  width: 5px;
+  height: 5px;
+
+  background: #e6fbff;
+
+  border-radius: 50%;
+
+  opacity: 0.9;
+
+  filter: drop-shadow(0 0 8px #e6fbff);
+}
+
+/* ANIMACIONES */
+
+@keyframes rotateSlow {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotateReverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes energyPulse {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+
+================================================================================
+FILE: applications\overlays\chronometer\core\timer.js
+================================================================================
+class OverlayTimer {
+
+    constructor(display) {
+
+        this.display = display
+        this.time = 0
+        this.running = false
+        this.interval = null
+        this.splits = []
+
+    }
+
+    format() {
+
+        let h = Math.floor(this.time / 3600)
+        let m = Math.floor((this.time % 3600) / 60)
+        let s = this.time % 60
+
+        return (
+            String(h).padStart(2, '0') + ":" +
+            String(m).padStart(2, '0') + ":" +
+            String(s).padStart(2, '0')
+        )
+
+    }
+
+    update() {
+
+        this.time++
+        this.display.textContent = this.format()
+
+    }
+
+    start() {
+
+        if (this.running) return
+
+        this.running = true
+        this.interval = setInterval(() => this.update(), 1000)
+
+    }
+
+    pause() {
+
+        this.running = false
+        clearInterval(this.interval)
+
+    }
+
+    reset() {
+
+        this.pause()
+        this.time = 0
+        this.display.textContent = "00:00:00"
+        this.splits = []
+
+    }
+
+    split() {
+
+        this.splits.push(this.time)
+        spawnPaw()
+
+    }
+
+}
+
+const timer = new OverlayTimer(
+    document.getElementById("timer")
+)
+
+timer.start()
+
+window.overlayTimer = timer
+
+function spawnPaw() {
+
+    const layer = document.getElementById("paw-layer")
+
+    const paw = document.createElement("div")
+    paw.className = "paw"
+    paw.textContent = "🐾"
+
+    paw.style.left = (Math.random() * 80 + 10) + "%"
+
+    layer.appendChild(paw)
+
+    setTimeout(() => paw.remove(), 1500)
+
+}
+
+================================================================================
+FILE: applications\overlays\chronometer\index.html
+================================================================================
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="skins/stray.css" />
+    <!-- <link rel="stylesheet" href="skins/the_last_guardian.css" /> -->
+  </head>
+
+  <body
+    class="w-screen h-screen bg-transparent flex items-center justify-center overflow-hidden"
+  >
+    <div id="overlay-root">
+      <div id="hud">
+        <div id="target-lines"></div>
+
+        <div id="timer">00:00:00</div>
+
+        <div id="scanlines"></div>
+
+        <div id="paw-layer"></div>
+      </div>
+    </div>
+
+    <script src="core/timer.js"></script>
+  </body>
+</html>
+
+
+================================================================================
+FILE: applications\overlays\chronometer\skins\stray.css
+================================================================================
+#overlay-root {
+  width: 1920px;
+  height: 1080px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* HUD base */
+
+#hud {
+  position: relative;
+
+  padding: 30px 60px;
+
+  border: 2px solid rgba(255, 140, 60, 0.6);
+
+  background: rgba(0, 0, 0, 0.25);
+
+  box-shadow:
+    0 0 20px rgba(255, 140, 60, 0.5),
+    inset 0 0 20px rgba(255, 140, 60, 0.3);
+
+  backdrop-filter: blur(3px);
+}
+
+/* TIMER */
+
+#timer {
+  font-family: monospace;
+
+  font-size: 120px;
+
+  color: #ff8a2b;
+
+  letter-spacing: 8px;
+
+  text-shadow:
+    0 0 10px #ff8a2b,
+    0 0 25px #ff6a00;
+}
+
+/* TARGET LINES */
+
+#target-lines {
+  position: absolute;
+  inset: -20px;
+
+  pointer-events: none;
+}
+
+#target-lines::before,
+#target-lines::after {
+  content: "";
+
+  position: absolute;
+
+  width: 100%;
+  height: 100%;
+
+  border: 1px solid rgba(255, 140, 60, 0.25);
+
+  animation: targetPulse 3s infinite;
+}
+
+#target-lines::after {
+  inset: 10px;
+  animation-delay: 1.5s;
+}
+
+@keyframes targetPulse {
+  0% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.1;
+  }
+}
+
+/* HOLOGRAM SCANLINES */
+
+#scanlines {
+  position: absolute;
+  inset: 0;
+
+  background: repeating-linear-gradient(
+    transparent 0px,
+    transparent 2px,
+    rgba(255, 140, 60, 0.07) 3px
+  );
+
+  animation: scanMove 6s linear infinite;
+
+  pointer-events: none;
+}
+
+@keyframes scanMove {
+  from {
+    background-position-y: 0;
+  }
+  to {
+    background-position-y: 200px;
+  }
+}
+
+/* PAW SPLIT EFFECT */
+
+#paw-layer {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+}
+
+.paw {
+  position: absolute;
+
+  bottom: -10px;
+
+  font-size: 26px;
+
+  color: #ff8a2b;
+
+  animation: pawRise 1.5s ease forwards;
+}
+
+@keyframes pawRise {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.6);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(1);
+  }
+}
+
+
+================================================================================
+FILE: applications\overlays\chronometer\skins\the_last_guardian.css
+================================================================================
+#overlay-root {
+  width: 1920px;
+  height: 1080px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* HUD PRINCIPAL */
+
+#hud {
+  position: relative;
+
+  padding: 35px 70px;
+
+  background: rgba(10, 18, 22, 0.45);
+
+  border: 2px solid rgba(120, 210, 230, 0.35);
+
+  border-radius: 6px;
+
+  box-shadow:
+    0 0 30px rgba(120, 210, 230, 0.25),
+    inset 0 0 20px rgba(120, 210, 230, 0.15);
+
+  backdrop-filter: blur(3px);
+}
+
+/* TEXTURA ANTIGUA */
+
+#hud::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: radial-gradient(
+    circle at center,
+    rgba(160, 230, 255, 0.15),
+    transparent 70%
+  );
+
+  pointer-events: none;
+}
+
+/* TIMER */
+
+#timer {
+  font-family: serif;
+
+  font-size: 120px;
+
+  letter-spacing: 6px;
+
+  color: #b9f2ff;
+
+  text-shadow:
+    0 0 6px rgba(160, 240, 255, 0.7),
+    0 0 18px rgba(120, 210, 255, 0.6),
+    0 0 30px rgba(120, 210, 255, 0.4);
+}
+
+/* RUNIC ENERGY LINES */
+
+#target-lines {
+  position: absolute;
+
+  inset: -15px;
+
+  pointer-events: none;
+}
+
+#target-lines::before,
+#target-lines::after {
+  content: "";
+
+  position: absolute;
+
+  width: 100%;
+  height: 100%;
+
+  border: 1px solid rgba(140, 230, 255, 0.18);
+
+  animation: runePulse 6s ease-in-out infinite;
+}
+
+#target-lines::after {
+  inset: 8px;
+  animation-delay: 3s;
+}
+
+@keyframes runePulse {
+  0% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0.1;
+  }
+}
+
+/* ENERGÍA MÍSTICA SUAVE */
+
+#scanlines {
+  position: absolute;
+
+  inset: 0;
+
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(160, 240, 255, 0.12),
+    transparent 70%
+  );
+
+  animation: energyBreath 8s ease-in-out infinite;
+
+  pointer-events: none;
+}
+
+@keyframes energyBreath {
+  0% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+}
+
+/* EFECTO DE SPLIT (HUELLAS DE TRICO) */
+
+#paw-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.paw {
+  position: absolute;
+
+  bottom: -10px;
+
+  font-size: 28px;
+
+  color: #9feaff;
+
+  opacity: 0.85;
+
+  animation: spiritRise 1.6s ease forwards;
+}
+
+@keyframes spiritRise {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.7);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-90px) scale(1.1);
+  }
+}
+
+

@@ -36,15 +36,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/Soulcalibur/OST/Soulcalibur VI/video4.mp4",
-      "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/Soul Saga OST/11 Soulcalibur VI/Disc 4",
+      "default_video_path": "E:/Proyectos/games/Guilty Gear/1 Guilty Gear (1998)/1 GUILTY GEAR ORIGINAL SOUND COLLECTION/video.mp4",
+      "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Guilty Gear/1 Guilty Gear (1998)/1 GUILTY GEAR ORIGINAL SOUND COLLECTION",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Mortal Kombat/1 Mortal Kombat (1992)/2 Mortal Kombat - SNES - Gamerip Tracks/videos",
+      "default_videos_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Guilty Gear/1 Guilty Gear (1998)/1 GUILTY GEAR ORIGINAL SOUND COLLECTION/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Mortal Kombat - SNES - Gamerip Tracks",
+      "default_video_name": "GUILTY GEAR ORIGINAL SOUND COLLECTION",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,

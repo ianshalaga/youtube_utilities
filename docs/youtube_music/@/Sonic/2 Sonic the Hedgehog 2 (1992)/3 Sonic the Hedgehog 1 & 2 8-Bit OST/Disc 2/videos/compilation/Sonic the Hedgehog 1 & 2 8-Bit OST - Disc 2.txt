@@ -1,0 +1,31 @@
+00:00 20 Title
+00:10 21 Emerald Hill Zone
+02:29 22 Chemical Plant Zone
+05:16 23 Aquatic Ruin Zone
+07:19 24 Casino Night Zone
+10:22 25 Hill Top Zone
+12:41 26 Mystic Cave Zone
+15:43 27 Oil Ocean Zone
+18:06 28 Metropolis Zone
+20:28 29 Act Clear!
+20:35 30 Sky Chase Zone
+22:39 31 Wing Fortress Zone
+25:05 32 Death Egg Zone
+27:50 33 Boss
+29:49 34 Final Boss
+32:45 35 Ending
+33:58 36 Staff Roll
+36:39 37 Options
+37:05 38 Special Stage
+39:22 39 Emerald Acquired
+39:27 40 Extra Life
+39:31 41 Invincibility
+40:15 42 Super Sonic
+41:23 43 Emerald Hill Zone (2P)
+43:25 44 Casino Night Zone (2P)
+45:46 45 Mystic Cave Zone (2P)
+48:33 46 Two Player Results
+50:45 47 Hidden Palace Zone
+53:20 48 Drowning
+53:32 49 Game Over
+53:44 50 Continue

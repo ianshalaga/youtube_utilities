@@ -1,0 +1,19 @@
+00:00 01 Title
+00:09 02 Green Hill Zone
+02:29 03 Marble Zone
+04:32 04 Spring Yard Zone
+06:40 05 Labyrinth Zone
+08:39 06 Star Light Zone
+11:01 07 Scrap Brain Zone
+14:47 08 Act Clear!
+14:54 09 Boss
+16:09 10 Final Zone
+17:20 11 Ending
+17:39 12 Staff Roll
+19:37 13 Special Stage
+21:29 14 Emerald Acquired
+21:34 15 Extra Life
+21:38 16 Invincibility
+22:22 17 Drowning
+22:34 18 Game Over
+22:46 19 Continue

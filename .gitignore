@@ -180,6 +180,8 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+node_modules
+
 # Youtube Music
 *.mp3
 *.flac
@@ -188,3 +190,4 @@ cython_debug/
 *.m4a
 *.jpg
 *.ogg
+*.png
