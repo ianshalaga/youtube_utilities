@@ -41,6 +41,7 @@ class VideoMusicProcessor:
     Responsabilidades:
     - Mantener el orden original de las pistas
     - Limitar la cantidad de videos por directorio de salida
+    - Decidir si existe particionado
     - Crear subdirectorios numerados cuando sea necesario
     - Convertir audio cuando sea necesario
     - Construir comandos mkvmerge específicos del caso de uso
@@ -61,6 +62,7 @@ class VideoMusicProcessor:
         self._mkvmerge_runner = mkvmerge_runner
         self._audio_converter = audio_converter
         self._ffprobe_provider = ffprobe_provider
+        self._output_partitioner: OutputDirectoryPartitioner | None
 
         self._max_items_per_dir = (
             max_items_per_dir
@@ -68,15 +70,18 @@ class VideoMusicProcessor:
             else self._config.video_music_max_items_per_dir
         )
 
-        self._output_partitioner = OutputDirectoryPartitioner(
-            self._max_items_per_dir
+        self._output_partitioner = (
+            OutputDirectoryPartitioner(self._max_items_per_dir)
+            if self._max_items_per_dir is not None
+            else None
         )
 
         # Evita crear más threads que trabajo real
-        self._max_workers = min(
-            max(1, os.cpu_count() - 1),
-            self._max_items_per_dir
-        )
+        cpu_workers = max(1, os.cpu_count() - 1)
+        if self._max_items_per_dir is None:
+            self._max_workers = cpu_workers
+        else:
+            self._max_workers = min(cpu_workers, self._max_items_per_dir)
 
     def process(
         self,
@@ -123,7 +128,10 @@ class VideoMusicProcessor:
         # ───────────────────────────────
         # MODO SIN SUBDIRECTORIOS
         # ───────────────────────────────
-        if total_songs <= self._max_items_per_dir:
+        if (
+            self._max_items_per_dir is None
+            or total_songs <= self._max_items_per_dir
+        ):
             with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
                 futures = []
 
@@ -149,6 +157,7 @@ class VideoMusicProcessor:
             futures = []
 
             for index, audio_path in enumerate(audio_files):
+                assert self._output_partitioner is not None
                 subdir = self._output_partitioner.get_output_dir(
                     index=index,
                     total_items=total_songs,
@@ -222,29 +231,6 @@ class VideoMusicProcessor:
         finally:
             if tmp_audio_path.exists():
                 tmp_audio_path.unlink()
-
-    def _get_subdir_path(
-        self,
-        file_index: int,
-        padding: int,
-        output_dir: Path
-    ) -> Path:
-        """
-        Calcula el subdirectorio de salida correspondiente a un archivo.
-
-        Args:
-            file_index:
-                Índice del archivo dentro de la lista total.
-            padding:
-                Cantidad de dígitos a usar en el nombre del directorio.
-            output_dir:
-                Directorio raíz de salida.
-
-        Returns:
-            Ruta completa al subdirectorio correspondiente.
-        """
-        subdir_number = (file_index // self._max_items_per_dir) + 1
-        return output_dir / f"{subdir_number:0{padding}d}"
 
     def _cleanup_segments(self, output_dir: Path, base_name: str) -> None:
         """
