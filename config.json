@@ -35,7 +35,7 @@
   },
   "apps": {
     "video_music": {
-      "max_items_per_dir": 15,
+      "max_items_per_dir": null,
       "default_video_path": "E:/Proyectos/games/Super Smash Bros/3 Super Smash Bros. Brawl/1 Gamerip Tracks/video.mp4",
       "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Super Smash Bros/3 Super Smash Bros. Brawl/1 Gamerip Tracks",
       "default_output_dir": "videos"

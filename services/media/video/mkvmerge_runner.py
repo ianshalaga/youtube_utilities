@@ -1,5 +1,9 @@
 # services/media/video/mkvmerge_runner.py
 
+import json
+import tempfile
+from pathlib import Path
+
 from services.system.process_runner import ProcessRunner
 
 
@@ -26,4 +30,23 @@ class MKVMergeRunner:
             subprocess.CalledProcessError:
                 Si mkvmerge falla.
         """
-        self._runner.run(cmd)
+        executable = cmd[0]
+        arguments = cmd[1:]
+
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            suffix=".json",
+            delete=False,
+        ) as f:
+            json.dump(arguments, f, ensure_ascii=False)
+
+            args_file = Path(f.name)
+
+        try:
+            self._runner.run([
+                executable,
+                f"@{args_file}"
+            ])
+        finally:
+            args_file.unlink(missing_ok=True)
