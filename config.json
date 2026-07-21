@@ -36,15 +36,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/Guilty Gear/1 Guilty Gear (1998)/1 GUILTY GEAR ORIGINAL SOUND COLLECTION/video.mp4",
-      "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Guilty Gear/1 Guilty Gear (1998)/1 GUILTY GEAR ORIGINAL SOUND COLLECTION",
+      "default_video_path": "E:/Proyectos/games/Super Smash Bros/3 Super Smash Bros. Brawl/1 Gamerip Tracks/video.mp4",
+      "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Super Smash Bros/3 Super Smash Bros. Brawl/1 Gamerip Tracks",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Guilty Gear/1 Guilty Gear (1998)/1 GUILTY GEAR ORIGINAL SOUND COLLECTION/videos",
+      "default_videos_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Super Smash Bros/3 Super Smash Bros. Brawl/1 Gamerip Tracks/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "GUILTY GEAR ORIGINAL SOUND COLLECTION",
+      "default_video_name": "Super Smash Bros. Brawl - Gamerip Tracks",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": null,

@@ -1,0 +1,13 @@
+00:00:00 01 JUMPIN' (Chun-Li's Theme)
+00:03:58 02 Drama ACT1 ''Chun Li's Nightmare''
+00:10:12 03 Drama ACT2 ''Sailing!''
+00:18:19 04 Chun-Li's Theme (Super Arrange Version)
+00:21:05 05 Ryu's Theme (Super Arrange Version)
+00:23:14 06 Drama ACT3 ''Balrog Assault''
+00:32:03 07 Drama ACT4 ''Los Angeles International Airport''
+00:33:39 08 Balrog's Theme (Super Arrange Version)
+00:35:13 09 Vega's Theme (Super Arrange Version)
+00:37:00 10 Drama ACT5 ''In the Hamburger Shop''
+00:45:26 11 Drama ACT6 ''Coroses Street''
+00:59:24 12 LONESOME SOLDIER (Ryu's Theme)
+01:04:17 13 Supplement! Chun-Li teaches strategies for ''Street Fighter II'' (SFC version)

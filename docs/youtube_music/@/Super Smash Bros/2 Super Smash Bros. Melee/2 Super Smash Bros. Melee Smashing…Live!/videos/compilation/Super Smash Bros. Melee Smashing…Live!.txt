@@ -1,0 +1,15 @@
+00:00:00 01 Planet Corneria
+00:02:06 02 Jungle Garden
+00:05:04 03 Great Bay Shrine
+00:09:19 04 Dr. Mario
+00:13:24 05 Original Medley
+00:18:25 06 Fountain Of Dreams
+00:22:01 07 Pokémon Medley
+00:27:44 08 Opening
+00:30:25 09 Planet Venom
+00:32:45 10 Yoshi's Story
+00:35:28 11 Depth Of Brinstar
+00:39:10 12 Smash Bros. Great Medley
+00:53:28 13 Fire Emblem
+00:57:21 14 Green Greens
+00:59:15 15 Rainbow Cruise

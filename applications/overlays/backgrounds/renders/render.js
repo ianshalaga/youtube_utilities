@@ -12,7 +12,7 @@ const TOTAL_FRAMES = FPS * DURATION;
 
 const OUTPUT_DIR = path.join(
     __dirname,
-    "guilty_gear"
+    "particles_flow"
 );
 
 (async () => {
@@ -45,7 +45,7 @@ const OUTPUT_DIR = path.join(
 
     await page.goto(
 
-        "http://localhost:8080/applications/overlays/backgrounds/guilty_gear/index.html",
+        "http://localhost:8080/applications/overlays/backgrounds/particles_flow/index.html",
 
         {
 

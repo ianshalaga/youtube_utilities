@@ -1,0 +1,46 @@
+:root {
+  --primary: #ff8000;
+
+  --background: transparent;
+
+  --particle-size: 4px;
+
+  --glow: 10px;
+}
+
+html,
+body {
+  margin: 0;
+
+  overflow: hidden;
+
+  background: var(--background);
+}
+
+#scene {
+  position: relative;
+
+  width: 1920px;
+  height: 1080px;
+
+  overflow: hidden;
+}
+
+#particles {
+  position: absolute;
+
+  inset: 0;
+}
+
+.particle {
+  position: absolute;
+
+  width: var(--particle-size);
+  height: var(--particle-size);
+
+  border-radius: 50%;
+
+  background: var(--primary);
+
+  box-shadow: 0 0 var(--glow) var(--primary);
+}
