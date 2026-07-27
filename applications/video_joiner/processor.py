@@ -170,7 +170,7 @@ class VideoJoinerProcessor:
             if end_screens_dir is not None:
                 end_screen = self._end_screen_selector.select(
                     end_screens_dir,
-                    random=random_end_screen
+                    randomize=random_end_screen
                 )
 
             final_videos = (

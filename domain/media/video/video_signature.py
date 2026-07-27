@@ -53,3 +53,18 @@ class VideoSignature:
     """
     Cantidad total de streams de audio presentes en el archivo.
     """
+    audio_sample_rates: tuple[int, ...]
+    """
+    Tupla ordenada con las frecuencias de audio presentes en el archivo.
+
+    Se utiliza una tupla en lugar de una lista para garantizar
+    inmutabilidad y permitir comparaciones directas.
+    """
+
+    audio_channels: tuple[int, ...]
+    """
+    Tupla ordenada con la cantidad de canales de audio presentes en el archivo.
+
+    Se utiliza una tupla en lugar de una lista para garantizar
+    inmutabilidad y permitir comparaciones directas.
+    """

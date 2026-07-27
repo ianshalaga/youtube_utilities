@@ -119,6 +119,8 @@ class FFProbeProvider(MediaProvider):
         - framerate
         - codecs de audio
         - cantidad de streams de audio
+        - frecuencias de audios
+        - cantidad de canales de audio
 
         Args:
             path:
@@ -139,8 +141,19 @@ class FFProbeProvider(MediaProvider):
             width=int(video["width"]),
             height=int(video["height"]),
             frame_rate=frame_rate,
+
             audio_codecs=tuple(a["codec_name"] for a in audios),
             audio_stream_count=len(audios),
+
+            audio_sample_rates=tuple(
+                int(a["sample_rate"])
+                for a in audios
+            ),
+
+            audio_channels=tuple(
+                int(a["channels"])
+                for a in audios
+            ),
         )
 
     def video_encoding(self, path: Path) -> VideoEncodingDescriptor:

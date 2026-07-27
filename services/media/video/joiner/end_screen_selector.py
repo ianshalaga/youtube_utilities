@@ -31,7 +31,7 @@ class EndScreenSelector:
         self,
         end_screens_dir: Path,
         *,
-        random: bool = False
+        randomize: bool = False
     ) -> Path:
         """
         Selecciona un video de pantalla final.
@@ -65,7 +65,7 @@ class EndScreenSelector:
                 "No se encontraron videos de end screen."
             )
 
-        if random:
+        if randomize:
             return random.choice(videos)
 
         # Selección determinista (primer archivo ordenado)
