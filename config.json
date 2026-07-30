@@ -42,14 +42,14 @@
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/GRABACIONES/Soulcalibur VI/@Fights/02",
+      "default_videos_dir": "F:/@Seyfer/GRABACIONES/Soulcalibur VI/@Fights/01 Chrisy15",
       "default_output_dir": "compilation",
-      "default_video_name": "Soulcalibur VI - 2.31 - Online - Ranked - Seyfer - Taki VS LuRki - Maxi",
+      "default_video_name": "Soulcalibur VI - 2.31 - Online - Ranked - Chrisy15 - Xianghua VS Seyfer - Taki",
       "default_target_duration": 600,
-      "default_end_screens_dir": "F:/@Seyfer/GRABACIONES/Soulcalibur VI/@EndScreens/PC",
+      "default_end_screens_dir": "F:/@Seyfer/GRABACIONES/Soulcalibur VI/@EndScreens/PC 48 KHz",
       "default_random_end_screen": true,
-      "default_timestamps_prefix": "Fight",
-      "default_timestamps_secuence": true,
+      "default_timestamps_prefix": "",
+      "default_timestamps_secuence": false,
       "default_extra_description": ""
     },
     "video_converter": {

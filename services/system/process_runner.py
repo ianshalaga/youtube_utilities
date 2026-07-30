@@ -32,11 +32,16 @@ class ProcessRunner:
         Returns:
             CompletedProcess
         """
-        return subprocess.run(
-            cmd,
-            check=True,
-            capture_output=capture_output,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-        )
+        try:
+            return subprocess.run(
+                cmd,
+                check=True,
+                capture_output=capture_output,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+        except subprocess.CalledProcessError as e:
+            print(e.stdout)
+            print(e.stderr)
+            raise

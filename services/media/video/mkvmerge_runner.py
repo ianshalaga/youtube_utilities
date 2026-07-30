@@ -47,6 +47,6 @@ class MKVMergeRunner:
             self._runner.run([
                 executable,
                 f"@{args_file}"
-            ])
+            ], capture_output=True)
         finally:
             args_file.unlink(missing_ok=True)
