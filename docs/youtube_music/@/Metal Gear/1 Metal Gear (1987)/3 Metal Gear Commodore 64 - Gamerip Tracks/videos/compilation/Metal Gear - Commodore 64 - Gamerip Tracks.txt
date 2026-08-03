@@ -1,7 +1,0 @@
-00:00 01 Title Screen Loading (SID Stereo)
-01:50 02 Aerial Insertion (SID Stereo)
-02:11 03 Jungle Infiltration (SID Stereo)
-04:29 04 Base Infiltration (SID Stereo)
-05:37 05 Intruder Detected (SID Stereo)
-07:23 06 Mercenary (SID Stereo)
-08:27 07 Game Over (SID Stereo)

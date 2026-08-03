@@ -35,18 +35,18 @@
   },
   "apps": {
     "video_music": {
-      "max_items_per_dir": null,
-      "default_video_path": "E:/Proyectos/games/Super Smash Bros/3 Super Smash Bros. Brawl/1 Gamerip Tracks/video.mp4",
-      "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Super Smash Bros/3 Super Smash Bros. Brawl/1 Gamerip Tracks",
+      "max_items_per_dir": 15,
+      "default_video_path": "E:/Proyectos/games/Fallout/3 Fallout Tactics - Brotherhood of Steel - 2001/2 Re-Engineered Soundtrack/video.mp4",
+      "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Fallout/3 Fallout Tactics - Brotherhood of Steel - 2001/2 Re-Engineered Soundtrack",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/GRABACIONES/Soulcalibur VI/@Fights/01 Chrisy15",
+      "default_videos_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Fallout/3 Fallout Tactics - Brotherhood of Steel - 2001/2 Re-Engineered Soundtrack/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Soulcalibur VI - 2.31 - Online - Ranked - Chrisy15 - Xianghua VS Seyfer - Taki",
-      "default_target_duration": 600,
-      "default_end_screens_dir": "F:/@Seyfer/GRABACIONES/Soulcalibur VI/@EndScreens/PC 48 KHz",
+      "default_video_name": "Fallout Tactics - Brotherhood of Steel - Re-Engineered Soundtrack",
+      "default_target_duration": null,
+      "default_end_screens_dir": null,
       "default_random_end_screen": true,
       "default_timestamps_prefix": "",
       "default_timestamps_secuence": false,

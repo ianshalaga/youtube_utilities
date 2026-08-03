@@ -1,5 +1,0 @@
-00:00 01 Title
-01:03 02 Overworld BGM (Streets)
-01:55 03 Lose a Turtle
-02:01 04 Ending
-02:25 05 BGM 1 (Sewer 1)
