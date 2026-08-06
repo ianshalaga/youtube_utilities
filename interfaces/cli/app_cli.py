@@ -37,6 +37,8 @@ from applications.ranking_system.queries.builder import (
     RankingQueryBuilder
 )
 
+from applications.midi_mapper.processor import MidiMapperProcessor
+
 # SERVICES
 from services.system.process_runner import ProcessRunner
 from services.media.video.converter import VideoConverter
@@ -44,7 +46,6 @@ from services.media.video.mkvmerge_runner import MKVMergeRunner
 from services.media.audio.converter import AudioConverter
 from services.media.ffprobe_provider import FFProbeProvider
 from services.ranking.storage.session import SessionLocal
-
 
 config = ConfigManager()
 
@@ -175,6 +176,14 @@ def run_ranking() -> None:
     print(query)
 
 
+def run_midi_mapper() -> None:
+    print("HOLIS")
+    processor = MidiMapperProcessor(
+        target_device="DDJ-FLX2"
+    )
+    processor.process()
+
+
 def build_parser() -> argparse.ArgumentParser:
     """
     Construye el parser principal del CLI.
@@ -193,7 +202,8 @@ def build_parser() -> argparse.ArgumentParser:
             "video_converter",
             "create_db",
             "load_legacy",
-            "ranking"
+            "ranking",
+            "midi_mapper"
         ]
     )
 
@@ -216,6 +226,7 @@ def main() -> None:
         "create_db": run_create_db,
         "load_legacy": run_load_legacy,
         "ranking": run_ranking,
+        "midi_mapper": run_midi_mapper,
     }
 
     commands[args.command]()
