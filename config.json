@@ -36,15 +36,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/Fallout/3 Fallout Tactics - Brotherhood of Steel - 2001/2 Re-Engineered Soundtrack/video.mp4",
-      "default_audios_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Fallout/3 Fallout Tactics - Brotherhood of Steel - 2001/2 Re-Engineered Soundtrack",
+      "default_video_path": "E:/Proyectos/games/Destiny/1 Destiny/6 Destiny - Winter Events Tracks/video.mp4",
+      "default_audios_dir": "F:/DESCARGAS/@Music/youtube_music/@/Destiny/1 Destiny/6 Destiny - Winter Events Tracks",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/Proyectos/youtube_utilities/docs/youtube_music/@/Fallout/3 Fallout Tactics - Brotherhood of Steel - 2001/2 Re-Engineered Soundtrack/videos",
+      "default_videos_dir": "F:/DESCARGAS/@Music/youtube_music/@/Destiny/1 Destiny/6 Destiny - Winter Events Tracks/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Fallout Tactics - Brotherhood of Steel - Re-Engineered Soundtrack",
+      "default_video_name": "Destiny - Winter Events Tracks",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
