@@ -8,12 +8,18 @@ from services.ranking.config.filters import (
 
 
 class ConfigManager:
-    FILE = Path("config.json")
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent
+    CONFIG_FILE = PROJECT_ROOT / "config.json"
 
     def __init__(self):
-        if not self.FILE.exists():
-            raise FileNotFoundError("config.json no encontrado")
-        self.data = json.loads(self.FILE.read_text(encoding="utf-8"))
+        if not self.CONFIG_FILE.exists():
+            raise FileNotFoundError(
+                f"No se encontró el archivo de configuración: "
+                f"{self.CONFIG_FILE}"
+            )
+
+        with self.CONFIG_FILE.open("r", encoding="utf-8") as f:
+            self._config = json.load(f)
 
     def save(self):
         self.FILE.write_text(

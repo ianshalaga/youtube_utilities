@@ -33,18 +33,20 @@
       "m4v"
     ]
   },
+  "dry_run": false,
+  "max_workers": 4,
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/Destiny/1 Destiny/6 Destiny - Winter Events Tracks/video.mp4",
-      "default_audios_dir": "F:/DESCARGAS/@Music/youtube_music/@/Destiny/1 Destiny/6 Destiny - Winter Events Tracks",
+      "default_video_path": "E:/Proyectos/games/Super Smash Bros/3 Super Smash Bros. Brawl/2 Lost Tracks/video.mp4",
+      "default_audios_dir": "F:/DESCARGAS/@Music/youtube_music/@/Super Smash Bros/3 Super Smash Bros. Brawl/2 Lost Tracks",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/@Music/youtube_music/@/Destiny/1 Destiny/6 Destiny - Winter Events Tracks/videos",
+      "default_videos_dir": "F:/DESCARGAS/@Music/youtube_music/@/Super Smash Bros/3 Super Smash Bros. Brawl/2 Lost Tracks/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Destiny - Winter Events Tracks",
+      "default_video_name": "Super Smash Bros. Brawl - Lost Tracks",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
@@ -104,7 +106,5 @@
         "output": "rankings/player_season3_pc.csv"
       }
     }
-  },
-  "dry_run": false,
-  "max_workers": 4
+  }
 }

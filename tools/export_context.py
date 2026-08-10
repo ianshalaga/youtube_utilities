@@ -8,20 +8,35 @@ from collections.abc import Iterable
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 
-
 # BASE_DIR / <path>
-INPUT_PATHS = (
-    # BASE_DIR / "services/ranking/loaders/legacy/row_legacy_mapper.py",
-    # BASE_DIR / "services/ranking/loaders/legacy/row_legacy_dto.py",
-    # BASE_DIR / "services/ranking/storage/models",
-    # BASE_DIR / "apps/video_music",
-    # BASE_DIR / "apps/video_joiner",
-    # BASE_DIR / "domain/media",
-    # BASE_DIR / "services/media",
-    # BASE_DIR / "services/filesystem",
-    BASE_DIR / "applications/overlays",
-    # BASE_DIR,
+
+VIDEO_JOINER_CONTEXT = (
+    BASE_DIR / "app.py",
+    BASE_DIR / "config.json",
+    BASE_DIR / "core/config_manager.py",
+    BASE_DIR / "core/time_utils.py",
+    BASE_DIR / "interfaces/cli/app_cli.py",
+    BASE_DIR / "interfaces/web/apps/video_joiner_web/views.py",
+    BASE_DIR / "interfaces/web/apps/video_joiner_web/models.py",
+    BASE_DIR / "interfaces/web/apps/video_joiner_web/admin.py",
+    BASE_DIR / "interfaces/web/apps/video_joiner_web/tests.py",
+    BASE_DIR / "applications/video_joiner/processor.py",
+    BASE_DIR / "applications/video_joiner/routes.py",
+    BASE_DIR / "services/system/process_runner.py",
+    BASE_DIR / "services/media/ffprobe_provider.py",
+    BASE_DIR / "services/media/media_provider.py",
+    BASE_DIR / "services/media/discovery/media_discovery.py",
+    BASE_DIR / "services/media/video/mkvmerge_runner.py",
+    BASE_DIR / "services/media/video/compatibility_validator.py",
+    BASE_DIR / "services/media/video/joiner/partitioner.py",
+    BASE_DIR / "services/media/video/joiner/end_screen_selector.py",
+    BASE_DIR / "services/media/video/joiner/timestamp_file_builder.py",
+    BASE_DIR / "domain/media/base.py",
+    BASE_DIR / "domain/media/video/video_encoding.py",
+    BASE_DIR / "domain/media/video/video_signature.py",
 )
+
+INPUT_PATHS = VIDEO_JOINER_CONTEXT
 
 FILE_NAME = "project_context"
 
@@ -59,6 +74,7 @@ DEFAULT_EXTENSIONS = {
     ".yml",
     ".yaml",
     ".toml",
+    ".json",
     # HTML, CSS, JS
     ".html",
     ".css",
