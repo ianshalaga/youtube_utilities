@@ -1,0 +1,29 @@
+OST
+
+"video_joiner": {
+      "max_items_per_dir": 15,
+      "default_videos_dir": "F:/DESCARGAS/@Music/youtube_music/@/Sonic/3 Sonic CD (1993)/01 OST/videos",
+      "default_output_dir": "compilation",
+      "default_video_name": "Sonic CD OST",
+      "default_target_duration": null,
+      "default_end_screens_dir": null,
+      "default_random_end_screen": true,
+      "default_timestamps_prefix": "",
+      "default_timestamps_secuence": false,
+      "default_extra_description": ""
+    },
+
+SOULCALIBUR
+
+    "video_joiner": {
+      "max_items_per_dir": 15,
+      "default_videos_dir": "F:/@Seyfer/GRABACIONES/Soulcalibur VI/@Fights/02 holydwing",
+      "default_output_dir": "compilation",
+      "default_video_name": "Soulcalibur VI - 2.31 - Online - Ranked - holydwing - Amy VS Seyfer - Taki",
+      "default_target_duration": 600,
+      "default_end_screens_dir": "F:/@Seyfer/GRABACIONES/Soulcalibur VI/@EndScreens/PC 48 KHz",
+      "default_random_end_screen": true,
+      "default_timestamps_prefix": "Fight ",
+      "default_timestamps_secuence": false,
+      "default_extra_description": ""
+    },

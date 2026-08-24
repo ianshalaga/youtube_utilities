@@ -14,7 +14,7 @@ class ProcessRunner:
         self,
         cmd: list[str] | Sequence[str],
         *,
-        capture_output: bool = False,
+        capture_output: bool = True,
     ) -> subprocess.CompletedProcess:
         """
         Ejecuta un proceso externo de forma consistente y segura.

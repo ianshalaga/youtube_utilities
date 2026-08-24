@@ -38,15 +38,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/Super Smash Bros/3 Super Smash Bros. Brawl/2 Lost Tracks/video.mp4",
-      "default_audios_dir": "F:/DESCARGAS/@Music/youtube_music/@/Super Smash Bros/3 Super Smash Bros. Brawl/2 Lost Tracks",
+      "default_video_path": "E:/Proyectos/games/Halo/2 Halo 2/4 Gamerip Tracks/video.mp4",
+      "default_audios_dir": "F:/DESCARGAS/@Music/youtube_music/@/Halo/2 Halo 2/4 Gamerip Tracks",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/@Music/youtube_music/@/Super Smash Bros/3 Super Smash Bros. Brawl/2 Lost Tracks/videos",
+      "default_videos_dir": "F:/DESCARGAS/@Music/youtube_music/@/Halo/2 Halo 2/4 Gamerip Tracks/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Super Smash Bros. Brawl - Lost Tracks",
+      "default_video_name": "Halo 2 - Gamerip Tracks",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
