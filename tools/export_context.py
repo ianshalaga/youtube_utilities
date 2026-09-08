@@ -36,7 +36,11 @@ VIDEO_JOINER_CONTEXT = (
     BASE_DIR / "domain/media/video/video_signature.py",
 )
 
-INPUT_PATHS = VIDEO_JOINER_CONTEXT
+RANKING_SYSTEM_CONTEXT = (
+    BASE_DIR / "services/ranking/storage",
+)
+
+INPUT_PATHS = RANKING_SYSTEM_CONTEXT
 
 FILE_NAME = "project_context"
 

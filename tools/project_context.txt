@@ -1,1961 +1,1666 @@
 # GENERATED PROJECT CONTEXT
 # base_dir: F:\@Seyfer\Proyectos\youtube_utilities
-# total_files: 23
+# total_files: 32
 
 # PROJECT STRUCTURE
 
-app.py
-applications
-  video_joiner
-    processor.py
-    routes.py
-config.json
-core
-  config_manager.py
-  time_utils.py
-domain
-  media
-    base.py
-    video
-      video_encoding.py
-      video_signature.py
-interfaces
-  cli
-    app_cli.py
-  web
-    apps
-      video_joiner_web
-        admin.py
-        models.py
-        tests.py
-        views.py
 services
-  media
-    discovery
-      media_discovery.py
-    ffprobe_provider.py
-    media_provider.py
-    video
-      compatibility_validator.py
-      joiner
-        end_screen_selector.py
-        partitioner.py
-        timestamp_file_builder.py
-      mkvmerge_runner.py
-  system
-    process_runner.py
+  ranking
+    storage
+      __init__.py
+      base.py
+      mixins.py
+      models
+        __init__.py
+        battle.py
+        battle_participant.py
+        character_identity.py
+        country.py
+        duel.py
+        duel_participant.py
+        duel_team.py
+        duel_team_member.py
+        duel_type.py
+        event.py
+        event_type.py
+        franchise.py
+        game.py
+        game_character.py
+        game_version_platform.py
+        platform.py
+        player.py
+        player_alias.py
+        player_social_account.py
+        region.py
+        round.py
+        round_result.py
+        season.py
+        social_platform.py
+        stage.py
+        team.py
+      repository.py
+      session.py
 
 # FILES
 
 ================================================================================
-FILE: app.py
+FILE: services\ranking\storage\__init__.py
 ================================================================================
-"""
-Punto de entrada principal del proyecto.
-
-Este módulo existe para facilitar la ejecución desde:
-
-    - Visual Studio Code
-    - Línea de comandos
-    - Scripts externos
-
-Toda la lógica de ejecución se encuentra en:
-
-    interfaces.cli.app
-
-Por lo tanto este archivo únicamente delega la ejecución
-al CLI principal del proyecto.
-"""
-
-from interfaces.cli.app_cli import main
-
-
-if __name__ == "__main__":
-    main()
 
 
 ================================================================================
-FILE: applications\video_joiner\processor.py
+FILE: services\ranking\storage\base.py
 ================================================================================
-"""
-NOTAS DE IMPLEMENTACIÓN (uso personal)
+'''
+Convención de Naming ORM
 
-- VideoJoinerProcessor:
-    - Es un orquestador, no ejecuta herramientas externas directamente.
-- mkvmerge:
-    - La concatenación correcta se realiza con el operador "+".
-    - El nombre del archivo final NO es fiable: debe detectarse.
-- Compatibilidad:
-    - Todos los videos deben compartir parámetros técnicos.
-- Particionado:
-    - Se agrupan videos completos.
-- Paralelización:
-    - Se paraleliza por "parte final".
-    - Cada parte usa su propio directorio temporal determinista.
-"""
+- Las clases ORM representan una entidad individual → singular
+- Las tablas representan colecciones → plural
+- Los nombres de relaciones siguen el plural cuando corresponda
+'''
 
-from pathlib import Path
-from typing import Iterable
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import os
-import shutil
+from sqlalchemy.orm import DeclarativeBase
 
-from core.config_manager import ConfigManager
-from services.media.ffprobe_provider import FFProbeProvider
-from services.media.discovery.media_discovery import MediaDiscoveryService
-from services.media.video.mkvmerge_runner import MKVMergeRunner
-from services.media.video.compatibility_validator import VideoCompatibilityValidator
-from services.media.video.joiner.partitioner import VideoPartitioner
-from services.media.video.joiner.end_screen_selector import EndScreenSelector
-from services.media.video.joiner.timestamp_file_builder import TimestampFileBuilder
 
-
-class VideoJoinerProcessor:
-    """
-    Orquesta la unión de múltiples videos en uno o más archivos finales.
-    """
-
-    def __init__(
-        self,
-        mkvmerge_runner: MKVMergeRunner,
-        ffprobe_provider: FFProbeProvider,
-        max_items_per_dir: int | None = None
-    ):
-        self._config = ConfigManager()
-        self._probe_provider = ffprobe_provider
-        self._mkvmerge_runner = mkvmerge_runner
-        self._validator = VideoCompatibilityValidator(self._probe_provider)
-        self._partitioner = VideoPartitioner(self._probe_provider)
-        self._end_screen_selector = EndScreenSelector()
-        self._timestamp_builder = TimestampFileBuilder(self._probe_provider)
-
-        self._max_items_per_dir = (
-            max_items_per_dir
-            if max_items_per_dir is not None
-            else self._config.video_joiner_max_items_per_dir
-        )
-
-        self._max_workers = min(
-            max(1, os.cpu_count() - 1),
-            self._max_items_per_dir
-        )
-
-    def process(
-        self,
-        videos_dir: Path,
-        output_dir: Path,
-        base_name: str,
-        *,
-        target_duration: float | None = None,
-        end_screens_dir: Path | None = None,
-        random_end_screen: bool = False,
-        timestamps_prefix: str = "",
-        timestamps_secuence: bool = True,
-        extra_description: str | None = None
-    ) -> None:
-
-        if not videos_dir.exists():
-            raise FileNotFoundError(videos_dir)
-
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        videos = MediaDiscoveryService.discover(
-            videos_dir,
-            self._config.video_supported_extensions
-        )
-
-        if not videos:
-            raise ValueError("No se encontraron videos para unir.")
-
-        self._validator.validate(videos)
-
-        partitions = (
-            [videos]
-            if target_duration is None
-            else self._partitioner.partition(videos, target_duration)
-        )
-
-        total_parts = len(partitions)
-        max_workers = min(self._max_workers, total_parts)
-
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = []
-
-            for index, part_videos in enumerate(partitions):
-                futures.append(
-                    executor.submit(
-                        self._process_single_part,
-                        index=index,
-                        part_videos=part_videos,
-                        total_parts=total_parts,
-                        output_dir=output_dir,
-                        base_name=base_name,
-                        end_screens_dir=end_screens_dir,
-                        random_end_screen=random_end_screen,
-                        timestamps_prefix=timestamps_prefix,
-                        timestamps_secuence=timestamps_secuence,
-                        extra_description=extra_description
-                    )
-                )
-
-            for future in as_completed(futures):
-                future.result()
-
-    def _build_mkvmerge_command(
-        self,
-        videos: Iterable[Path],
-        output_path: Path
-    ) -> list[str]:
-
-        videos = list(videos)
-        if not videos:
-            raise ValueError("No videos provided for mkvmerge.")
-
-        cmd = ["mkvmerge", "-o", str(output_path)]
-        cmd.append(str(videos[0]))
-
-        for video in videos[1:]:
-            cmd.append("+")
-            cmd.append(str(video))
-
-        return cmd
-
-    def _process_single_part(
-        self,
-        *,
-        index: int,
-        part_videos: list[Path],
-        total_parts: int,
-        output_dir: Path,
-        base_name: str,
-        end_screens_dir: Path | None,
-        random_end_screen: bool,
-        timestamps_prefix: str,
-        timestamps_secuence: bool,
-        extra_description: str | None
-    ) -> None:
-
-        output_name = (
-            f"{base_name} ({index + 1}-{total_parts})"
-            if total_parts > 1
-            else base_name
-        )
-
-        temp_dir = output_dir / output_name
-        temp_dir.mkdir(exist_ok=True)
-
-        try:
-            end_screen = None
-            if end_screens_dir is not None:
-                end_screen = self._end_screen_selector.select(
-                    end_screens_dir,
-                    randomize=random_end_screen
-                )
-
-            final_videos = (
-                part_videos + [end_screen]
-                if end_screen is not None
-                else part_videos
-            )
-
-            self._validator.validate(final_videos)
-
-            temp_output = temp_dir / f"{output_name}.mkv"
-
-            cmd = self._build_mkvmerge_command(
-                final_videos,
-                temp_output
-            )
-
-            self._mkvmerge_runner.run(cmd)
-
-            if not temp_output.exists():
-                raise RuntimeError(
-                    f"mkvmerge no generó el archivo esperado: {temp_output}"
-                )
-
-            final_output = output_dir / f"{output_name}.mkv"
-            shutil.move(str(temp_output), str(final_output))
-
-            timestamps_path = output_dir / f"{output_name}.txt"
-            self._timestamp_builder.build(
-                videos=final_videos,
-                output_path=timestamps_path,
-                prefix=timestamps_prefix,
-                secuence=timestamps_secuence,
-                extra_description=extra_description
-            )
-
-        finally:
-            shutil.rmtree(temp_dir, ignore_errors=True)
-
-
-================================================================================
-FILE: applications\video_joiner\routes.py
-================================================================================
-# A futuro
-
-
-================================================================================
-FILE: config.json
-================================================================================
-{
-  "paths": {
-    "ffmpeg": "C:/ffmpeg/bin/ffmpeg.exe",
-    "probe": "C:/ffmpeg/bin/ffprobe.exe",
-    "mkvmerge": "C:/Program Files/MKVToolNix/mkvmerge.exe"
-  },
-  "audio": {
-    "target_codec": "aac",
-    "target_container": "m4a",
-    "target_bitrate": "320k",
-    "target_samplerate": 48000,
-    "lufs_target": -14,
-    "true_peak": -1.0,
-    "lra": 11,
-    "supported_extensions": [
-      "mp3",
-      "wav",
-      "flac",
-      "aac",
-      "m4a",
-      "ogg",
-      "opus",
-      "wma"
-    ]
-  },
-  "video": {
-    "supported_extensions": [
-      "mkv",
-      "mp4",
-      "mov",
-      "webm",
-      "avi",
-      "m4v"
-    ]
-  },
-  "apps": {
-    "video_music": {
-      "max_items_per_dir": 15,
-      "default_video_path": "E:/Proyectos/games/Destiny/1 Destiny/6 Destiny - Winter Events Tracks/video.mp4",
-      "default_audios_dir": "F:/DESCARGAS/@Music/youtube_music/@/Destiny/1 Destiny/6 Destiny - Winter Events Tracks",
-      "default_output_dir": "videos"
-    },
-    "video_joiner": {
-      "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/@Music/youtube_music/@/Destiny/1 Destiny/6 Destiny - Winter Events Tracks/videos",
-      "default_output_dir": "compilation",
-      "default_video_name": "Destiny - Winter Events Tracks",
-      "default_target_duration": null,
-      "default_end_screens_dir": null,
-      "default_random_end_screen": true,
-      "default_timestamps_prefix": "",
-      "default_timestamps_secuence": false,
-      "default_extra_description": ""
-    },
-    "video_converter": {
-      "video_formats": {
-        "youtube_1080p60": {
-          "video_codec": "libx264",
-          "video_bitrate": "16000k",
-          "framerate": 60,
-          "resolution": "1920x1080",
-          "audio_codec": "aac",
-          "audio_bitrate": "320k",
-          "audio_samplerate": 48000
-        }
-      },
-      "src": "F:/@Seyfer/GRABACIONES/SOULCALIBURVI/PANTALLAS DEL FINAL/PC2/pantalla_final_1_PC.mkv",
-      "dst_dir": "F:/DESCARGAS",
-      "output_format": null,
-      "reference_video": "F:/@Seyfer/GRABACIONES/SOULCALIBURVI/PANTALLAS DEL FINAL/PS4/pantalla_final_6_PS4.mkv"
-    },
-    "ranking_system": {
-      "entity": "player",
-      "filters": {
-        "scope": {
-          "season_name": null,
-          "event_name": "SSLT 10",
-          "event_type_name": null,
-          "region_name": null,
-          "game_name": null,
-          "game_version": null,
-          "event_platform": null,
-          "game_franchise_name": null
-        },
-        "duel": {
-          "duel_id": null,
-          "duel_type_name": null
-        },
-        "participant": {
-          "player_name": null,
-          "team_name": null
-        },
-        "battle": {
-          "participant_position": null,
-          "stage_name": null,
-          "character_identity_name": null
-        },
-        "player": {
-          "country_iso_code": null
-        }
-      },
-      "export": {
-        "format": "csv",
-        "output": "rankings/player_season3_pc.csv"
-      }
-    }
-  },
-  "dry_run": false,
-  "max_workers": 4
-}
-
-================================================================================
-FILE: core\config_manager.py
-================================================================================
-import json
-from pathlib import Path
-
-from services.ranking.config.filters import (
-    RankingFilters, ScopeFilters, DuelFilters,
-    ParticipantFilters, BattleFilters, PlayerFilters
-)
-
-
-class ConfigManager:
-    FILE = Path("config.json")
-
-    def __init__(self):
-        if not self.FILE.exists():
-            raise FileNotFoundError("config.json no encontrado")
-        self.data = json.loads(self.FILE.read_text(encoding="utf-8"))
-
-    def save(self):
-        self.FILE.write_text(
-            json.dumps(self.data, indent=2, ensure_ascii=False),
-            encoding="utf-8"
-        )
-
-    # ───────────────────────────────
-    # PATHS @@@@
-    # ───────────────────────────────
-    @property
-    def paths_mkvmerge(self) -> dict:
-        return self.data["paths"]["mkvmerge"]
-
-    @property
-    def paths_ffmpeg(self) -> dict:
-        return self.data["paths"]["ffmpeg"]
-
-    @property
-    def paths_probe(self) -> dict:
-        return self.data["paths"]["probe"]
-
-    # ───────────────────────────────
-    # AUDIO @@@@
-    # ───────────────────────────────
-    @property
-    def audio_target_codec(self) -> str:
-        return self.data["audio"]["target_codec"]
-
-    @property
-    def audio_target_container(self) -> str:
-        return self.data["audio"]["target_container"]
-
-    @property
-    def audio_target_bitrate(self) -> str:
-        return self.data["audio"]["target_bitrate"]
-
-    @property
-    def audio_target_samplerate(self) -> int:
-        return self.data["audio"]["target_samplerate"]
-
-    @property
-    def audio_lufs_target(self) -> int:
-        return self.data["audio"]["lufs_target"]
-
-    @property
-    def audio_true_peak(self) -> int:
-        return self.data["audio"]["true_peak"]
-
-    @property
-    def audio_lra(self) -> int:
-        return self.data["audio"]["lra"]
-
-    @property
-    def audio_supported_extensions(self) -> list:
-        return self.data["audio"]["supported_extensions"]
-
-    # ───────────────────────────────
-    # VIDEO @@@@
-    # ───────────────────────────────
-    @property
-    def video_supported_extensions(self) -> list:
-        return self.data["video"]["supported_extensions"]
-
-    # ───────────────────────────────
-    # APPS @@@@
-    # ───────────────────────────────
-
-    # ───────────────────────────────
-    # VIDEO MUSIC @@@@
-    # ───────────────────────────────
-    @property
-    def video_music_max_items_per_dir(self) -> int:
-        return self.data["apps"]["video_music"]["max_items_per_dir"]
-
-    @property
-    def video_music_default_video_path(self) -> str:
-        return self.data["apps"]["video_music"]["default_video_path"]
-
-    @property
-    def video_music_default_audios_dir(self) -> str:
-        return self.data["apps"]["video_music"]["default_audios_dir"]
-
-    @property
-    def video_music_default_output_dir(self) -> str:
-        return self.data["apps"]["video_music"]["default_output_dir"]
-
-    # ───────────────────────────────
-    # VIDEO JOINER @@@@
-    # ───────────────────────────────
-
-    @property
-    def video_joiner_max_items_per_dir(self) -> int:
-        return self.data["apps"]["video_joiner"]["max_items_per_dir"]
-
-    @property
-    def video_joiner_default_videos_dir(self) -> str:
-        return self.data["apps"]["video_joiner"]["default_videos_dir"]
-
-    @property
-    def video_joiner_default_output_dir(self) -> str:
-        return self.data["apps"]["video_joiner"]["default_output_dir"]
-
-    @property
-    def video_joiner_default_video_name(self) -> str:
-        return self.data["apps"]["video_joiner"]["default_video_name"]
-
-    @property
-    def video_joiner_default_target_duration(self) -> int:
-        return self.data["apps"]["video_joiner"]["default_target_duration"]
-
-    @property
-    def video_joiner_default_end_screens_dir(self) -> str:
-        return self.data["apps"]["video_joiner"]["default_end_screens_dir"]
-
-    @property
-    def video_joiner_default_random_end_screen(self) -> bool:
-        return self.data["apps"]["video_joiner"]["default_random_end_screen"]
-
-    @property
-    def video_joiner_default_timestamps_prefix(self) -> str:
-        return self.data["apps"]["video_joiner"]["default_timestamps_prefix"]
-
-    @property
-    def video_joiner_default_extra_description(self) -> str:
-        return self.data["apps"]["video_joiner"]["default_extra_description"]
-
-    @property
-    def video_joiner_default_timestamps_secuence(self) -> list:
-        return self.data["apps"]["video_joiner"]["default_timestamps_secuence"]
-
-    # ───────────────────────────────
-    # VIDEO CONVERTER @@@@
-    # ───────────────────────────────
-
-    @property
-    def video_formats(self) -> dict:
-        return self.data["apps"]["video_converter"]["video_formats"]
-
-    @property
-    def video_converter_src(self) -> str:
-        return self.data["apps"]["video_converter"]["src"]
-
-    @property
-    def video_converter_dst_dir(self) -> str:
-        return self.data["apps"]["video_converter"]["dst_dir"]
-
-    @property
-    def video_converter_output_format(self) -> str:
-        return self.data["apps"]["video_converter"]["output_format"]
-
-    @property
-    def video_converter_reference_video(self) -> str:
-        return self.data["apps"]["video_converter"]["reference_video"]
-
-    # ───────────────────────────────
-    # RANKING SYSTEM  @@@@
-    # ───────────────────────────────
-    @property
-    def ranking_entity(self) -> str:
-        return self.data["apps"]["ranking_system"]["entity"]
-
-    @property
-    def ranking_filters(self) -> RankingFilters:
-        raw = self.data["apps"]["ranking_system"]["filters"]
-
-        return RankingFilters(
-            scope=ScopeFilters(**raw["scope"]),
-            duel=DuelFilters(**raw["duel"]),
-            participant=ParticipantFilters(**raw["participant"]),
-            battle=BattleFilters(**raw["battle"]),
-            player=PlayerFilters(**raw["player"]),
-        )
-
-    @property
-    def ranking_export_format(self) -> str:
-        return self.data["apps"]["ranking_system"]["export"]["format"]
-
-    @property
-    def ranking_export_output(self) -> str:
-        return self.data["apps"]["ranking_system"]["export"]["output"]
-
-
-================================================================================
-FILE: core\time_utils.py
-================================================================================
-"""
-NOTAS DE IMPLEMENTACIÓN (uso personal)
-
-- // (floor division): división entera; devuelve el cociente truncado.
-- % (módulo): devuelve el resto de una división.
-- f"{value:06.3f}":
-    - 06 → ancho total mínimo (incluye dígitos, punto y decimales)
-    - .3f → número flotante con 3 decimales fijos
-- mkvmerge requiere el formato HH:MM:SS.mmm para --split time/parts.
-- YouTube timestamps:
-    - Reconocen MM:SS y HH:MM:SS.
-    - No reconocen milisegundos.
-- Padding consistente:
-    - Cuando existen horas, se usa HH:MM:SS.
-    - Cuando no existen, se usa MM:SS.
-- int(seconds):
-    - Trunca los decimales (no redondea).
-    - Es suficiente para timestamps de YouTube.
-- Las validaciones son preventivas:
-    - No deberían dispararse en flujos normales.
-"""
-
-
-def seconds_to_hhmmss_ms(seconds: float) -> str:
-    """
-    Convierte una duración en segundos a formato HH:MM:SS.mmm.
-
-    Este formato es compatible con herramientas como mkvmerge para
-    operaciones de corte basadas en tiempo.
-
-    Args:
-        seconds:
-            Duración en segundos (puede incluir decimales).
-
-    Returns:
-        Cadena con el tiempo formateado como HH:MM:SS.mmm.
-
-    Raises:
-        ValueError:
-            Si la duración es negativa.
-    """
-    if seconds < 0:
-        raise ValueError("Duration cannot be negative")
-
-    # Cálculo explícito de horas, minutos y segundos para mayor claridad
-    hours = int(seconds // 3600)
-    minutes = int((seconds % 3600) // 60)
-    secs = seconds % 60
-
-    return f"{hours:02d}:{minutes:02d}:{secs:06.3f}"
-
-
-def seconds_to_youtube_timestamp(
-    seconds: float,
-    *,
-    use_hours: bool
-) -> str:
-    if not isinstance(seconds, (int, float)):
-        raise TypeError("seconds must be int or float")
-
-    if seconds < 0:
-        raise ValueError("seconds cannot be negative")
-
-    total_seconds = int(seconds)
-
-    hours = total_seconds // 3600
-    minutes = (total_seconds % 3600) // 60
-    secs = total_seconds % 60
-
-    if use_hours:
-        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
-
-    return f"{minutes:02d}:{secs:02d}"
-
-
-================================================================================
-FILE: domain\media\base.py
-================================================================================
-from pathlib import Path
-from abc import ABC
-
-from services.media.media_provider import MediaProvider
-
-
-class Media(ABC):
-    def __init__(self, path: Path, media_provider: MediaProvider):
-        self._path = path
-        self._media_provider = media_provider
-
-    @property
-    def name(self) -> str:
-        return self.path.stem
-
-    @property
-    def path(self) -> Path:
-        return self._path
-
-    @property
-    def duration(self) -> float:
-        return self._media_provider.duration(self.path)
-
-
-================================================================================
-FILE: domain\media\video\video_encoding.py
-================================================================================
-from dataclasses import dataclass
-
-
-@dataclass(frozen=True)
-class VideoEncodingDescriptor:
-    video_codec: str
-    video_bitrate: str | None
-    pixel_format: str
-    width: int
-    height: int
-    frame_rate: float
-
-    audio_codec: str | None
-    audio_bitrate: str | None
-    sample_rate: int | None
-    channels: int | None
-
-
-================================================================================
-FILE: domain\media\video\video_signature.py
-================================================================================
-from dataclasses import dataclass
-
-
-@dataclass(frozen=True)
-class VideoSignature:
-    """
-    Value Object que representa la firma técnica de un archivo de video.
-
-    La firma encapsula todas las características relevantes para
-    determinar compatibilidad entre videos sin exponer detalles
-    de bajo nivel ni estructuras externas (ffprobe, JSON, etc.).
-
-    Es un objeto:
-    - Inmutable (frozen=True)
-    - Comparable por igualdad estructural
-    - Seguro para uso como clave o referencia estable
-
-    Usos principales:
-    - Validación de compatibilidad entre videos.
-    - Verificación de end screens.
-    - Agrupación de archivos con características homogéneas.
-    """
-
-    codec: str
-    """
-    Codec de video principal (por ejemplo: 'h264', 'hevc').
-    """
-
-    width: int
-    """
-    Ancho del video en píxeles.
-    """
-
-    height: int
-    """
-    Alto del video en píxeles.
-    """
-
-    frame_rate: float
-    """
-    Framerate del video expresado como valor decimal.
-    """
-
-    audio_codecs: tuple[str, ...]
-    """
-    Tupla ordenada con los codecs de audio presentes en el archivo.
-
-    Se utiliza una tupla en lugar de una lista para garantizar
-    inmutabilidad y permitir comparaciones directas.
-    """
-
-    audio_stream_count: int
-    """
-    Cantidad total de streams de audio presentes en el archivo.
-    """
-    audio_sample_rates: tuple[int, ...]
-    """
-    Tupla ordenada con las frecuencias de audio presentes en el archivo.
-
-    Se utiliza una tupla en lugar de una lista para garantizar
-    inmutabilidad y permitir comparaciones directas.
-    """
-
-    audio_channels: tuple[int, ...]
-    """
-    Tupla ordenada con la cantidad de canales de audio presentes en el archivo.
-
-    Se utiliza una tupla en lugar de una lista para garantizar
-    inmutabilidad y permitir comparaciones directas.
-    """
-
-
-================================================================================
-FILE: interfaces\cli\app_cli.py
-================================================================================
-"""
-CLI principal del proyecto YouTube Utilities.
-
-Este módulo expone los distintos casos de uso del sistema
-mediante comandos de consola.
-
-Ejemplos:
-
-    python app.py video_music
-    python app.py video_joiner
-    python app.py video_converter
-    python app.py create_db
-    python app.py load_legacy
-    python app.py ranking
-
-La lógica de negocio permanece en:
-
-    applications/
-
-Este módulo solamente coordina la ejecución.
-"""
-
-from pathlib import Path
-import argparse
-
-# CORE
-from core.config_manager import ConfigManager
-
-# APPLICATIONS
-from applications.video_music.processor import VideoMusicProcessor
-from applications.video_joiner.processor import VideoJoinerProcessor
-from applications.ranking_system.create_db import create_db
-from applications.ranking_system.loaders.load_legacy import (
-    run as run_load_legacy
-)
-from applications.ranking_system.queries.builder import (
-    RankingQueryBuilder
-)
-
-# SERVICES
-from services.system.process_runner import ProcessRunner
-from services.media.video.converter import VideoConverter
-from services.media.video.mkvmerge_runner import MKVMergeRunner
-from services.media.audio.converter import AudioConverter
-from services.media.ffprobe_provider import FFProbeProvider
-from services.ranking.storage.session import SessionLocal
-
-config = ConfigManager()
-
-
-def run_video_music() -> None:
-    """
-    Genera vídeos musicales utilizando una plantilla de vídeo
-    y múltiples pistas de audio.
-    """
-
-    process_runner = ProcessRunner()
-
-    mkvmerge_runner = MKVMergeRunner(process_runner)
-    audio_converter = AudioConverter(process_runner)
-    ffprobe_provider = FFProbeProvider(process_runner)
-
-    processor = VideoMusicProcessor(
-        mkvmerge_runner=mkvmerge_runner,
-        audio_converter=audio_converter,
-        ffprobe_provider=ffprobe_provider
-    )
-
-    audios_dir = config.video_music_default_audios_dir
-
-    processor.process(
-        video_path=Path(config.video_music_default_video_path),
-        audios_dir=Path(audios_dir),
-        output_dir=Path(audios_dir)
-        / Path(config.video_music_default_output_dir)
-    )
-
-
-def run_video_joiner() -> None:
-    """
-    Une múltiples vídeos en una compilación única.
-    """
-
-    process_runner = ProcessRunner()
-
-    mkvmerge_runner = MKVMergeRunner(process_runner)
-    ffprobe_provider = FFProbeProvider(process_runner)
-
-    processor = VideoJoinerProcessor(
-        mkvmerge_runner=mkvmerge_runner,
-        ffprobe_provider=ffprobe_provider
-    )
-
-    videos_dir = Path(config.video_joiner_default_videos_dir)
-
-    output_dir = (
-        videos_dir
-        / Path(config.video_joiner_default_output_dir)
-    )
-
-    end_screens_dir = (
-        Path(config.video_joiner_default_end_screens_dir)
-        if config.video_joiner_default_end_screens_dir
-        else None
-    )
-
-    processor.process(
-        videos_dir=videos_dir,
-        output_dir=output_dir,
-        base_name=config.video_joiner_default_video_name,
-        target_duration=config.video_joiner_default_target_duration,
-        end_screens_dir=end_screens_dir,
-        random_end_screen=config.video_joiner_default_random_end_screen,
-        timestamps_prefix=config.video_joiner_default_timestamps_prefix,
-        timestamps_secuence=config.video_joiner_default_timestamps_secuence,
-        extra_description=config.video_joiner_default_extra_description
-    )
-
-
-def run_video_converter() -> None:
-    """
-    Convierte vídeos utilizando una referencia de codificación.
-    """
-
-    probe_provider = FFProbeProvider()
-
-    converter = VideoConverter(
-        probe_provider=probe_provider
-    )
-
-    converter.convert(
-        src=Path(config.video_converter_src),
-        dst_dir=Path(config.video_converter_dst_dir),
-        output_format=config.video_converter_output_format,
-        reference_video=Path(
-            config.video_converter_reference_video
-        )
-    )
-
-
-def run_create_db() -> None:
-    """
-    Crea la estructura de base de datos del sistema ranking.
-    """
-
-    create_db()
-
-
-def run_load_legacy() -> None:
-    """
-    Importa datos históricos desde el CSV legado.
-    """
-
-    csv_path = Path(
-        "F:/DESCARGAS/SSLEdb - SSLT.csv"
-    )
-
-    run_load_legacy(csv_path=csv_path)
-
-
-def run_ranking() -> None:
-    """
-    Ejecuta consultas del sistema de ranking.
-    """
-
-    session = SessionLocal()
-
-    query = RankingQueryBuilder(
-        session=session
-    ).build(
-        filters=config.ranking_filters
-    )
-
-    print(query)
-
-
-def build_parser() -> argparse.ArgumentParser:
-    """
-    Construye el parser principal del CLI.
-    """
-
-    parser = argparse.ArgumentParser(
-        prog="youtube_utilities",
-        description="Herramientas multimedia y ranking."
-    )
-
-    parser.add_argument(
-        "command",
-        choices=[
-            "video_music",
-            "video_joiner",
-            "video_converter",
-            "create_db",
-            "load_legacy",
-            "ranking",
-            "midi_mapper"
-        ]
-    )
-
-    return parser
-
-
-def main() -> None:
-    """
-    Punto de entrada principal del CLI.
-    """
-
-    parser = build_parser()
-
-    args = parser.parse_args()
-
-    commands = {
-        "video_music": run_video_music,
-        "video_joiner": run_video_joiner,
-        "video_converter": run_video_converter,
-        "create_db": run_create_db,
-        "load_legacy": run_load_legacy,
-        "ranking": run_ranking,
-    }
-
-    commands[args.command]()
-
-
-if __name__ == "__main__":
-    main()
-
-
-================================================================================
-FILE: interfaces\web\apps\video_joiner_web\admin.py
-================================================================================
-from django.contrib import admin
-
-# Register your models here.
-
-
-================================================================================
-FILE: interfaces\web\apps\video_joiner_web\models.py
-================================================================================
-from django.db import models
-
-# Create your models here.
-
-
-================================================================================
-FILE: interfaces\web\apps\video_joiner_web\tests.py
-================================================================================
-from django.test import TestCase
-
-# Create your tests here.
-
-
-================================================================================
-FILE: interfaces\web\apps\video_joiner_web\views.py
-================================================================================
-from django.shortcuts import render
-
-# Create your views here.
-
-
-================================================================================
-FILE: services\media\discovery\media_discovery.py
-================================================================================
-from pathlib import Path
-from typing import Iterable
-
-
-class MediaDiscoveryService:
-    """
-    Descubre y ordena archivos multimedia dentro de un directorio.
-
-    Realiza validaciones preventivas basadas en extensión de archivo.
-    No garantiza compatibilidad multimedia real.
-    """
-
-    @staticmethod
-    def discover(
-        directory: Path,
-        supported_extensions: Iterable[str]
-    ) -> list[Path]:
-        """
-        Descubre y ordena archivos multimedia dentro de un directorio.
-
-        Requiere padding numérico para un orden correcto.
-
-        Args:
-            directory:
-                Directorio a inspeccionar.
-            supported_extensions:
-                Conjunto de extensiones permitidas (sin punto).
-
-        Returns:
-            Lista ordenada de rutas válidas.
-        """
-        return sorted(
-            p for p in directory.iterdir()
-            if p.is_file()
-            and p.suffix.lower().lstrip(".") in supported_extensions
-        )
-
-
-================================================================================
-FILE: services\media\ffprobe_provider.py
-================================================================================
-from pathlib import Path
-import subprocess
-import json
-
-from core.config_manager import ConfigManager
-from domain.media.base import MediaProvider
-from domain.media.video.video_encoding import VideoEncodingDescriptor
-from domain.media.video.video_signature import VideoSignature
-from services.system.process_runner import ProcessRunner
-
-
-class FFProbeProvider(MediaProvider):
-    """
-    Proveedor de metadatos multimedia basado en ffprobe.
-
-    Responsabilidades:
-    - Ejecutar ffprobe como herramienta externa de inspección multimedia.
-    - Parsear la salida JSON generada por ffprobe.
-    - Exponer consultas semánticas de metadatos de video y audio.
-    - Cachear resultados para evitar ejecuciones redundantes.
-
-    Este provider actúa como capa de infraestructura pura.
-    No contiene lógica de negocio ni validaciones de dominio.
-
-    Consumidores típicos:
-    - VideoCompatibilityValidator
-    - VideoPartitioner
-    - EndScreenSelector
-    - TimestampFileBuilder
-    """
-
-    def __init__(self, process_runner: ProcessRunner):
-        """
-        Inicializa el proveedor de ffprobe.
-
-        Mantiene un cache interno en memoria cuya clave es la
-        ruta del archivo multimedia (Path) y cuyo valor es el
-        diccionario completo devuelto por ffprobe.
-
-        Se asume que los archivos no mutan durante el ciclo
-        de vida del provider.
-        """
-        self._cache: dict[Path, dict] = {}
-        self._config = ConfigManager()
-        self._runner = process_runner
-
-    def _ffprobe(self, path: Path) -> dict:
-        """
-        Ejecuta ffprobe sobre un archivo multimedia y devuelve
-        el resultado completo como un diccionario Python.
-
-        El resultado se cachea para llamadas posteriores,
-        evitando ejecuciones repetidas de ffprobe sobre el
-        mismo archivo.
-
-        Args:
-            path:
-                Ruta del archivo multimedia a inspeccionar.
-
-        Returns:
-            dict:
-                Estructura completa de metadatos generada
-                por ffprobe en formato JSON.
-
-        Raises:
-            subprocess.CalledProcessError:
-                Si ffprobe falla durante la ejecución.
-            json.JSONDecodeError:
-                Si la salida de ffprobe no es JSON válido.
-        """
-        if path not in self._cache:
-            cmd = [
-                self._config.paths_probe,
-                "-v", "error",
-                "-show_format",
-                "-show_streams",
-                "-of", "json",
-                str(path),
-            ]
-
-            result = self._runner.run(cmd, capture_output=True)
-
-            self._cache[path] = json.loads(result.stdout)
-
-        return self._cache[path]
-
-    # ───────────────────────────────
-    # Consultas públicas
-    # ───────────────────────────────
-
-    def duration(self, path: Path) -> float:
-        """
-        Devuelve la duración total del archivo multimedia
-        expresada en segundos.
-
-        Esta información proviene de los metadatos globales
-        del contenedor (format.duration).
-
-        Args:
-            path:
-                Ruta del archivo multimedia.
-
-        Returns:
-            float:
-                Duración total del archivo en segundos.
-        """
-        data = self._ffprobe(path)
-        return float(data["format"]["duration"])
-
-    def video_signature(self, path: Path) -> VideoSignature:
-        """
-        Construye una firma de video comparable a partir
-        de los metadatos del archivo.
-
-        La firma representa las características relevantes
-        para validar compatibilidad entre videos, tales como:
-        - codec de video
-        - resolución
-        - framerate
-        - codecs de audio
-        - cantidad de streams de audio
-        - frecuencias de audios
-        - cantidad de canales de audio
-
-        Args:
-            path:
-                Ruta del archivo multimedia.
-
-        Returns:
-            VideoSignature:
-                Value Object inmutable que representa
-                la firma técnica del video.
-        """
-        video = self._video_stream(path)
-        audios = self._audio_streams(path)
-
-        frame_rate = self._parse_frame_rate(video["r_frame_rate"])
-
-        return VideoSignature(
-            codec=video["codec_name"],
-            width=int(video["width"]),
-            height=int(video["height"]),
-            frame_rate=frame_rate,
-
-            audio_codecs=tuple(a["codec_name"] for a in audios),
-            audio_stream_count=len(audios),
-
-            audio_sample_rates=tuple(
-                int(a["sample_rate"])
-                for a in audios
-            ),
-
-            audio_channels=tuple(
-                int(a["channels"])
-                for a in audios
-            ),
-        )
-
-    def video_encoding(self, path: Path) -> VideoEncodingDescriptor:
-        """
-        Devuelve una descripción completa de codificación
-        del archivo de video.
-
-        A diferencia de VideoSignature, este descriptor:
-        - NO se usa para comparación
-        - NO define compatibilidad
-        - SÍ se usa para conversión o replicación de formato
-
-        Args:
-            path:
-                Ruta del archivo multimedia.
-
-        Returns:
-            VideoEncodingDescriptor:
-                Descriptor técnico de codificación.
-        """
-        data = self._ffprobe(path)
-
-        video = self._video_stream(path)
-        audios = self._audio_streams(path)
-
-        # ───────────────────────────────
-        # Video
-        # ───────────────────────────────
-        frame_rate = self._parse_frame_rate(video["r_frame_rate"])
-
-        video_codec = video.get("codec_name")
-        pixel_format = video.get("pix_fmt")
-        width = int(video["width"])
-        height = int(video["height"])
-
-        # Bitrate de video:
-        # - Puede venir del stream
-        # - O del contenedor
-        video_bitrate = (
-            video.get("bit_rate")
-            or data.get("format", {}).get("bit_rate")
-        )
-
-        # Normalizamos a string tipo ffmpeg ("4500k")
-        if video_bitrate is not None:
-            video_bitrate = f"{int(video_bitrate) // 1000}k"
-
-        # ───────────────────────────────
-        # Audio (solo el primer stream)
-        # ───────────────────────────────
-        if audios:
-            audio = audios[0]
-
-            audio_codec = audio.get("codec_name")
-            sample_rate = int(audio.get("sample_rate"))
-            channels = int(audio.get("channels"))
-
-            audio_bitrate = audio.get("bit_rate")
-            if audio_bitrate is not None:
-                audio_bitrate = f"{int(audio_bitrate) // 1000}k"
-
-        else:
-            audio_codec = None
-            audio_bitrate = None
-            sample_rate = None
-            channels = None
-
-        return VideoEncodingDescriptor(
-            video_codec=video_codec,
-            video_bitrate=video_bitrate,
-            pixel_format=pixel_format,
-            width=width,
-            height=height,
-            frame_rate=frame_rate,
-            audio_codec=audio_codec,
-            audio_bitrate=audio_bitrate,
-            sample_rate=sample_rate,
-            channels=channels,
-        )
-
-    # ───────────────────────────────
-    # Helpers privados
-    # ───────────────────────────────
-
-    def _video_stream(self, path: Path) -> dict:
-        """
-        Devuelve el stream de video principal del archivo.
-
-        Se asume que el archivo contiene al menos un stream
-        de tipo video.
-
-        Args:
-            path:
-                Ruta del archivo multimedia.
-
-        Returns:
-            dict:
-                Diccionario correspondiente al stream de video.
-        """
-        data = self._ffprobe(path)
-        return next(
-            s for s in data["streams"]
-            if s["codec_type"] == "video"
-        )
-
-    def _audio_streams(self, path: Path) -> list[dict]:
-        """
-        Devuelve todos los streams de audio presentes
-        en el archivo multimedia.
-
-        Args:
-            path:
-                Ruta del archivo multimedia.
-
-        Returns:
-            list[dict]:
-                Lista de streams de audio.
-        """
-        data = self._ffprobe(path)
-        return [
-            s for s in data["streams"]
-            if s["codec_type"] == "audio"
-        ]
-
-    @staticmethod
-    def _parse_frame_rate(value: str) -> float:
-        """
-        Convierte una representación racional de framerate
-        devuelta por ffprobe en un valor float.
-
-        Ejemplo:
-            '30000/1001' → 29.97
-
-        Args:
-            value:
-                Framerate en formato 'numerador/denominador'.
-
-        Returns:
-            float:
-                Framerate expresado como número decimal.
-        """
-        num, den = value.split("/")
-        return float(num) / float(den)
-
-
-================================================================================
-FILE: services\media\media_provider.py
-================================================================================
-from abc import ABC, abstractmethod
-from pathlib import Path
-
-from domain.media.video.video_signature import VideoSignature
-from domain.media.video.video_encoding import VideoEncodingDescriptor
-
-
-class MediaProvider(ABC):
-    """
-    Contrato para proveedores de metadatos multimedia.
-
-    Un MediaProvider es responsable de obtener información
-    técnica sobre archivos multimedia a partir de una fuente
-    externa (ffprobe, mediainfo, etc.).
-
-    No mantiene estado asociado a un archivo concreto.
-    """
-
-    @abstractmethod
-    def duration(self, path: Path) -> float:
-        """
-        Devuelve la duración total del archivo multimedia
-        expresada en segundos.
-        """
-        pass
-
-    @abstractmethod
-    def video_signature(self, path: Path) -> VideoSignature:
-        """
-        Devuelve la firma técnica del archivo de video.
-        """
-        pass
-
-    @abstractmethod
-    def video_encoding(self, path: Path) -> VideoEncodingDescriptor:
-        pass
-
-
-================================================================================
-FILE: services\media\video\compatibility_validator.py
-================================================================================
-from pathlib import Path
-from typing import Iterable
-
-
-from domain.media.video.video_signature import VideoSignature
-from services.media.media_provider import MediaProvider
-
-
-class VideoCompatibilityError(Exception):
-    """
-    Error lanzado cuando uno o más videos no son compatibles
-    entre sí desde el punto de vista técnico.
-    """
+class Base(DeclarativeBase):
     pass
 
 
-class VideoCompatibilityValidator:
+================================================================================
+FILE: services\ranking\storage\mixins.py
+================================================================================
+import uuid
+from sqlalchemy import Column, String
+
+
+class WithCode:
     """
-    Servicio encargado de validar la compatibilidad técnica
-    entre archivos de video.
-
-    La compatibilidad se determina comparando la firma técnica
-    (VideoSignature) de cada archivo contra una referencia.
-
-    Este servicio:
-    - No ejecuta herramientas externas
-    - No parsea metadatos
-    - No contiene lógica de infraestructura
+    Mixin para entidades con identificador público estable (UUID).
     """
 
-    def __init__(self, media_provider: MediaProvider):
-        """
-        Inicializa el validador con un proveedor de metadatos.
+    code = Column(
+        String(36),
+        unique=True,
+        nullable=False,
+        default=lambda: str(uuid.uuid4())
+    )
 
-        Args:
-            probe:
-                Proveedor de metadatos multimedia.
-        """
-        self._media_provider = media_provider
 
-    def validate(self, videos: Iterable[Path]) -> None:
-        """
-        Valida que todos los videos proporcionados sean
-        técnicamente compatibles entre sí.
+================================================================================
+FILE: services\ranking\storage\models\__init__.py
+================================================================================
+"""
+Carga explícita de todos los modelos ORM.
 
-        La validación falla si alguna firma difiere de la
-        firma de referencia.
+Este archivo existe exclusivamente para garantizar que
+todas las clases que heredan de Base sean registradas
+en Base.metadata antes de ejecutar create_all().
+"""
 
-        Args:
-            videos:
-                Iterable de rutas a archivos de video.
+from services.ranking.storage.models.battle_participant import BattleParticipant
+from services.ranking.storage.models.battle import Battle
+from services.ranking.storage.models.character_identity import CharacterIdentity
+from services.ranking.storage.models.country import Country
+from services.ranking.storage.models.duel_participant import DuelParticipant
+from services.ranking.storage.models.duel_team_member import DuelTeamMember
+from services.ranking.storage.models.duel_team import DuelTeam
+from services.ranking.storage.models.duel_type import DuelType
+from services.ranking.storage.models.duel import Duel
+from services.ranking.storage.models.event_type import EventType
+from services.ranking.storage.models.event import Event
+from services.ranking.storage.models.franchise import Franchise
+from services.ranking.storage.models.game_character import GameCharacter
+from services.ranking.storage.models.game_version_platform import GameVersionPlatform
+from services.ranking.storage.models.game import Game
+from services.ranking.storage.models.platform import Platform
+from services.ranking.storage.models.player_alias import PlayerAlias
+from services.ranking.storage.models.player_social_account import PlayerSocialAccount
+from services.ranking.storage.models.player import Player
+from services.ranking.storage.models.region import Region
+from services.ranking.storage.models.round_result import RoundResult
+from services.ranking.storage.models.round import Round
+from services.ranking.storage.models.season import Season
+from services.ranking.storage.models.social_platform import SocialPlatform
+from services.ranking.storage.models.stage import Stage
+from services.ranking.storage.models.team import Team
 
-        Raises:
-            VideoCompatibilityError:
-                Si se detecta incompatibilidad entre los videos.
-            ValueError:
-                Si no se proporciona ningún video.
-        """
-        videos = list(videos)
 
-        if not videos:
-            raise ValueError("No videos provided for compatibility validation")
+================================================================================
+FILE: services\ranking\storage\models\battle.py
+================================================================================
+from sqlalchemy import Column, Integer, ForeignKey, Index, UniqueConstraint, Boolean, CheckConstraint
+from sqlalchemy.orm import relationship
 
-        reference_path = videos[0]
-        reference_signature = self._signature(reference_path)
+from services.ranking.storage.base import Base
 
-        for path in videos[1:]:
-            signature = self._signature(path)
-            if signature != reference_signature:
-                raise VideoCompatibilityError(
-                    self._build_error_message(
-                        reference_path,
-                        reference_signature,
-                        path,
-                        signature,
-                    )
-                )
 
-    # ───────────────────────────────
-    # Helpers privados
-    # ───────────────────────────────
+class Battle(Base):
+    __tablename__ = "battles"
 
-    def _signature(self, path: Path) -> VideoSignature:
-        """
-        Obtiene la firma técnica de un video.
-
-        Args:
-            path:
-                Ruta del archivo de video.
-
-        Returns:
-            VideoSignature:
-                Firma técnica del video.
-        """
-        return self._media_provider.video_signature(path)
-
-    @staticmethod
-    def _build_error_message(
-        ref_path: Path,
-        ref_sig: VideoSignature,
-        path: Path,
-        sig: VideoSignature,
-    ) -> str:
-        """
-        Construye un mensaje de error descriptivo indicando
-        qué video no es compatible con la referencia.
-
-        Returns:
-            str:
-                Mensaje de error legible.
-        """
-        return (
-            "Incompatible video detected:\n"
-            f"- Reference: {ref_path}\n"
-            f"  Signature: {ref_sig}\n"
-            f"- Candidate: {path}\n"
-            f"  Signature: {sig}"
+    __table_args__ = (
+        Index("ix_battles_duel_sequence", "duel_id", "sequence_number"),
+        Index("ix_battles_stage_id", "stage_id"),
+        Index("ix_battles_winner_id", "winner_id"),
+        Index("ix_battles_loser_id", "loser_id"),
+        Index("ix_battles_duel_winner", "duel_id", "winner_id"),
+        Index("ix_battles_duel_loser", "duel_id", "loser_id"),
+        UniqueConstraint("duel_id", "sequence_number",
+                         name="uq_battle_duel_sequence"),
+        CheckConstraint(
+            """
+            (is_draw = TRUE AND winner_id IS NULL AND loser_id IS NULL)
+            OR
+            (is_draw = FALSE AND winner_id IS NOT NULL AND loser_id IS NOT NULL)
+            """,
+            name="ck_battle_draw_consistency"
+        ),
+        CheckConstraint(
+            "winner_id IS NULL OR loser_id IS NULL OR winner_id <> loser_id",
+            name="ck_battle_winner_not_equal_loser"
         )
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign keys
+    duel_id = Column(
+        Integer,
+        ForeignKey("duels.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    stage_id = Column(
+        Integer,
+        ForeignKey("stages.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    winner_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=True
+    )
+
+    loser_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=True
+    )
+
+    # Fields
+    is_draw = Column(Boolean, nullable=False, default=False)
+    sequence_number = Column(Integer, nullable=False)
+
+    # Relationships
+    duel = relationship("Duel", back_populates="battles")
+    stage = relationship("Stage")
+    winner = relationship("Player", foreign_keys=[winner_id])
+    loser = relationship("Player", foreign_keys=[loser_id])
+
+    battle_participants = relationship(
+        "BattleParticipant",
+        back_populates="battle",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+    rounds = relationship(
+        "Round",
+        back_populates="battle",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
 
 
 ================================================================================
-FILE: services\media\video\joiner\end_screen_selector.py
+FILE: services\ranking\storage\models\battle_participant.py
 ================================================================================
-"""
-NOTAS DE IMPLEMENTACIÓN (uso personal)
+from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint, Index, CheckConstraint
+from sqlalchemy.orm import relationship
 
-- End screen:
-    - Se trata como un video normal.
-    - No se valida compatibilidad aquí.
-- MediaDiscoveryService:
-    - Se reutiliza para descubrir videos válidos.
-- random.choice():
-    - Selecciona un elemento aleatorio de una secuencia.
-    - Lanza IndexError si la secuencia está vacía.
-"""
-
-from pathlib import Path
-import random
-
-from core.config_manager import ConfigManager
-from services.media.discovery.media_discovery import MediaDiscoveryService
+from services.ranking.storage.base import Base
 
 
-class EndScreenSelector:
-    """
-    Selecciona un video de pantalla final (end screen)
-    desde un directorio.
-    """
+class BattleParticipant(Base):
+    __tablename__ = "battle_participants"
 
-    def __init__(self):
-        self._config = ConfigManager()
-
-    def select(
-        self,
-        end_screens_dir: Path,
-        *,
-        randomize: bool = False
-    ) -> Path:
-        """
-        Selecciona un video de pantalla final.
-
-        Args:
-            end_screens_dir:
-                Directorio que contiene los videos de end screen.
-            random:
-                Si True, selecciona un video aleatorio.
-                Si False, selecciona el primero en orden.
-
-        Returns:
-            Ruta del video seleccionado.
-
-        Raises:
-            FileNotFoundError:
-                Si el directorio no existe.
-            ValueError:
-                Si no se encuentran videos válidos.
-        """
-        if not end_screens_dir.exists():
-            raise FileNotFoundError(end_screens_dir)
-
-        videos = MediaDiscoveryService.discover(
-            end_screens_dir,
-            self._config.video_supported_extensions
+    __table_args__ = (
+        Index("ix_battle_participants_battle_id", "battle_id"),
+        Index("ix_battle_participants_player_id", "player_id"),
+        Index("ix_battle_participants_duel_team_id", "duel_team_id"),
+        UniqueConstraint(
+            "battle_id",
+            "player_id",
+            name="uq_battle_player"
+        ),
+        UniqueConstraint(
+            "battle_id",
+            "position",
+            name="uq_battle_position"
+        ),
+        CheckConstraint(
+            "position IN (1, 2)",
+            name="ck_battle_participant_position_range"
         )
+    )
 
-        if not videos:
-            raise ValueError(
-                "No se encontraron videos de end screen."
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Keys
+    battle_id = Column(
+        Integer,
+        ForeignKey("battles.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    game_character_id = Column(
+        Integer,
+        ForeignKey("game_characters.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    duel_team_id = Column(
+        Integer,
+        ForeignKey("duel_teams.id", ondelete="RESTRICT"),
+        nullable=True
+    )
+
+    # Fields
+    position = Column(Integer, nullable=False)
+
+    # Relationships
+    battle = relationship("Battle", back_populates="battle_participants")
+    player = relationship("Player")
+    game_character = relationship("GameCharacter")
+    duel_team = relationship("DuelTeam")
+
+
+================================================================================
+FILE: services\ranking\storage\models\character_identity.py
+================================================================================
+from sqlalchemy import Column, Integer, String, UniqueConstraint, ForeignKey
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class CharacterIdentity(Base, WithCode):
+    __tablename__ = "character_identities"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "name",
+            "franchise_id",
+            name="uq_character_identity"
+        ),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign keys
+    franchise_id = Column(
+        Integer,
+        ForeignKey("franchises.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    # Fields
+    name = Column(String, nullable=False)
+
+    # Relationships
+    franchise = relationship(
+        "Franchise", back_populates="character_identities")
+
+    game_characters = relationship(
+        "GameCharacter", back_populates="character_identity")
+
+
+================================================================================
+FILE: services\ranking\storage\models\country.py
+================================================================================
+from sqlalchemy import Column, Integer, String, Index
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class Country(Base, WithCode):
+    __tablename__ = "countries"
+
+    __table_args__ = (
+        Index("ix_countries_code", "code"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    iso_code = Column(String, unique=True, nullable=False)
+    name = Column(String, unique=True, nullable=False)
+
+
+================================================================================
+FILE: services\ranking\storage\models\duel.py
+================================================================================
+from sqlalchemy import (
+    Column,
+    Integer,
+    ForeignKey,
+    String,
+    Index,
+    UniqueConstraint,
+    CheckConstraint,
+    Boolean
+)
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class Duel(Base, WithCode):
+    __tablename__ = "duels"
+
+    __table_args__ = (
+        Index("ix_duels_code", "code"),
+        Index("ix_duels_event_id", "event_id"),
+        Index("ix_duels_winner_id", "winner_id"),
+        Index("ix_duels_winner_team_id", "winner_team_id"),
+        Index("ix_duels_event_winner", "event_id", "winner_id"),
+        UniqueConstraint(
+            "event_id",
+            "sequence_number",
+            name="uq_duel_event_sequence"
+        ),
+        # UniqueConstraint(
+        #     "event_id",
+        #     "team_duel_sequence_number",
+        #     name="uq_duel_event_team_sequence"
+        # ),
+        CheckConstraint(
+            """
+            (is_team_duel = TRUE AND winner_team_id IS NOT NULL AND winner_id IS NULL)
+            OR
+            (is_team_duel = FALSE AND winner_id IS NOT NULL AND winner_team_id IS NULL)
+            """,
+            name="ck_duel_type_winner_alignment"
+        ),
+        CheckConstraint(
+            """
+            (is_team_duel = TRUE AND team_duel_sequence_number IS NOT NULL)
+            OR
+            (is_team_duel = FALSE AND team_duel_sequence_number IS NULL)
+            """,
+            name="ck_duel_team_sequence_consistency"
+        ),
+        CheckConstraint(
+            """
+            (is_team_duel = TRUE AND team_duel_type_id IS NOT NULL)
+            OR
+            (is_team_duel = FALSE AND team_duel_type_id IS NULL)
+            """,
+            name="ck_duel_team_type_alignment"
+        ),
+        CheckConstraint(
+            """
+            (
+                is_team_duel = FALSE
+                AND duel_type_id IS NOT NULL
+                AND team_duel_type_id IS NULL
             )
-
-        if randomize:
-            return random.choice(videos)
-
-        # Selección determinista (primer archivo ordenado)
-        return videos[0]
-
-
-================================================================================
-FILE: services\media\video\joiner\partitioner.py
-================================================================================
-"""
-NOTAS DE IMPLEMENTACIÓN (uso personal)
-
-- Se determina primero la cantidad de partes (K).
-- K se calcula a partir de la duración total y el target.
-- Luego se equilibran las partes alrededor de una duración ideal.
-- No se reordenan ni cortan videos.
-- Se evita crear una última parte residual.
-- abs(): valor absoluto.
-"""
-
-from pathlib import Path
-from typing import List
-
-from services.media.media_provider import MediaProvider
-
-
-class VideoPartitioner:
-    """
-    Divide una lista ordenada de videos en partes contiguas
-    equilibradas en duración.
-    """
-
-    def __init__(self, _media_provider: MediaProvider):
-        self._media_provider = _media_provider
-
-    def partition(
-        self,
-        videos: List[Path],
-        target_duration: float
-    ) -> List[List[Path]]:
-
-        if not videos:
-            return []
-
-        if target_duration <= 0:
-            raise ValueError("target_duration must be > 0")
-
-        durations = [self._media_provider.duration(v) for v in videos]
-        total_duration = sum(durations)
-
-        # Número de partes deseadas
-        parts_count = max(1, round(total_duration / target_duration))
-        ideal_duration = total_duration / parts_count
-
-        partitions: List[List[Path]] = []
-
-        current_part: List[Path] = []
-        current_duration = 0.0
-        remaining_parts = parts_count
-
-        for video, video_duration in zip(videos, durations):
-
-            # Siempre debemos dejar al menos una parte para cada parte restante
-            if current_part:
-                candidate_duration = current_duration + video_duration
-
-                diff_with = abs(candidate_duration - ideal_duration)
-                diff_without = abs(current_duration - ideal_duration)
-
-                # Cierra la parte si empeora el balance
-                if diff_with > diff_without and remaining_parts > 1:
-                    partitions.append(current_part)
-                    current_part = []
-                    current_duration = 0.0
-                    remaining_parts -= 1
-
-            current_part.append(video)
-            current_duration += video_duration
-
-        if current_part:
-            partitions.append(current_part)
-
-        # ───────────────────────────────
-        # Corrección CRÍTICA:
-        # evita una última parte residual
-        # ───────────────────────────────
-        if len(partitions) >= 2:
-            last_duration = sum(
-                self._media_provider.duration(v) for v in partitions[-1]
+            OR
+            (
+                is_team_duel = TRUE
+                AND duel_type_id IS NOT NULL
+                AND team_duel_type_id IS NOT NULL
             )
+            """,
+            name="ck_duel_type_consistency"
+        )
+    )
 
-            if last_duration < ideal_duration * 0.5:
-                partitions[-2].extend(partitions[-1])
-                partitions.pop()
+    id = Column(Integer, primary_key=True)
 
-        return partitions
+    # Foreign keys
+    event_id = Column(
+        Integer,
+        ForeignKey("events.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    duel_type_id = Column(
+        Integer,
+        ForeignKey("duel_types.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    team_duel_type_id = Column(
+        Integer,
+        ForeignKey("duel_types.id", ondelete="RESTRICT"),
+        nullable=True
+    )
+
+    winner_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=True
+    )
+
+    winner_team_id = Column(
+        Integer,
+        ForeignKey("teams.id", ondelete="RESTRICT"),
+        nullable=True
+    )
+
+    # Fields
+    is_team_duel = Column(Boolean, nullable=False)
+    sequence_number = Column(Integer, nullable=False)
+    team_duel_sequence_number = Column(Integer, nullable=True)
+    video_url = Column(String, nullable=True)
+
+    # Relationships
+    event = relationship("Event", back_populates="duels")
+    duel_type = relationship("DuelType", foreign_keys=[duel_type_id])
+    team_duel_type = relationship("DuelType", foreign_keys=[team_duel_type_id])
+    winner = relationship("Player", foreign_keys=[winner_id])
+    winner_team = relationship("Team", foreign_keys=[winner_team_id])
+
+    duel_participants = relationship(
+        "DuelParticipant",
+        back_populates="duel",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+    duel_teams = relationship(
+        "DuelTeam",
+        back_populates="duel",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+    battles = relationship(
+        "Battle",
+        back_populates="duel",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
 
 
 ================================================================================
-FILE: services\media\video\joiner\timestamp_file_builder.py
+FILE: services\ranking\storage\models\duel_participant.py
+================================================================================
+from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint, Index
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+
+
+class DuelParticipant(Base):
+    __tablename__ = "duel_participants"
+
+    __table_args__ = (
+        Index("ix_duel_participants_player_id", "player_id"),
+        Index("ix_duel_participants_duel_id", "duel_id"),
+        UniqueConstraint(
+            "duel_id",
+            "player_id",
+            name="uq_duel_participant"
+        ),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Keys
+    duel_id = Column(
+        Integer,
+        ForeignKey("duels.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    # Relationships
+    duel = relationship("Duel", back_populates="duel_participants")
+    player = relationship("Player")
+
+
+================================================================================
+FILE: services\ranking\storage\models\duel_team.py
+================================================================================
+from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint, Index
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+
+
+class DuelTeam(Base):
+    __tablename__ = "duel_teams"
+
+    __table_args__ = (
+        Index("ix_duel_teams_duel_id", "duel_id"),
+        Index("ix_duel_teams_team_id", "team_id"),
+        UniqueConstraint("duel_id", "team_id", name="uq_duel_team")
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Keys
+    duel_id = Column(
+        Integer,
+        ForeignKey("duels.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    team_id = Column(
+        Integer,
+        ForeignKey("teams.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    # Relationships
+    duel = relationship("Duel", back_populates="duel_teams")
+    team = relationship("Team")
+
+    members = relationship(
+        "DuelTeamMember",
+        back_populates="duel_team",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+
+================================================================================
+FILE: services\ranking\storage\models\duel_team_member.py
+================================================================================
+from sqlalchemy import Column, Integer, ForeignKey, Index, UniqueConstraint
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+
+
+class DuelTeamMember(Base):
+    __tablename__ = "duel_team_members"
+
+    __table_args__ = (
+        Index("ix_duel_team_members_player_id", "player_id"),
+        Index("ix_duel_team_members_duel_team_id", "duel_team_id"),
+        UniqueConstraint("duel_team_id", "player_id",
+                         name="uq_duel_team_member"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Keys
+    duel_team_id = Column(
+        Integer,
+        ForeignKey("duel_teams.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    # Relationships
+    duel_team = relationship("DuelTeam", back_populates="members")
+    player = relationship("Player")
+
+
+================================================================================
+FILE: services\ranking\storage\models\duel_type.py
+================================================================================
+from sqlalchemy import Column, Integer, String, Index
+
+from services.ranking.storage.base import Base
+
+
+class DuelType(Base):
+    __tablename__ = "duel_types"
+
+    __table_args__ = (
+        Index("ix_duel_types_name", "name"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, unique=True, nullable=False)
+
+
+================================================================================
+FILE: services\ranking\storage\models\event.py
+================================================================================
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Index, UniqueConstraint
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class Event(Base, WithCode):
+    __tablename__ = "events"
+
+    __table_args__ = (
+        Index("ix_events_code", "code"),
+        Index("ix_events_season_id", "season_id"),
+        Index("ix_events_game_version_platform_id", "game_version_platform_id"),
+        Index("ix_events_event_date", "event_date"),
+        UniqueConstraint("season_id", "sequence_number",
+                         name="uq_event_season_sequence")
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Keys
+    season_id = Column(
+        Integer,
+        ForeignKey("seasons.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    region_id = Column(
+        Integer,
+        ForeignKey("regions.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    event_type_id = Column(
+        Integer,
+        ForeignKey("event_types.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    game_version_platform_id = Column(
+        Integer,
+        ForeignKey("game_version_platforms.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    # Fields
+    name = Column(String, nullable=False)
+    event_date = Column(DateTime, nullable=False)
+    sequence_number = Column(Integer, nullable=False)
+    brackets_url = Column(String, nullable=True)
+    playlist_url = Column(String, nullable=True)
+
+    # Relationships
+    season = relationship("Season", back_populates="events")
+    region = relationship("Region")
+    event_type = relationship("EventType")
+
+    game_version_platform = relationship(
+        "GameVersionPlatform",
+        back_populates="events"
+    )
+
+    duels = relationship(
+        "Duel",
+        back_populates="event",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+
+================================================================================
+FILE: services\ranking\storage\models\event_type.py
+================================================================================
+from sqlalchemy import Column, Integer, String, Index
+
+from services.ranking.storage.base import Base
+
+
+class EventType(Base):
+    __tablename__ = "event_types"
+
+    __table_args__ = (
+        Index("ix_event_types_name", "name"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, unique=True, nullable=False)
+
+
+================================================================================
+FILE: services\ranking\storage\models\franchise.py
+================================================================================
+from sqlalchemy import Column, Integer, String, UniqueConstraint, Index
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class Franchise(Base, WithCode):
+    __tablename__ = "franchises"
+
+    __table_args__ = (
+        UniqueConstraint("name", name="uq_franchise_name"),
+        Index("ix_franchise_code", "code"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, nullable=False)
+
+    # Relationships
+    character_identities = relationship(
+        "CharacterIdentity",
+        back_populates="franchise"
+    )
+
+    games = relationship(
+        "Game",
+        back_populates="franchise",
+        passive_deletes=True
+    )
+
+
+================================================================================
+FILE: services\ranking\storage\models\game.py
+================================================================================
+from sqlalchemy import Column, Integer, String, ForeignKey, Index
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class Game(Base, WithCode):
+    __tablename__ = "games"
+
+    __table_args__ = (
+        Index("ix_game_code", "code"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Keys
+    franchise_id = Column(
+        Integer,
+        ForeignKey("franchises.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    # Fields
+    name = Column(String, nullable=False)
+
+    # Relationships
+    franchise = relationship("Franchise", back_populates="games")
+
+    game_versions = relationship(
+        "GameVersionPlatform",
+        back_populates="game",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+
+================================================================================
+FILE: services\ranking\storage\models\game_character.py
+================================================================================
+from sqlalchemy import Column, Integer, ForeignKey, Index, UniqueConstraint
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class GameCharacter(Base, WithCode):
+    __tablename__ = "game_characters"
+
+    __table_args__ = (
+        Index("ix_game_characters_code", "code"),
+        UniqueConstraint(
+            "character_identity_id",
+            "game_version_platform_id",
+            name="uq_game_character_character_identity_game_version_platform"
+        )
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign keys
+    character_identity_id = Column(
+        Integer,
+        ForeignKey("character_identities.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    game_version_platform_id = Column(
+        Integer,
+        ForeignKey("game_version_platforms.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    # Relationships
+    character_identity = relationship(
+        "CharacterIdentity",
+        back_populates="game_characters"
+    )
+
+    game_version_platform = relationship(
+        "GameVersionPlatform",
+        back_populates="game_characters"
+    )
+
+
+================================================================================
+FILE: services\ranking\storage\models\game_version_platform.py
+================================================================================
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint, Index
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class GameVersionPlatform(Base, WithCode):
+    __tablename__ = "game_version_platforms"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "game_id",
+            "platform_id",
+            "version",
+            name="uq_game_platform_version"
+        ),
+        Index("ix_game_versions_code", "code"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign keys
+    game_id = Column(Integer, ForeignKey(
+        "games.id", ondelete="CASCADE"), nullable=False)
+    platform_id = Column(Integer, ForeignKey(
+        "platforms.id", ondelete="CASCADE"), nullable=False)
+
+    # Fields
+    version = Column(String, nullable=False)
+
+    # Relationships
+    game = relationship("Game", back_populates="game_versions")
+    platform = relationship("Platform", back_populates="game_versions")
+
+    stages = relationship(
+        "Stage",
+        back_populates="game_version_platform",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+    events = relationship(
+        "Event",
+        back_populates="game_version_platform",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+    game_characters = relationship(
+        "GameCharacter",
+        back_populates="game_version_platform",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+
+================================================================================
+FILE: services\ranking\storage\models\platform.py
+================================================================================
+from sqlalchemy import Column, Integer, String, Index
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class Platform(Base, WithCode):
+    __tablename__ = "platforms"
+
+    __table_args__ = (
+        Index("ix_platforms_code", "code"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, unique=True, nullable=False)
+
+    # Relationships
+    game_versions = relationship(
+        "GameVersionPlatform",
+        back_populates="platform",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+
+================================================================================
+FILE: services\ranking\storage\models\player.py
+================================================================================
+from sqlalchemy import Column, Integer, String, ForeignKey, Index
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class Player(Base, WithCode):
+    __tablename__ = "players"
+
+    __table_args__ = (
+        Index("ix_players_code", "code"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Keys
+    country_id = Column(
+        Integer,
+        ForeignKey("countries.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    # Fields
+    canonical_name = Column(String, unique=True, nullable=False)
+    display_name = Column(String, nullable=False)
+
+    # Relationships
+    country = relationship("Country")
+    aliases = relationship("PlayerAlias", back_populates="player")
+    social_accounts = relationship(
+        "PlayerSocialAccount", back_populates="player")
+
+
+================================================================================
+FILE: services\ranking\storage\models\player_alias.py
+================================================================================
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+
+
+class PlayerAlias(Base):
+    __tablename__ = "player_aliases"
+
+    __table_args__ = (
+        UniqueConstraint("player_id", "alias", name="uq_player_alias"),
+        UniqueConstraint("normalized_alias", name="uq_normalized_alias_global")
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Keys
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    # Fields
+    alias = Column(String, nullable=False)
+    normalized_alias = Column(String, nullable=False)
+
+    # Relationships
+    player = relationship("Player", back_populates="aliases")
+
+
+================================================================================
+FILE: services\ranking\storage\models\player_social_account.py
+================================================================================
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+
+
+class PlayerSocialAccount(Base):
+    __tablename__ = "player_social_accounts"
+
+    __table_args__ = (
+        UniqueConstraint("social_platform_id", "handle",
+                         name="uq_player_social_account"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Keys
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    social_platform_id = Column(
+        Integer,
+        ForeignKey("social_platforms.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    # Fields
+    handle = Column(String, nullable=False)
+
+    # Relationships
+    player = relationship("Player", back_populates="social_accounts")
+    social_platform = relationship("SocialPlatform")
+
+
+================================================================================
+FILE: services\ranking\storage\models\region.py
+================================================================================
+from sqlalchemy import Column, Integer, String, Index
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class Region(Base, WithCode):
+    __tablename__ = "regions"
+
+    __table_args__ = (
+        Index("ix_regions_code", "code"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, unique=True, nullable=False)
+
+
+================================================================================
+FILE: services\ranking\storage\models\round.py
+================================================================================
+from sqlalchemy import Column, Integer, ForeignKey, Index, UniqueConstraint, Boolean, CheckConstraint
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+
+
+class Round(Base):
+    __tablename__ = "rounds"
+
+    __table_args__ = (
+        Index("ix_rounds_battle_sequence", "battle_id", "sequence_number"),
+        Index("ix_rounds_battle_winner", "battle_id", "winner_id"),
+        Index("ix_rounds_battle_loser", "battle_id", "loser_id"),
+        UniqueConstraint(
+            "battle_id",
+            "sequence_number",
+            name="uq_round_battle_sequence"
+        ),
+        CheckConstraint(
+            """
+            (is_draw = TRUE AND winner_id IS NULL AND loser_id IS NULL)
+            OR
+            (is_draw = FALSE AND winner_id IS NOT NULL AND loser_id IS NOT NULL)
+            """,
+            name="ck_round_draw_consistency"
+        ),
+        CheckConstraint(
+            "winner_id IS NULL OR loser_id IS NULL OR winner_id <> loser_id",
+            name="ck_round_winner_not_equal_loser"
+        ),
+        CheckConstraint(
+            "sequence_number >= 1",
+            name="ck_round_sequence_positive"
+        )
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Keys
+    battle_id = Column(
+        Integer,
+        ForeignKey("battles.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    winner_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=True
+    )
+
+    loser_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=True
+    )
+
+    # Fields
+    is_draw = Column(Boolean, nullable=False, default=False)
+    sequence_number = Column(Integer, nullable=False)
+
+    # Relationships
+    battle = relationship("Battle", back_populates="rounds")
+    winner = relationship("Player", foreign_keys=[winner_id])
+    loser = relationship("Player", foreign_keys=[loser_id])
+
+    round_results = relationship(
+        "RoundResult",
+        back_populates="round",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+
+================================================================================
+FILE: services\ranking\storage\models\round_result.py
+================================================================================
+from sqlalchemy import Column, Integer, ForeignKey, Enum, UniqueConstraint, Index, String
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+
+
+class RoundResult(Base):
+    __tablename__ = "round_results"
+
+    __table_args__ = (
+        Index("ix_round_results_round_id", "round_id"),
+        Index("ix_round_results_player_id", "player_id"),
+        Index("ix_round_results_player_round", "player_id", "round_id"),
+        UniqueConstraint("round_id", "player_id", name="uq_round_result"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign keys
+    round_id = Column(
+        Integer,
+        ForeignKey("rounds.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+
+    # Attributes
+    result_code = Column(String(5), nullable=False)
+
+    # Relationships
+    round = relationship("Round", back_populates="round_results")
+    player = relationship("Player")
+
+
+================================================================================
+FILE: services\ranking\storage\models\season.py
+================================================================================
+from sqlalchemy import Column, Integer, String, Date, Index, CheckConstraint
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class Season(Base, WithCode):
+    __tablename__ = "seasons"
+
+    __table_args__ = (
+        Index("ix_seasons_code", "code"),
+        CheckConstraint(
+            "end_date IS NULL OR end_date >= start_date",
+            name="ck_season_date_consistency"
+        )
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, nullable=False)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=True)
+
+    # Relationships
+    events = relationship(
+        "Event",
+        back_populates="season",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+
+================================================================================
+FILE: services\ranking\storage\models\social_platform.py
+================================================================================
+from sqlalchemy import Column, Integer, String, Index
+
+from services.ranking.storage.base import Base
+
+
+class SocialPlatform(Base):
+    __tablename__ = "social_platforms"
+
+    __table_args__ = (
+        Index("ix_social_platforms_name", "name"),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, unique=True, nullable=False)
+
+
+================================================================================
+FILE: services\ranking\storage\models\stage.py
+================================================================================
+from sqlalchemy import Column, Integer, String, ForeignKey, Index, UniqueConstraint
+from sqlalchemy.orm import relationship
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class Stage(Base, WithCode):
+    __tablename__ = "stages"
+
+    __table_args__ = (
+        Index("ix_stages_game_version_platform_id", "game_version_platform_id"),
+        Index("ix_stages_name", "name"),
+        UniqueConstraint(
+            "name",
+            "game_version_platform_id",
+            name="uq_stage_name_game_version_platform"
+        ),
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Foreign Key
+    game_version_platform_id = Column(
+        Integer,
+        ForeignKey("game_version_platforms.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    # Fields
+    name = Column(String, nullable=False)
+
+    # Relationships
+    game_version_platform = relationship(
+        "GameVersionPlatform",
+        back_populates="stages"
+    )
+
+
+================================================================================
+FILE: services\ranking\storage\models\team.py
+================================================================================
+from sqlalchemy import Column, Integer, String, Index, UniqueConstraint
+
+from services.ranking.storage.base import Base
+from services.ranking.storage.mixins import WithCode
+
+
+class Team(Base, WithCode):
+    __tablename__ = "teams"
+
+    __table_args__ = (
+        Index("ix_teams_code", "code"),
+        UniqueConstraint("name", name="uq_team_name")
+    )
+
+    id = Column(Integer, primary_key=True)
+
+    # Fields
+    name = Column(String, nullable=False)
+
+
+================================================================================
+FILE: services\ranking\storage\repository.py
 ================================================================================
 """
-NOTAS DE IMPLEMENTACIÓN (uso personal)
+Repositorio de datos para el sistema de ranking.
 
-- Los timestamps se generan acumulando duraciones en orden.
-- El tiempo siempre comienza en 00:00:00 por cada archivo.
-- La duración se obtiene vía MediaProvider.
-- El nombre del video se toma desde Path.stem.
-- El padding numérico se calcula dinámicamente.
-- El archivo resultante es compatible con timestamps de YouTube.
+Responsabilidades:
+- Construir queries SQLAlchemy completas
+- Traducir RankingQuery (semántico) a SQL
+- Extraer datos crudos de competencia
+- NO contiene lógica de cálculo de ranking
 """
 
-from pathlib import Path
 from typing import Iterable
 
-from services.media.media_provider import MediaProvider
-from core.time_utils import seconds_to_youtube_timestamp
+from sqlalchemy import and_
+from sqlalchemy.orm import Session, Query
+
+from services.ranking.filters import (
+    RankingQuery,
+    RankingScopeFilter,
+    DuelFilter,
+    ParticipantFilter,
+    BattleContextFilter,
+    PlayerMetaFilter,
+)
+
+from services.ranking.storage.models import (
+    RoundResult,
+    Round,
+    Battle,
+    BattleParticipant,
+    Duel,
+    DuelType,
+    DuelTeam,
+    Team,
+    Event,
+    EventType,
+    Season,
+    Region,
+    Stage,
+    GameCharacter,
+    CharacterIdentity,
+    GameVersionPlatform,
+    Game,
+    Platform,
+    Franchise,
+    Player,
+    Country,
+)
 
 
-class TimestampFileBuilder:
+class RankingRepository:
     """
-    Construye un archivo de texto con timestamps para YouTube
-    a partir de una lista ordenada de videos.
+    Repositorio encargado de extraer datos competitivos
+    desde la base de datos para el sistema de ranking.
     """
 
-    def __init__(self, media_provider: MediaProvider):
-        self.media_provider = media_provider
+    # ─────────────────────────────────────────────────────────
+    # API pública del repository
+    # ─────────────────────────────────────────────────────────
 
-    def build(
+    def fetch_round_results(
         self,
-        *,
-        videos: Iterable[Path],
-        output_path: Path,
-        prefix: str = "",
-        secuence: bool = True,
-        extra_description: str | None = None
-    ) -> None:
+        session: Session,
+        ranking_query: RankingQuery,
+    ) -> Iterable[RoundResult]:
         """
-        Genera un archivo de timestamps.
-
-        Args:
-            videos:
-                Lista ordenada de videos (incluye end screen si aplica).
-            output_path:
-                Ruta del archivo .txt a generar.
-            prefix:
-                Texto a anteponer a cada línea (opcional).
-            extra_description:
-                Texto adicional al final del archivo.
+        Ejecuta una consulta completa de ranking y devuelve
+        los RoundResult que cumplen con los filtros indicados.
         """
-        videos = list(videos)
 
-        if not videos:
-            raise ValueError("No hay videos para generar timestamps.")
+        ranking_query.validate()
 
-        durations = [
-            self.media_provider.duration(video)
-            for video in videos
-        ]
+        query = self._build_base_query(session)
 
-        total_duration = sum(durations)
-        use_hours = total_duration >= 3600
+        query = self._apply_scope_filters(query, ranking_query.scope)
 
-        lines: list[str] = []
+        if ranking_query.duel:
+            query = self._apply_duel_filters(query, ranking_query.duel)
 
-        current_time = 0.0
-        padding = len(str(len(videos)))
+        if ranking_query.participant:
+            query = self._apply_participant_filters(
+                query, ranking_query.participant
+            )
 
-        for index, (video, duration) in enumerate(zip(videos, durations), start=1):
-            timestamp = seconds_to_youtube_timestamp(
-                current_time, use_hours=use_hours)
+        if ranking_query.battle:
+            query = self._apply_battle_context_filters(
+                query, ranking_query.battle
+            )
 
-            number = f"{index:0{padding}d}"
-            name = video.stem
+        if ranking_query.player_meta:
+            query = self._apply_player_meta_filters(
+                query, ranking_query.player_meta
+            )
 
-            # Construcción de la línea
-            if secuence:
-                line = f"{timestamp} {prefix}{number} {name}".strip()
-            else:
-                line = f"{timestamp} {name}".strip()
-            lines.append(line)
+        return query.all()
 
-            current_time += duration
+    def fetch_duel_player_affiliations(
+        self,
+        session: Session,
+        duel_id: int,
+    ) -> dict[int, int | None]:
+        """
+        Devuelve un mapping player_id -> team_id para un duelo.
 
-        # Separación visual antes del texto adicional
-        if extra_description:
-            lines.append("")
-            lines.append(extra_description.strip())
+        Si el duelo no es por equipos, todos los team_id serán None.
+        """
 
-        output_path.write_text(
-            "\n".join(lines),
-            encoding="utf-8"
+        rows = (
+            session.query(
+                BattleParticipant.player_id,
+                Team.id.label("team_id"),
+            )
+            .join(Battle, Battle.id == BattleParticipant.battle_id)
+            .join(Duel, Duel.id == Battle.duel_id)
+            .outerjoin(DuelTeam, DuelTeam.id == BattleParticipant.duel_team_id)
+            .outerjoin(Team, Team.id == DuelTeam.team_id)
+            .filter(Duel.id == duel_id)
+            .distinct()
+            .all()
         )
 
+        affiliations: dict[int, int | None] = {}
 
-================================================================================
-FILE: services\media\video\mkvmerge_runner.py
-================================================================================
-# services/media/video/mkvmerge_runner.py
+        for player_id, team_id in rows:
+            if player_id in affiliations:
+                if affiliations[player_id] != team_id:
+                    raise ValueError(
+                        f"Inconsistencia de team para player {player_id} "
+                        f"en el duelo {duel_id}"
+                    )
+            else:
+                affiliations[player_id] = team_id
 
-import json
-import tempfile
-from pathlib import Path
+        return affiliations
 
-from services.system.process_runner import ProcessRunner
+    # ─────────────────────────────────────────────────────────
+    # Query base
+    # ─────────────────────────────────────────────────────────
 
-
-class MKVMergeRunner:
-    """
-    Ejecuta comandos mkvmerge.
-
-    Esta clase no contiene lógica de dominio ni reglas de negocio.
-    Su única responsabilidad es ejecutar mkvmerge de forma segura.
-    """
-
-    def __init__(self, process_runner: ProcessRunner):
-        self._runner = process_runner
-
-    def run(self, cmd: list[str]) -> None:
+    def _build_base_query(self, session: Session) -> Query:
         """
-        Ejecuta un comando mkvmerge.
+        Construye la query base completamente unida, partiendo
+        desde RoundResult, que es el evento competitivo atómico.
 
-        Args:
-            cmd:
-                Lista de argumentos del comando mkvmerge.
-
-        Raises:
-            subprocess.CalledProcessError:
-                Si mkvmerge falla.
+        Esta query NO aplica filtros.
         """
-        executable = cmd[0]
-        arguments = cmd[1:]
 
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
-            suffix=".json",
-            delete=False,
-        ) as f:
-            json.dump(arguments, f, ensure_ascii=False)
+        query = session.query(RoundResult)
 
-            args_file = Path(f.name)
+        query = query.join(Round, Round.id == RoundResult.round_id)
+        query = query.join(Battle, Battle.id == Round.battle_id)
+        query = query.join(Duel, Duel.id == Battle.duel_id)
+        query = query.join(Event, Event.id == Duel.event_id)
+        query = query.outerjoin(Season, Season.id == Event.season_id)
 
-        try:
-            self._runner.run([
-                executable,
-                f"@{args_file}"
-            ], capture_output=True)
-        finally:
-            args_file.unlink(missing_ok=True)
+        query = query.join(DuelType, DuelType.id == Duel.duel_type_id)
+        query = query.join(Stage, Stage.id == Battle.stage_id)
 
+        query = query.join(
+            GameVersionPlatform,
+            GameVersionPlatform.id == Stage.game_version_platform_id,
+        )
+        query = query.join(Game, Game.id == GameVersionPlatform.game_id)
+        query = query.join(Platform, Platform.id ==
+                           GameVersionPlatform.platform_id)
+        query = query.join(Franchise, Franchise.id == Game.franchise_id)
 
-================================================================================
-FILE: services\system\process_runner.py
-================================================================================
-# services/system/process_runner.py
+        query = query.join(EventType, EventType.id == Event.event_type_id)
+        query = query.join(Region, Region.id == Event.region_id)
 
-import subprocess
-from typing import Sequence
+        query = query.join(Player, Player.id == RoundResult.player_id)
+        query = query.outerjoin(Country, Country.id == Player.country_id)
 
+        query = query.join(
+            BattleParticipant,
+            and_(
+                BattleParticipant.battle_id == Battle.id,
+                BattleParticipant.player_id == Player.id,
+            ),
+        )
 
-class ProcessRunner:
-    """
-    Ejecuta procesos del sistema de forma consistente.
-    Encapsula política de encoding, errores y captura de salida.
-    """
+        query = query.join(
+            GameCharacter,
+            GameCharacter.id == BattleParticipant.game_character_id,
+        )
+        query = query.join(
+            CharacterIdentity,
+            CharacterIdentity.id == GameCharacter.character_identity_id,
+        )
 
-    def run(
+        query = query.outerjoin(
+            DuelTeam,
+            DuelTeam.id == BattleParticipant.duel_team_id,
+        )
+        query = query.outerjoin(
+            Team,
+            Team.id == DuelTeam.team_id,
+        )
+
+        return query
+
+    # ─────────────────────────────────────────────────────────
+    # Aplicación de filtros
+    # ─────────────────────────────────────────────────────────
+
+    def _apply_scope_filters(
         self,
-        cmd: list[str] | Sequence[str],
-        *,
-        capture_output: bool = False,
-    ) -> subprocess.CompletedProcess:
-        """
-        Ejecuta un proceso externo de forma consistente y segura.
+        query: Query,
+        scope: RankingScopeFilter,
+    ) -> Query:
+        """Aplica filtros de contexto competitivo (scope)."""
 
-        - Fuerza UTF-8 para evitar problemas en Windows.
-        - Permite captura opcional de salida.
-        - Lanza excepción si el proceso falla.
+        if scope.season_id is not None:
+            query = query.filter(Season.id == scope.season_id)
 
-        Args:
-            cmd:
-                Comando y argumentos.
-            capture_output:
-                Si True, captura stdout y stderr.
+        if scope.event_id is not None:
+            query = query.filter(Event.id == scope.event_id)
 
-        Returns:
-            CompletedProcess
-        """
-        try:
-            return subprocess.run(
-                cmd,
-                check=True,
-                capture_output=capture_output,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
+        if scope.event_type_id is not None:
+            query = query.filter(EventType.id == scope.event_type_id)
+
+        if scope.region_id is not None:
+            query = query.filter(Region.id == scope.region_id)
+
+        if scope.game_id is not None:
+            query = query.filter(Game.id == scope.game_id)
+
+        if scope.game_version is not None:
+            query = query.filter(
+                GameVersionPlatform.version == scope.game_version
             )
-        except subprocess.CalledProcessError as e:
-            print(e.stdout)
-            print(e.stderr)
-            raise
+
+        if scope.platform_id is not None:
+            query = query.filter(Platform.id == scope.platform_id)
+
+        if scope.franchise_id is not None:
+            query = query.filter(Franchise.id == scope.franchise_id)
+
+        return query
+
+    def _apply_duel_filters(
+        self,
+        query: Query,
+        duel: DuelFilter,
+    ) -> Query:
+        """Aplica filtros relacionados al duelo."""
+
+        if duel.duel_id is not None:
+            query = query.filter(Duel.id == duel.duel_id)
+
+        if duel.duel_type_id is not None:
+            query = query.filter(DuelType.id == duel.duel_type_id)
+
+        return query
+
+    def _apply_participant_filters(
+        self,
+        query: Query,
+        participant: ParticipantFilter,
+    ) -> Query:
+        """Aplica filtros relacionados a la participación del jugador."""
+
+        if participant.player_id is not None:
+            query = query.filter(Player.id == participant.player_id)
+
+        # if participant.player_position is not None:
+        #     query = query.filter(
+        #         BattleParticipant.position == participant.player_position
+        #     )
+
+        if participant.team_id is not None:
+            query = query.filter(Team.id == participant.team_id)
+
+        return query
+
+    def _apply_battle_context_filters(
+        self,
+        query: Query,
+        battle: BattleContextFilter,
+    ) -> Query:
+        """Aplica filtros de entorno de battle y personaje."""
+
+        if battle.stage_id is not None:
+            query = query.filter(Stage.id == battle.stage_id)
+
+        if battle.player_position is not None:
+            query = query.filter(
+                BattleParticipant.position == battle.player_position
+            )
+
+        if battle.character_identity_id is not None:
+            query = query.filter(
+                CharacterIdentity.id == battle.character_identity_id
+            )
+
+        return query
+
+    def _apply_player_meta_filters(
+        self,
+        query: Query,
+        meta: PlayerMetaFilter,
+    ) -> Query:
+        """Aplica filtros de metadata del jugador."""
+
+        if meta.country_id is not None:
+            query = query.filter(Country.id == meta.country_id)
+
+        return query
+
+
+================================================================================
+FILE: services\ranking\storage\session.py
+================================================================================
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+
+db_engine_name = "sqlite"
+db_name = "sse.db"  # Seyfer Studios Events
+
+DATABASE_URL = f"{db_engine_name}:///{db_name}"
+
+engine = create_engine(
+    DATABASE_URL,
+    echo=False,
+    future=True
+)
+
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=False,
+    autocommit=False,
+    future=True,
+)
 
 
