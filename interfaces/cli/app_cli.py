@@ -36,6 +36,7 @@ from applications.ranking_system.loaders.load_legacy import (
 from applications.ranking_system.queries.builder import (
     RankingQueryBuilder
 )
+from applications.youtube_video_manager.processor import main as run_video_manager
 
 # SERVICES
 from services.system.process_runner import ProcessRunner
@@ -193,12 +194,16 @@ def build_parser() -> argparse.ArgumentParser:
             "create_db",
             "load_legacy",
             "ranking",
-            "midi_mapper"
+            "midi_mapper",
+            "youtube_video_manager"
         ]
     )
 
     return parser
 
+
+def run_youtube_video_manager() -> None:
+    run_video_manager()
 
 def main() -> None:
     """
@@ -216,6 +221,7 @@ def main() -> None:
         "create_db": run_create_db,
         "load_legacy": run_load_legacy,
         "ranking": run_ranking,
+        "youtube_video_manager": run_youtube_video_manager,
     }
 
     commands[args.command]()

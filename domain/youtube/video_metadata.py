@@ -83,6 +83,12 @@ class VideoMetadata:
             thumbnail: Referencia a la miniatura. None indica que no se ha
                 especificado.
         """
+        if len(title) > 100:
+            raise ValueError("Video title must not exceed 100 characters.")
+
+        if len(description) > 5000:
+            raise ValueError("Video description must not exceed 5000 characters.")
+        
         self._title = title
         self._description = description
         self._tags = list(tags) if tags is not None else None
@@ -92,3 +98,39 @@ class VideoMetadata:
         self._contains_synthetic_media = contains_synthetic_media
         self._publish_at = publish_at
         self._thumbnail = thumbnail
+
+    @property
+    def title(self) -> str:
+        return self._title
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def tags(self) -> tuple[str, ...] | None:
+        return tuple(self._tags) if self._tags is not None else None
+
+    @property
+    def playlists(self) -> tuple[str, ...]:
+        return tuple(self._playlists)
+
+    @property
+    def game(self) -> str:
+        return self._game
+
+    @property
+    def made_for_kids(self) -> bool:
+        return self._made_for_kids
+
+    @property
+    def contains_synthetic_media(self) -> bool:
+        return self._contains_synthetic_media
+
+    @property
+    def publish_at(self) -> datetime:
+        return self._publish_at
+
+    @property
+    def thumbnail(self) -> Path | None:
+        return self._thumbnail

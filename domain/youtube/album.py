@@ -30,10 +30,12 @@ NOTAS DE IMPLEMENTACIÓN PARA EL DESARROLLADOR
 - La entidad no debe ejecutar operaciones ni modificar remotamente YouTube.
 """
 
+from __future__ import annotations
+
+from domain.youtube.validation import ValidationResult
+
 from datetime import datetime
 from pathlib import Path
-
-from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -90,6 +92,10 @@ class Album:
                 la construcción inicial y añadirse posteriormente durante
                 discovery.
         """
+
+        if len(description) > 5000:
+            raise ValueError("Album description must not exceed 5000 characters.")
+
         self._name = name
         self._description = description
         self._playlists = list(playlists)
@@ -130,3 +136,24 @@ class Album:
             f"video_count={self.video_count}"
             f")"
         )
+
+    def validate(self) -> ValidationResult:
+        """Validate the structural integrity of the album."""
+        result = ValidationResult()
+
+        positions: dict[int, list[str]] = {}
+
+        for video in self._videos:
+            positions.setdefault(video.position, []).append(video.video_id)
+
+        for position, video_ids in positions.items():
+            if len(video_ids) > 1:
+                result.add_error(
+                    field=f"videos.position[{position}]",
+                    message=(
+                        f"Position {position} is used by multiple videos: "
+                        f"{', '.join(video_ids)}."
+                    ),
+                )
+
+        return result

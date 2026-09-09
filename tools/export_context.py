@@ -40,7 +40,14 @@ RANKING_SYSTEM_CONTEXT = (
     BASE_DIR / "services/ranking/storage",
 )
 
-INPUT_PATHS = RANKING_SYSTEM_CONTEXT
+YOUTUBE_VIDEO_MANAGER_CONTEXT = (
+    BASE_DIR / "domain/youtube/album.py",
+    BASE_DIR / "domain/youtube/video.py",
+    BASE_DIR / "domain/youtube/video_metadata.py",
+    BASE_DIR / "domain/youtube/video_operation.py",
+)
+
+INPUT_PATHS = YOUTUBE_VIDEO_MANAGER_CONTEXT
 
 FILE_NAME = "project_context"
 
