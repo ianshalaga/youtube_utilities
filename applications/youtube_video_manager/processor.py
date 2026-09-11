@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from domain.youtube.album import Album
+from domain.youtube.album_manifest import AlbumManifest
 from domain.youtube.video import Video, VideoType
 from domain.youtube.video_metadata import VideoMetadata
 
@@ -40,6 +41,27 @@ def create_album(videos: list[Video]) -> Album:
     )
 
 
+def create_manifest() -> AlbumManifest:
+    """Create a minimal AlbumManifest for tests."""
+    return AlbumManifest(
+        name="Test Album",
+        name_prefix="Test OST",
+        videos=[
+            "01 Opening Theme",
+            "02 Battle Theme",
+            "Test Compilation",
+        ],
+        description="Test album description",
+        thumbnail=None,
+        playlists=["PL_TEST"],
+        made_for_kids=False,
+        contains_synthetic_media=False,
+        tags=None,
+        game="Test Game",
+        first_publish_at=datetime(2026, 10, 1, 18, 0),
+    )
+
+
 def run_test(name: str, videos: list[Video]) -> None:
     """Run one album validation test and display its result."""
     album = create_album(videos)
@@ -58,7 +80,27 @@ def run_test(name: str, videos: list[Video]) -> None:
         print(f"- [{error.field}] {error.message}")
 
 
+def run_manifest_test() -> None:
+    """Run the AlbumManifest test."""
+    manifest = create_manifest()
+
+    print("\n=== AlbumManifest ===")
+    print(f"Name: {manifest.name}")
+    print(f"Name prefix: {manifest.name_prefix}")
+    print(f"Videos: {manifest.videos}")
+    print(f"Description: {manifest.description}")
+    print(f"Playlists: {manifest.playlists}")
+    print(f"Made for kids: {manifest.made_for_kids}")
+    print(f"Contains synthetic media: {manifest.contains_synthetic_media}")
+    print(f"Tags: {manifest.tags}")
+    print(f"Game: {manifest.game}")
+    print(f"First publish at: {manifest.first_publish_at}")
+    print(f"Thumbnail: {manifest.thumbnail}")
+
+
 def main() -> None:
+    run_manifest_test()
+
     run_test(
         "No duplicated positions",
         [

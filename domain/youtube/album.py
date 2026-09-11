@@ -33,8 +33,8 @@ NOTAS DE IMPLEMENTACIÓN PARA EL DESARROLLADOR
 from __future__ import annotations
 
 from domain.youtube.validation import ValidationResult
+from domain.youtube.publication_settings import PublicationSettings
 
-from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -70,7 +70,7 @@ class Album:
         description: str,
         playlists: list[str],
         game: str,
-        first_publish_at: datetime,
+        publication: PublicationSettings,
         tags: list[str] | None = None,
         thumbnail: Path | None = None,
         videos: list[Video] | None = None,
@@ -100,7 +100,7 @@ class Album:
         self._description = description
         self._playlists = list(playlists)
         self._game = game
-        self._first_publish_at = first_publish_at
+        self._publication = publication
         self._tags = list(tags) if tags is not None else None
         self._thumbnail = thumbnail
         self._videos = list(videos) if videos is not None else []
@@ -117,6 +117,10 @@ class Album:
             video: Vídeo de YouTube perteneciente al álbum.
         """
         self._videos.append(video)
+
+    @property
+    def publication(self) -> PublicationSettings:
+        return self._publication
 
     @property
     def video_count(self) -> int:
