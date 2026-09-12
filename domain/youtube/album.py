@@ -83,7 +83,7 @@ class Album:
             description: Descripción común del álbum.
             playlists: IDs de las playlists de YouTube.
             game: Nombre del videojuego asociado.
-            first_publish_at: Fecha y hora de publicación del primer vídeo.
+            publication: Fecha y hora de publicación del primer vídeo e intervalo en días.
             tags: Tags comunes a los vídeos. None indica que no se han
                 especificado tags.
             thumbnail: Referencia a la miniatura. None indica que no se ha

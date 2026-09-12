@@ -41,10 +41,22 @@ RANKING_SYSTEM_CONTEXT = (
 )
 
 YOUTUBE_VIDEO_MANAGER_CONTEXT = (
+    # App
+    BASE_DIR / "applications/youtube_video_manager/processor.py",
+    # Domain
     BASE_DIR / "domain/youtube/album.py",
+    BASE_DIR / "domain/youtube/album_manifest.py",
     BASE_DIR / "domain/youtube/video.py",
     BASE_DIR / "domain/youtube/video_metadata.py",
     BASE_DIR / "domain/youtube/video_operation.py",
+    BASE_DIR / "domain/youtube/validation.py",
+    BASE_DIR / "domain/youtube/publication_settings.py",
+    # Services
+    BASE_DIR / "services/youtube/album_manifest/yaml_reader.py",
+    BASE_DIR / "services/youtube/album_manifest/yaml_parser.py",
+    BASE_DIR / "services/youtube/album_manifest/yaml_mapper.py",
+    BASE_DIR / "services/youtube/album_manifest/album_manifest_validator.py",
+    BASE_DIR / "services/youtube/album_manifest/exceptions.py",
 )
 
 INPUT_PATHS = YOUTUBE_VIDEO_MANAGER_CONTEXT

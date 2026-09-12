@@ -83,11 +83,11 @@ class VideoMetadata:
             thumbnail: Referencia a la miniatura. None indica que no se ha
                 especificado.
         """
-        if len(title) > 100:
-            raise ValueError("Video title must not exceed 100 characters.")
+        # if len(title) > 100:
+        #     raise ValueError("Video title must not exceed 100 characters.")
 
-        if len(description) > 5000:
-            raise ValueError("Video description must not exceed 5000 characters.")
+        # if len(description) > 5000:
+        #     raise ValueError("Video description must not exceed 5000 characters.")
         
         self._title = title
         self._description = description
