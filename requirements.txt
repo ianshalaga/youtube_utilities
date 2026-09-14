@@ -1,6 +1,7 @@
 django
 sqlalchemy>=2.0
 pyyaml
+rich
 google-api-python-client
 google-auth-oauthlib
 google-auth-httplib2

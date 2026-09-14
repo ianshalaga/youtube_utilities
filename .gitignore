@@ -191,3 +191,7 @@ node_modules
 *.jpg
 *.ogg
 *.png
+
+# YouTube Video Manager
+client_secret.json
+token.json
