@@ -61,14 +61,16 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     # Domain
     YOUTUBE_DOMAIN / "album_manifest.py",
     YOUTUBE_DOMAIN / "album.py",
+    YOUTUBE_DOMAIN / "job.py",
+    YOUTUBE_DOMAIN / "operation.py",
     YOUTUBE_DOMAIN / "publication_settings.py",
     YOUTUBE_DOMAIN / "validation.py",
     YOUTUBE_DOMAIN / "video_metadata.py",
-    YOUTUBE_DOMAIN / "video_operation.py",
     YOUTUBE_DOMAIN / "video.py",
     YOUTUBE_DOMAIN / "youtube_video.py",
     # Services
     YOUTUBE_SERVICES / "album_builder.py",
+    YOUTUBE_SERVICES / "operations_builder.py",
     YOUTUBE_SERVICES / "youtube_discovery.py",
     YOUTUBE_SERVICES / "album_manifest/album_manifest_validator.py",
     YOUTUBE_SERVICES / "album_manifest/exceptions.py",
@@ -86,6 +88,8 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     # Tests Domain
     YOUTUBE_TESTS_DOMAIN / "test_album_manifest.py",
     YOUTUBE_TESTS_DOMAIN / "test_album.py",
+    YOUTUBE_TESTS_DOMAIN / "test_job.py",
+    YOUTUBE_TESTS_DOMAIN / "test_operation.py",
     YOUTUBE_TESTS_DOMAIN / "test_publication_settings.py",
     YOUTUBE_TESTS_DOMAIN / "test_validation.py",
     YOUTUBE_TESTS_DOMAIN / "test_video_metadata.py",
@@ -93,6 +97,7 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     YOUTUBE_TESTS_DOMAIN / "test_youtube_video.py",
     # Test Services
     YOUTUBE_TESTS_SERVICES / "test_album_builder.py",
+    YOUTUBE_TESTS_SERVICES / "test_operations_builder.py",
     YOUTUBE_TESTS_SERVICES / "test_youtube_discovery.py",
     YOUTUBE_TESTS_SERVICES / "album_manifest/test_yaml_reader.py",
     YOUTUBE_TESTS_SERVICES / "api/test_client.py",

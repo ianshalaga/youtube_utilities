@@ -1,6 +1,6 @@
 # GENERATED PROJECT CONTEXT
 # base_dir: F:\@Seyfer\Proyectos\youtube_utilities
-# total_files: 24
+# total_files: 25
 
 # PROJECT STRUCTURE
 
@@ -11,11 +11,12 @@ domain
   youtube
     album.py
     album_manifest.py
+    job.py
+    operation.py
     publication_settings.py
     validation.py
     video.py
     video_metadata.py
-    video_operation.py
     youtube_video.py
 services
   youtube
@@ -361,6 +362,167 @@ class AlbumManifest:
         )
 
 ================================================================================
+FILE: domain\youtube\job.py
+================================================================================
+# domain\youtube\job.py
+
+from enum import Enum
+
+from domain.youtube.operation import Operation, OperationStatus
+
+
+class JobStatus(Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class Job:
+    def __init__(self, operations: list[Operation]) -> None:
+        if not operations:
+            raise ValueError("A job must contain at least one operation.")
+
+        self._operations = list(operations)
+        self._status = JobStatus.PENDING
+
+    @property
+    def operations(self) -> tuple[Operation, ...]:
+        return tuple(self._operations)
+
+    @property
+    def status(self) -> JobStatus:
+        return self._status
+
+    def start(self) -> None:
+        if self._status is not JobStatus.PENDING:
+            raise ValueError("Only pending jobs can be started.")
+
+        self._status = JobStatus.RUNNING
+
+    def complete(self) -> None:
+        if self._status is not JobStatus.RUNNING:
+            raise ValueError("Only running jobs can be completed.")
+
+        if not all(
+            operation.status is OperationStatus.COMPLETED
+            for operation in self._operations
+        ):
+            raise ValueError(
+                "A job can only be completed when all operations are completed."
+            )
+
+        self._status = JobStatus.COMPLETED
+
+    def fail(self) -> None:
+        if self._status is not JobStatus.RUNNING:
+            raise ValueError("Only running jobs can be failed.")
+
+        self._status = JobStatus.FAILED
+
+================================================================================
+FILE: domain\youtube\operation.py
+================================================================================
+# domain\youtube\operation.py
+
+from enum import Enum
+from pathlib import Path
+from typing import TypeAlias
+
+from domain.youtube.video import Video
+from domain.youtube.video_metadata import VideoMetadata
+
+
+class OperationType(Enum):
+    UPDATE_METADATA = "update_metadata"
+    SET_THUMBNAIL = "set_thumbnail"
+    ADD_TO_PLAYLIST = "add_to_playlist"
+
+
+class OperationStatus(Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+OperationData: TypeAlias = VideoMetadata | Path | str
+
+
+class Operation:
+    def __init__(
+        self,
+        video: Video,
+        operation_type: OperationType,
+        data: OperationData,
+    ) -> None:
+        self._validate_data(operation_type, data)
+
+        self._video = video
+        self._operation_type = operation_type
+        self._status = OperationStatus.PENDING
+        self._data = data
+
+    @property
+    def video(self) -> Video:
+        return self._video
+
+    @property
+    def operation_type(self) -> OperationType:
+        return self._operation_type
+
+    @property
+    def status(self) -> OperationStatus:
+        return self._status
+
+    @property
+    def data(self) -> OperationData:
+        return self._data
+
+    def start(self) -> None:
+        if self._status is not OperationStatus.PENDING:
+            raise ValueError(
+                "Only pending operations can be started."
+            )
+
+        self._status = OperationStatus.RUNNING
+
+    def complete(self) -> None:
+        if self._status is not OperationStatus.RUNNING:
+            raise ValueError(
+                "Only running operations can be completed."
+            )
+
+        self._status = OperationStatus.COMPLETED
+
+    def fail(self) -> None:
+        if self._status is not OperationStatus.RUNNING:
+            raise ValueError(
+                "Only running operations can be failed."
+            )
+
+        self._status = OperationStatus.FAILED
+
+    @staticmethod
+    def _validate_data(
+        operation_type: OperationType,
+        data: OperationData,
+    ) -> None:
+        expected_types = {
+            OperationType.UPDATE_METADATA: VideoMetadata,
+            OperationType.SET_THUMBNAIL: Path,
+            OperationType.ADD_TO_PLAYLIST: str,
+        }
+
+        expected_type = expected_types[operation_type]
+
+        if not isinstance(data, expected_type):
+            raise TypeError(
+                f"{operation_type.value} requires "
+                f"{expected_type.__name__} data."
+            )
+
+================================================================================
 FILE: domain\youtube\publication_settings.py
 ================================================================================
 from __future__ import annotations
@@ -508,8 +670,8 @@ class Video:
     """
     Representa un vídeo concreto de YouTube perteneciente a un álbum.
 
-    Un Video mantiene la identidad del vídeo dentro de YouTube, su posición y
-    tipo dentro del álbum, y tanto su metadata actual como la metadata deseada.
+    Un Video mantiene la identidad del vídeo dentro de YouTube, su posición,
+    tipo dentro del álbum y tanto su metadata.
 
     Attributes:
         video_id: Identificador único del vídeo en YouTube.
@@ -715,11 +877,6 @@ class VideoMetadata:
     @property
     def thumbnail(self) -> Path | None:
         return self._thumbnail
-
-================================================================================
-FILE: domain\youtube\video_operation.py
-================================================================================
-
 
 ================================================================================
 FILE: domain\youtube\youtube_video.py
