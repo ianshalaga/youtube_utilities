@@ -1,9 +1,11 @@
+# domain\youtube\operation.py
+
 from enum import Enum
 from pathlib import Path
 from typing import TypeAlias
 
-from .video import Video
-from .video_metadata import VideoMetadata
+from domain.youtube.video import Video
+from domain.youtube.video_metadata import VideoMetadata
 
 
 class OperationType(Enum):
