@@ -7,7 +7,7 @@ NOTAS DE IMPLEMENTACIÓN PARA EL DESARROLLADOR
 - Este módulo pertenece exclusivamente al dominio de la aplicación YouTube.
 - No debe contener dependencias de SQLAlchemy, YouTube Data API, filesystem,
   configuración, logging ni otras infraestructuras.
-- VideoMetadata representa el conjunto de metadata asociado a un vídeo.
+- VideoMetadata representa la metadata objetivo de un vídeo.
 - El mismo tipo se utiliza para representar tanto la metadata actual del vídeo
   como la metadata deseada.
 - La distinción entre metadata actual y metadata deseada pertenece a Video,
@@ -36,8 +36,8 @@ class VideoMetadata:
     """
     Representa la metadata de un vídeo.
 
-    VideoMetadata puede representar tanto la metadata actualmente existente
-    en YouTube como la metadata que la aplicación pretende establecer.
+    VideoMetadata representa la metadata objetivo
+    que el Builder ha construido para un Video.
 
     Attributes:
         title: Título del vídeo.

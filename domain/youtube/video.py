@@ -1,3 +1,5 @@
+# domain\youtube\video.py
+
 """
 Entidad de dominio: Video.
 
@@ -16,8 +18,7 @@ NOTAS DE IMPLEMENTACIÓN PARA EL DESARROLLADOR
   según su orden de subida a YouTube.
 - VideoType distingue entre canciones y compilaciones.
 - `video_id` es el identificador del vídeo en YouTube.
-- `current_metadata` representa el estado actualmente descubierto en YouTube.
-- `desired_metadata` representa el estado que la aplicación pretende
+- `metadata` representa el estado que la aplicación pretende
   establecer.
 - Las compilaciones conservan su título actual. La construcción de la metadata
   deseada para una compilación debe realizarse antes de construir o actualizar
@@ -53,15 +54,14 @@ class Video:
     """
     Representa un vídeo concreto de YouTube perteneciente a un álbum.
 
-    Un Video mantiene la identidad del vídeo dentro de YouTube, su posición y
-    tipo dentro del álbum, y tanto su metadata actual como la metadata deseada.
+    Un Video mantiene la identidad del vídeo dentro de YouTube, su posición,
+    tipo dentro del álbum y tanto su metadata.
 
     Attributes:
         video_id: Identificador único del vídeo en YouTube.
         position: Posición del vídeo dentro del álbum.
         video_type: Tipo de vídeo, canción o compilación.
-        current_metadata: Metadata actualmente existente en YouTube.
-        desired_metadata: Metadata que la aplicación pretende establecer.
+        metadata: Metadata que la aplicación pretende establecer.
     """
 
     def __init__(
@@ -69,8 +69,7 @@ class Video:
         video_id: str,
         position: int,
         video_type: VideoType,
-        current_metadata: VideoMetadata,
-        desired_metadata: VideoMetadata,
+        metadata: VideoMetadata,
     ) -> None:
         """
         Inicializa un vídeo.
@@ -79,8 +78,7 @@ class Video:
             video_id: Identificador del vídeo en YouTube.
             position: Posición del vídeo dentro del álbum.
             video_type: Tipo de vídeo.
-            current_metadata: Metadata actualmente existente en YouTube.
-            desired_metadata: Metadata deseada.
+            metadata: Metadata deseada.
 
         Raises:
             TypeError: Si position no es un entero.
@@ -95,8 +93,7 @@ class Video:
         self._video_id = video_id
         self._position = position
         self._video_type = video_type
-        self._current_metadata = current_metadata
-        self._desired_metadata = desired_metadata
+        self._metadata = metadata
 
     @property
     def video_id(self) -> str:
@@ -111,12 +108,8 @@ class Video:
         return self._video_type
 
     @property
-    def current_metadata(self) -> VideoMetadata:
-        return self._current_metadata
-
-    @property
-    def desired_metadata(self) -> VideoMetadata:
-        return self._desired_metadata
+    def metadata(self) -> VideoMetadata:
+        return self._metadata
 
 
     def __repr__(self) -> str:

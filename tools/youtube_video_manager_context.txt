@@ -1,0 +1,1895 @@
+# GENERATED PROJECT CONTEXT
+# base_dir: F:\@Seyfer\Proyectos\youtube_utilities
+# total_files: 24
+
+# PROJECT STRUCTURE
+
+applications
+  youtube_video_manager
+    processor.py
+domain
+  youtube
+    album.py
+    album_manifest.py
+    publication_settings.py
+    validation.py
+    video.py
+    video_metadata.py
+    video_operation.py
+    youtube_video.py
+services
+  youtube
+    album_builder.py
+    album_manifest
+      album_manifest_validator.py
+      exceptions.py
+      yaml_mapper.py
+      yaml_parser.py
+      yaml_reader.py
+    api
+      client.py
+      methods.py
+    storage
+      models
+        album.py
+        job.py
+        operation.py
+        video.py
+      repository.py
+      session.py
+    youtube_discovery.py
+
+# FILES
+
+================================================================================
+FILE: applications\youtube_video_manager\processor.py
+================================================================================
+
+
+================================================================================
+FILE: domain\youtube\album.py
+================================================================================
+"""
+Entidad de dominio: Album.
+
+NOTAS DE IMPLEMENTACIÓN PARA EL DESARROLLADOR
+---------------------------------------------
+
+- Este módulo pertenece exclusivamente al dominio de la aplicación YouTube.
+- No debe contener dependencias de SQLAlchemy, YouTube Data API, filesystem,
+  configuración, logging ni otras infraestructuras.
+- Album representa la unidad de trabajo completa del proceso de gestión.
+- Las instancias de Video representan los vídeos reales de YouTube asociados
+  al álbum una vez completada la fase de descubrimiento.
+- El orden de los vídeos es significativo y está representado mediante la
+  propiedad `position` de cada Video.
+- Las compilaciones forman parte del mismo álbum que las canciones. La
+  distinción entre ambos tipos pertenece a Video, no a una colección
+  independiente dentro de Album.
+- `game` es deliberadamente un `str`. No debe establecerse ninguna relación
+  con el modelo Game del dominio de ranking.
+- Los playlist IDs son identificadores de YouTube y se almacenan como strings.
+  El dominio no necesita conocer el nombre de las playlists.
+- `tags` y `thumbnail` son opcionales porque son los únicos campos opcionales
+  definidos actualmente por el AlbumManifest.
+- La fecha `first_publish_at` representa la fecha de publicación del primer
+  vídeo. Las fechas individuales de publicación se derivan posteriormente
+  para cada Video.
+- La validación de títulos, descripciones y demás restricciones de YouTube
+  NO pertenece a esta entidad. Debe realizarse mediante el mecanismo de
+  validación correspondiente.
+- La entidad no debe ejecutar operaciones ni modificar remotamente YouTube.
+"""
+
+from __future__ import annotations
+
+from domain.youtube.validation import ValidationResult
+from domain.youtube.publication_settings import PublicationSettings
+
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from domain.youtube.video import Video
+
+
+class Album:
+    """
+    Representa un álbum completo dentro del flujo de gestión de vídeos.
+
+    Un álbum constituye la unidad de trabajo de la aplicación. Contiene la
+    configuración común a sus vídeos y la colección de vídeos de YouTube que
+    han sido descubiertos como pertenecientes al álbum.
+
+    Attributes:
+        name: Nombre identificativo del álbum.
+        description: Descripción que se aplicará al contenido del álbum.
+        playlists: IDs de las playlists de YouTube a las que se añadirán
+            los vídeos.
+        game: Nombre del videojuego asociado al álbum.
+        first_publish_at: Fecha y hora de publicación del primer vídeo.
+        tags: Tags que se aplicarán a los vídeos, o None si no se han
+            especificado.
+        thumbnail: Referencia a la miniatura que se utilizará, o None si no
+            se ha especificado.
+        videos: Vídeos pertenecientes al álbum.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        playlists: list[str],
+        game: str,
+        publication: PublicationSettings,
+        tags: list[str] | None = None,
+        thumbnail: Path | None = None,
+        videos: list[Video] | None = None,
+    ) -> None:
+        """
+        Inicializa un álbum.
+
+        Args:
+            name: Nombre identificativo del álbum.
+            description: Descripción común del álbum.
+            playlists: IDs de las playlists de YouTube.
+            game: Nombre del videojuego asociado.
+            publication: Fecha y hora de publicación del primer vídeo e intervalo en días.
+            tags: Tags comunes a los vídeos. None indica que no se han
+                especificado tags.
+            thumbnail: Referencia a la miniatura. None indica que no se ha
+                especificado una miniatura.
+            videos: Vídeos pertenecientes al álbum. Puede omitirse durante
+                la construcción inicial y añadirse posteriormente durante
+                discovery.
+        """
+
+        if len(description) > 5000:
+            raise ValueError("Album description must not exceed 5000 characters.")
+
+        self._name = name
+        self._description = description
+        self._playlists = list(playlists)
+        self._game = game
+        self._publication = publication
+        self._tags = list(tags) if tags is not None else None
+        self._thumbnail = thumbnail
+        self._videos = list(videos) if videos is not None else []
+
+    def add_video(self, video: Video) -> None:
+        """
+        Añade un vídeo al álbum.
+
+        El orden de los vídeos se determina por la propiedad `position` del
+        propio Video. Este método conserva el orden en el que los vídeos son
+        añadidos durante el descubrimiento.
+
+        Args:
+            video: Vídeo de YouTube perteneciente al álbum.
+        """
+        self._videos.append(video)
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def playlists(self) -> tuple[str, ...]:
+        return tuple(self._playlists)
+
+    @property
+    def game(self) -> str:
+        return self._game
+
+    @property
+    def tags(self) -> tuple[str, ...] | None:
+        return tuple(self._tags) if self._tags is not None else None
+
+    @property
+    def thumbnail(self) -> Path | None:
+        return self._thumbnail
+
+    @property
+    def videos(self) -> tuple[Video, ...]:
+        return tuple(self._videos)
+
+    @property
+    def publication(self) -> PublicationSettings:
+        return self._publication
+
+    @property
+    def video_count(self) -> int:
+        """
+        Devuelve el número de vídeos pertenecientes al álbum.
+
+        Returns:
+            Número total de vídeos, incluyendo canciones y compilaciones.
+        """
+        return len(self._videos)
+
+    def __repr__(self) -> str:
+        """Devuelve una representación útil del álbum para depuración."""
+        return (
+            f"Album("
+            f"name={self._name!r}, "
+            f"video_count={self.video_count}"
+            f")"
+        )
+
+    def validate(self) -> ValidationResult:
+        """Validate the structural integrity of the album."""
+        result = ValidationResult()
+
+        positions: dict[int, list[str]] = {}
+
+        for video in self._videos:
+            positions.setdefault(video.position, []).append(video.video_id)
+
+        for position, video_ids in positions.items():
+            if len(video_ids) > 1:
+                result.add_error(
+                    field=f"videos.position[{position}]",
+                    message=(
+                        f"Position {position} is used by multiple videos: "
+                        f"{', '.join(video_ids)}."
+                    ),
+                )
+
+        return result
+
+================================================================================
+FILE: domain\youtube\album_manifest.py
+================================================================================
+"""Domain representation of a YouTube album manifest.
+
+This module contains the domain representation of the information
+provided by the user for an album.
+
+The manifest is independent of the format used to provide it.
+YAML parsing belongs to the infrastructure layer.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from domain.youtube.publication_settings import PublicationSettings
+
+
+class AlbumManifest:
+    """Represents the desired configuration of a YouTube album."""
+
+    def __init__(
+        self,
+        name: str,
+        name_prefix: str,
+        videos: list[str],
+        description: str,
+        thumbnail: Path | None,
+        playlists: list[str],
+        made_for_kids: bool,
+        contains_synthetic_media: bool,
+        tags: list[str] | None,
+        game: str,
+        publication: PublicationSettings,
+    ) -> None:
+        if len(description) > 5000:
+            raise ValueError(
+                "Album manifest description must not exceed 5000 characters."
+            )
+
+        if not isinstance(publication, PublicationSettings):
+            raise TypeError(
+                "publication must be a PublicationSettings instance."
+            )
+
+        self._name = name
+        self._name_prefix = name_prefix
+        self._videos = list(videos)
+        self._description = description
+        self._thumbnail = thumbnail
+        self._playlists = list(playlists)
+        self._made_for_kids = made_for_kids
+        self._contains_synthetic_media = contains_synthetic_media
+        self._tags = list(tags) if tags is not None else None
+        self._game = game
+        self._publication = publication
+
+    @property
+    def name(self) -> str:
+        """Return the album name."""
+        return self._name
+
+    @property
+    def name_prefix(self) -> str:
+        """Return the prefix used to compose video names."""
+        return self._name_prefix
+
+    @property
+    def videos(self) -> tuple[str, ...]:
+        """Return the desired video specifications."""
+        return tuple(self._videos)
+
+    @property
+    def description(self) -> str:
+        """Return the desired album description."""
+        return self._description
+
+    @property
+    def thumbnail(self) -> Path | None:
+        """Return the album thumbnail path."""
+        return self._thumbnail
+
+    @property
+    def playlists(self) -> tuple[str, ...]:
+        """Return the YouTube playlist IDs."""
+        return tuple(self._playlists)
+
+    @property
+    def made_for_kids(self) -> bool:
+        """Return whether the videos are made for kids."""
+        return self._made_for_kids
+
+    @property
+    def contains_synthetic_media(self) -> bool:
+        """Return whether the videos contain synthetic media."""
+        return self._contains_synthetic_media
+
+    @property
+    def tags(self) -> tuple[str, ...] | None:
+        """Return the desired video tags."""
+        return tuple(self._tags) if self._tags is not None else None
+
+    @property
+    def game(self) -> str:
+        """Return the game associated with the album."""
+        return self._game
+
+    @property
+    def publication(self) -> PublicationSettings:
+        return self._publication
+
+    def __repr__(self) -> str:
+        return (
+            f"AlbumManifest("
+            f"name={self._name!r}, "
+            f"video_count={len(self._videos)})"
+        )
+
+================================================================================
+FILE: domain\youtube\publication_settings.py
+================================================================================
+from __future__ import annotations
+
+from datetime import datetime
+
+
+class PublicationSettings:
+    def __init__(
+        self,
+        first_publish_at: datetime,
+        interval_days: int,
+    ) -> None:
+        if not isinstance(first_publish_at, datetime):
+            raise TypeError("first_publish_at must be a datetime.")
+
+        if isinstance(interval_days, bool) or not isinstance(interval_days, int):
+            raise TypeError("interval_days must be an integer.")
+
+        if interval_days <= 0:
+            raise ValueError("interval_days must be greater than zero.")
+
+        self._first_publish_at = first_publish_at
+        self._interval_days = interval_days
+
+    @property
+    def first_publish_at(self) -> datetime:
+        return self._first_publish_at
+
+    @property
+    def interval_days(self) -> int:
+        return self._interval_days
+
+    def __repr__(self) -> str:
+        return (
+            "PublicationSettings("
+            f"first_publish_at={self._first_publish_at!r}, "
+            f"interval_days={self._interval_days!r}"
+            ")"
+        )
+
+================================================================================
+FILE: domain\youtube\validation.py
+================================================================================
+"""Domain validation types for the YouTube album workflow.
+
+This module contains domain-level validation results and errors.
+It does not perform infrastructure operations or modify remote state.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class ValidationError:
+    """Represents a single domain validation error."""
+
+    field: str
+    message: str
+
+
+class ValidationResult:
+    """Represents the result of validating a domain object."""
+
+    def __init__(self, errors: list[ValidationError] | None = None) -> None:
+        self._errors = list(errors) if errors is not None else []
+
+    @property
+    def is_valid(self) -> bool:
+        """Return whether the validation completed without errors."""
+        return not self._errors
+
+    @property
+    def errors(self) -> tuple[ValidationError, ...]:
+        """Return the validation errors."""
+        return tuple(self._errors)
+
+    def add_error(self, field: str, message: str) -> None:
+        """Add a validation error to the result."""
+        self._errors.append(
+            ValidationError(
+                field=field,
+                message=message,
+            )
+        )
+
+================================================================================
+FILE: domain\youtube\video.py
+================================================================================
+# domain\youtube\video.py
+
+"""
+Entidad de dominio: Video.
+
+NOTAS DE IMPLEMENTACIÓN PARA EL DESARROLLADOR
+---------------------------------------------
+
+- Este módulo pertenece exclusivamente al dominio de la aplicación YouTube.
+- No debe contener dependencias de SQLAlchemy, YouTube Data API, filesystem,
+  configuración, logging ni otras infraestructuras.
+- Video representa un vídeo concreto de YouTube perteneciente a un Album.
+- Cada Video tiene una posición única dentro del álbum.
+- La posición es independiente del título del vídeo. Las compilaciones también
+  tienen posición aunque su título no contenga un número.
+- Las canciones ocupan las primeras posiciones del álbum según el orden
+  definido por el manifest. Las compilaciones ocupan las posiciones siguientes
+  según su orden de subida a YouTube.
+- VideoType distingue entre canciones y compilaciones.
+- `video_id` es el identificador del vídeo en YouTube.
+- `metadata` representa el estado que la aplicación pretende
+  establecer.
+- Las compilaciones conservan su título actual. La construcción de la metadata
+  deseada para una compilación debe realizarse antes de construir o actualizar
+  este objeto, no mediante lógica específica de la API dentro de Video.
+- La comparación entre metadata actual y deseada, así como la determinación de
+  operaciones necesarias, pertenece a la fase de planificación.
+- Video no debe realizar llamadas a servicios ni modificar remotamente YouTube.
+"""
+
+from __future__ import annotations
+
+from enum import Enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from domain.youtube.video_metadata import VideoMetadata
+
+
+class VideoType(Enum):
+    """
+    Define los tipos de vídeo que pueden pertenecer a un álbum.
+
+    Attributes:
+        SONG: Vídeo correspondiente a una canción individual del álbum.
+        COMPILATION: Vídeo correspondiente a una compilación del álbum.
+    """
+
+    SONG = "song"
+    COMPILATION = "compilation"
+
+
+class Video:
+    """
+    Representa un vídeo concreto de YouTube perteneciente a un álbum.
+
+    Un Video mantiene la identidad del vídeo dentro de YouTube, su posición y
+    tipo dentro del álbum, y tanto su metadata actual como la metadata deseada.
+
+    Attributes:
+        video_id: Identificador único del vídeo en YouTube.
+        position: Posición del vídeo dentro del álbum.
+        video_type: Tipo de vídeo, canción o compilación.
+        metadata: Metadata que la aplicación pretende establecer.
+    """
+
+    def __init__(
+        self,
+        video_id: str,
+        position: int,
+        video_type: VideoType,
+        metadata: VideoMetadata,
+    ) -> None:
+        """
+        Inicializa un vídeo.
+
+        Args:
+            video_id: Identificador del vídeo en YouTube.
+            position: Posición del vídeo dentro del álbum.
+            video_type: Tipo de vídeo.
+            metadata: Metadata deseada.
+
+        Raises:
+            TypeError: Si position no es un entero.
+            ValueError: Si position no es mayor que cero.
+        """
+        if not isinstance(position, int) or isinstance(position, bool):
+            raise TypeError("Video position must be an integer.")
+
+        if position <= 0:
+            raise ValueError("Video position must be greater than zero.")
+
+        self._video_id = video_id
+        self._position = position
+        self._video_type = video_type
+        self._metadata = metadata
+
+    @property
+    def video_id(self) -> str:
+        return self._video_id
+
+    @property
+    def position(self) -> int:
+        return self._position
+
+    @property
+    def video_type(self) -> VideoType:
+        return self._video_type
+
+    @property
+    def metadata(self) -> VideoMetadata:
+        return self._metadata
+
+
+    def __repr__(self) -> str:
+        """Devuelve una representación útil del vídeo para depuración."""
+        return (
+            f"Video("
+            f"video_id={self._video_id!r}, "
+            f"position={self._position}, "
+            f"video_type={self._video_type!r}"
+            f")"
+        )
+
+================================================================================
+FILE: domain\youtube\video_metadata.py
+================================================================================
+"""
+Objeto de dominio: VideoMetadata.
+
+NOTAS DE IMPLEMENTACIÓN PARA EL DESARROLLADOR
+---------------------------------------------
+
+- Este módulo pertenece exclusivamente al dominio de la aplicación YouTube.
+- No debe contener dependencias de SQLAlchemy, YouTube Data API, filesystem,
+  configuración, logging ni otras infraestructuras.
+- VideoMetadata representa la metadata objetivo de un vídeo.
+- El mismo tipo se utiliza para representar tanto la metadata actual del vídeo
+  como la metadata deseada.
+- La distinción entre metadata actual y metadata deseada pertenece a Video,
+  que mantiene ambas instancias de VideoMetadata.
+- `playlists` contiene IDs de playlists de YouTube, no nombres.
+- `game` es deliberadamente un `str` y no debe relacionarse con el modelo
+  Game del dominio de ranking.
+- `tags` y `thumbnail` son opcionales porque son los únicos campos opcionales
+  definidos actualmente por el AlbumManifest.
+- Los valores booleanos `made_for_kids` y `contains_synthetic_media` deben
+  representar siempre un estado explícito.
+- Este objeto no debe realizar validaciones contra las restricciones de la
+  YouTube Data API. Las reglas de validación pertenecen al mecanismo de
+  validación correspondiente.
+- Este objeto tampoco debe determinar qué operaciones deben ejecutarse.
+  Esa responsabilidad pertenece a la fase de planificación.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime
+from pathlib import Path
+
+
+class VideoMetadata:
+    """
+    Representa la metadata de un vídeo.
+
+    VideoMetadata representa la metadata objetivo
+    que el Builder ha construido para un Video.
+
+    Attributes:
+        title: Título del vídeo.
+        description: Descripción del vídeo.
+        tags: Tags del vídeo, o None si no se han especificado.
+        playlists: IDs de las playlists de YouTube.
+        game: Nombre del videojuego asociado al vídeo.
+        made_for_kids: Indica si el vídeo está marcado como contenido creado
+            para niños.
+        contains_synthetic_media: Indica si el vídeo contiene contenido
+            sintético o alterado que deba declararse.
+        publish_at: Fecha y hora en la que debe publicarse el vídeo.
+        thumbnail: Referencia a la miniatura del vídeo, o None si no se ha
+            especificado.
+    """
+
+    def __init__(
+        self,
+        title: str,
+        description: str,
+        tags: list[str] | None,
+        playlists: list[str],
+        game: str,
+        made_for_kids: bool,
+        contains_synthetic_media: bool,
+        publish_at: datetime,
+        thumbnail: Path | None,
+    ) -> None:
+        """
+        Inicializa la metadata de un vídeo.
+
+        Args:
+            title: Título del vídeo.
+            description: Descripción del vídeo.
+            tags: Tags del vídeo. None indica que no se han especificado.
+            playlists: IDs de las playlists de YouTube.
+            game: Nombre del videojuego asociado.
+            made_for_kids: Estado de la declaración de contenido creado para
+                niños.
+            contains_synthetic_media: Estado de la declaración de contenido
+                sintético o alterado.
+            publish_at: Fecha y hora de publicación.
+            thumbnail: Referencia a la miniatura. None indica que no se ha
+                especificado.
+        """
+        # if len(title) > 100:
+        #     raise ValueError("Video title must not exceed 100 characters.")
+
+        # if len(description) > 5000:
+        #     raise ValueError("Video description must not exceed 5000 characters.")
+        
+        self._title = title
+        self._description = description
+        self._tags = list(tags) if tags is not None else None
+        self._playlists = list(playlists)
+        self._game = game
+        self._made_for_kids = made_for_kids
+        self._contains_synthetic_media = contains_synthetic_media
+        self._publish_at = publish_at
+        self._thumbnail = thumbnail
+
+    @property
+    def title(self) -> str:
+        return self._title
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def tags(self) -> tuple[str, ...] | None:
+        return tuple(self._tags) if self._tags is not None else None
+
+    @property
+    def playlists(self) -> tuple[str, ...]:
+        return tuple(self._playlists)
+
+    @property
+    def game(self) -> str:
+        return self._game
+
+    @property
+    def made_for_kids(self) -> bool:
+        return self._made_for_kids
+
+    @property
+    def contains_synthetic_media(self) -> bool:
+        return self._contains_synthetic_media
+
+    @property
+    def publish_at(self) -> datetime:
+        return self._publish_at
+
+    @property
+    def thumbnail(self) -> Path | None:
+        return self._thumbnail
+
+================================================================================
+FILE: domain\youtube\video_operation.py
+================================================================================
+
+
+================================================================================
+FILE: domain\youtube\youtube_video.py
+================================================================================
+from __future__ import annotations
+
+from dataclasses import dataclass
+from enum import Enum
+
+
+class PrivacyStatus(str, Enum):
+    """YouTube video privacy status."""
+
+    PRIVATE = "private"
+    PUBLIC = "public"
+    UNLISTED = "unlisted"
+
+
+@dataclass(frozen=True)
+class YouTubeVideo:
+    """Represents a video discovered on YouTube."""
+
+    video_id: str
+    title: str
+    description: str | None
+    privacy_status: PrivacyStatus
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.video_id, str) or not self.video_id.strip():
+            raise ValueError("video_id must be a non-empty string.")
+
+        if not isinstance(self.title, str) or not self.title.strip():
+            raise ValueError("title must be a non-empty string.")
+
+================================================================================
+FILE: services\youtube\album_builder.py
+================================================================================
+# services\youtube\album_builder.py
+
+from __future__ import annotations
+
+import re
+from datetime import timedelta, datetime
+from typing import Iterable
+
+from domain.youtube.album import Album
+from domain.youtube.album_manifest import AlbumManifest
+from domain.youtube.video import Video, VideoType
+from domain.youtube.video_metadata import VideoMetadata
+from domain.youtube.youtube_video import YouTubeVideo
+
+
+class AlbumBuildError(RuntimeError):
+    """Raised when an Album cannot be built from the manifest and YouTube videos."""
+
+
+class AlbumBuilder:
+    """
+    Builds an Album by combining the album manifest with discovered YouTube videos.
+
+    The manifest defines the desired album configuration, while YouTubeDiscovery
+    provides the YouTube-specific information required to identify each video.
+
+    The resulting Album contains the complete desired configuration and can be
+    passed to the planning phase.
+    """
+
+    _SONG_TITLE_PATTERN = re.compile(r"^(\d+)\s+(.+)$")
+
+    def build(
+        self,
+        manifest: AlbumManifest,
+        youtube_videos: tuple[YouTubeVideo, ...],
+    ) -> Album:
+        """
+        Build an Album from an album manifest and discovered YouTube videos.
+
+        YouTube videos may be returned in reverse upload order. Their logical
+        position is determined by the numeric prefix in their titles.
+
+        Raises:
+            AlbumBuildError: If the manifest and YouTube videos cannot be matched.
+        """
+        if not youtube_videos:
+            raise AlbumBuildError(
+                "No private YouTube videos were discovered."
+            )
+
+        manifest_songs, manifest_compilation = self._parse_manifest(manifest)
+
+        youtube_songs, youtube_compilation = self._parse_youtube_videos(
+            youtube_videos
+        )
+
+        missing, extra = self._find_mismatches(
+            manifest_songs=manifest_songs,
+            manifest_compilation=manifest_compilation,
+            youtube_songs=youtube_songs,
+            youtube_compilation=youtube_compilation,
+        )
+
+        if missing or extra:
+            raise AlbumBuildError(
+                self._format_mismatch_error(
+                    missing=missing,
+                    extra=extra,
+                )
+            )
+
+        videos = self._build_videos(
+            manifest=manifest,
+            manifest_songs=manifest_songs,
+            youtube_songs=youtube_songs,
+            youtube_compilation=youtube_compilation,
+        )
+
+        return Album(
+            name=manifest.name,
+            description=manifest.description,
+            playlists=list(manifest.playlists),
+            game=manifest.game,
+            publication=manifest.publication,
+            tags=list(manifest.tags) if manifest.tags is not None else None,
+            thumbnail=manifest.thumbnail,
+            videos=videos,
+        )
+
+    def _parse_manifest(
+        self,
+        manifest: AlbumManifest,
+    ) -> tuple[dict[int, str], str]:
+        songs: dict[int, str] = {}
+        compilation: str | None = None
+
+        for title in manifest.videos:
+            match = self._SONG_TITLE_PATTERN.match(title)
+
+            if match is None:
+                if compilation is not None:
+                    raise AlbumBuildError(
+                        "Manifest contains more than one compilation."
+                    )
+
+                compilation = title
+                continue
+
+            position = int(match.group(1))
+
+            if position in songs:
+                raise AlbumBuildError(
+                    f"Manifest contains duplicate song position {position}."
+                )
+
+            songs[position] = title
+
+        if compilation is None:
+            raise AlbumBuildError(
+                "Manifest does not contain a compilation."
+            )
+
+        return songs, compilation
+
+    def _parse_youtube_videos(
+        self,
+        youtube_videos: Iterable[YouTubeVideo],
+    ) -> tuple[dict[int, YouTubeVideo], YouTubeVideo | None]:
+        songs: dict[int, YouTubeVideo] = {}
+        compilation: YouTubeVideo | None = None
+
+        for video in youtube_videos:
+            match = self._SONG_TITLE_PATTERN.match(video.title)
+
+            if match is None:
+                if compilation is not None:
+                    raise AlbumBuildError(
+                        "YouTube discovery contains more than one compilation."
+                    )
+
+                compilation = video
+                continue
+
+            position = int(match.group(1))
+
+            if position in songs:
+                raise AlbumBuildError(
+                    "YouTube discovery contains duplicate song position "
+                    f"{position}."
+                )
+
+            songs[position] = video
+
+        return songs, compilation
+    
+
+    @staticmethod
+    def _find_mismatches(
+        manifest_songs: dict[int, str],
+        manifest_compilation: str,
+        youtube_songs: dict[int, YouTubeVideo],
+        youtube_compilation: YouTubeVideo | None,
+    ) -> tuple[list[str], list[str]]:
+        missing: list[str] = []
+        extra: list[str] = []
+
+        manifest_positions = set(manifest_songs)
+        youtube_positions = set(youtube_songs)
+
+        for position in sorted(manifest_positions - youtube_positions):
+            missing.append(manifest_songs[position])
+
+        for position in sorted(youtube_positions - manifest_positions):
+            extra.append(youtube_songs[position].title)
+
+        if youtube_compilation is None:
+            missing.append(manifest_compilation)
+        elif youtube_compilation.title != manifest_compilation:
+            missing.append(manifest_compilation)
+            extra.append(youtube_compilation.title)
+
+        return missing, extra
+
+    @staticmethod
+    def _format_mismatch_error(
+        missing: list[str],
+        extra: list[str],
+    ) -> str:
+        lines = ["Album videos do not match between manifest and YouTube."]
+
+        if missing:
+            lines.append("Missing from YouTube:")
+            lines.extend(f"  {title}" for title in missing)
+
+        if extra:
+            lines.append("Extra on YouTube:")
+            lines.extend(f"  {title}" for title in extra)
+
+        return "\n".join(lines)
+
+    def _build_videos(
+        self,
+        manifest: AlbumManifest,
+        manifest_songs: dict[int, str],
+        youtube_songs: dict[int, YouTubeVideo],
+        youtube_compilation: YouTubeVideo,
+    ) -> list[Video]:
+        videos: list[Video] = []
+
+        for position in sorted(manifest_songs):
+            youtube_video = youtube_songs[position]
+            manifest_title = manifest_songs[position]
+
+            metadata = self._build_song_metadata(
+                manifest=manifest,
+                manifest_title=manifest_title,
+                position=position,
+            )
+
+            videos.append(
+                Video(
+                    video_id=youtube_video.video_id,
+                    position=position,
+                    video_type=VideoType.SONG,
+                    metadata=metadata,
+                )
+            )
+
+        compilation_position = len(manifest.videos)
+
+        metadata = self._build_compilation_metadata(
+            manifest=manifest,
+            youtube_video=youtube_compilation,
+            position=compilation_position,
+        )
+
+        videos.append(
+            Video(
+                video_id=youtube_compilation.video_id,
+                position=compilation_position,
+                video_type=VideoType.COMPILATION,
+                metadata=metadata,
+            )
+        )
+
+        return videos
+
+    def _build_song_metadata(
+        self,
+        manifest: AlbumManifest,
+        manifest_title: str,
+        position: int,
+    ) -> VideoMetadata:
+        song_title = self._remove_position_prefix(manifest_title)
+
+        desired_title = self._build_song_title(
+            name_prefix=manifest.name_prefix,
+            song_title=song_title,
+        )
+
+        publish_at = self._calculate_publish_at(
+            manifest=manifest,
+            position=position,
+        )
+
+        return VideoMetadata(
+            title=desired_title,
+            description=manifest.description,
+            tags=list(manifest.tags) if manifest.tags is not None else None,
+            playlists=list(manifest.playlists),
+            game=manifest.game,
+            made_for_kids=manifest.made_for_kids,
+            contains_synthetic_media=manifest.contains_synthetic_media,
+            publish_at=publish_at,
+            thumbnail=manifest.thumbnail,
+        )
+
+    def _build_compilation_metadata(
+        self,
+        manifest: AlbumManifest,
+        youtube_video: YouTubeVideo,
+        position: int,
+    ) -> VideoMetadata:
+        current_description = youtube_video.description or ""
+
+        combined_description = (
+            f"{current_description}\n\n{manifest.description}"
+        )
+
+        if len(combined_description) > 5000:
+            desired_description = current_description
+        else:
+            desired_description = combined_description
+
+        publish_at = self._calculate_publish_at(
+            manifest=manifest,
+            position=position,
+        )
+
+        return VideoMetadata(
+            title=youtube_video.title,
+            description=desired_description,
+            tags=list(manifest.tags) if manifest.tags is not None else None,
+            playlists=list(manifest.playlists),
+            game=manifest.game,
+            made_for_kids=manifest.made_for_kids,
+            contains_synthetic_media=manifest.contains_synthetic_media,
+            publish_at=publish_at,
+            thumbnail=manifest.thumbnail,
+        )
+
+    @classmethod
+    def _build_song_title(
+        cls,
+        name_prefix: str,
+        song_title: str,
+    ) -> str:
+        title = f"{name_prefix}: {song_title}"
+
+        while len(title) > 100:
+            last_space = title.rfind(" ")
+
+            if last_space == -1:
+                return title[:100]
+
+            title = title[:last_space]
+
+        return title
+
+    @classmethod
+    def _remove_position_prefix(cls, title: str) -> str:
+        match = cls._SONG_TITLE_PATTERN.match(title)
+
+        if match is None:
+            raise AlbumBuildError(
+                f"Song title does not contain a valid position: {title!r}."
+            )
+
+        return match.group(2)
+
+    @staticmethod
+    def _calculate_publish_at(
+        manifest: AlbumManifest,
+        position: int,
+    ) -> datetime:
+        publication = manifest.publication
+
+        return publication.first_publish_at + timedelta(
+            days=(position - 1) * publication.interval_days
+        )
+
+================================================================================
+FILE: services\youtube\album_manifest\album_manifest_validator.py
+================================================================================
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any
+
+
+class AlbumManifestValidator:
+    """Validates the structure and types of an album manifest."""
+
+    REQUIRED_KEYS = {
+        "album",
+        "name_prefix",
+        "videos",
+        "description",
+        "thumbnail",
+        "playlists",
+        "made_for_kids",
+        "contains_synthetic_media",
+        "tags",
+        "game",
+        "publication",
+    }
+
+    PUBLICATION_REQUIRED_KEYS = {
+        "first_publish_at",
+        "interval_days",
+    }
+
+    def validate(self, data: Any) -> list[str]:
+        """
+        Validate the manifest structure.
+
+        Returns:
+            A list containing every structural or type error found.
+        """
+
+        errors: list[str] = []
+
+        if not isinstance(data, dict):
+            return ["Manifest root must be a mapping."]
+
+        errors.extend(self._validate_required_keys(data))
+        errors.extend(self._validate_fields(data))
+
+        publication = data.get("publication")
+
+        if isinstance(publication, dict):
+            errors.extend(
+                self._validate_publication(publication)
+            )
+
+        return errors
+
+    def _validate_required_keys(
+        self,
+        data: dict[str, Any],
+    ) -> list[str]:
+        return [
+            f"Missing required key: '{key}'."
+            for key in sorted(self.REQUIRED_KEYS - data.keys())
+        ]
+
+    def _validate_fields(
+        self,
+        data: dict[str, Any],
+    ) -> list[str]:
+        errors: list[str] = []
+
+        for field in (
+            "album",
+            "name_prefix",
+            "description",
+            "game",
+        ):
+            if field in data and not isinstance(data[field], str):
+                errors.append(
+                    f"'{field}' must be a string."
+                )
+
+        if "videos" in data:
+            errors.extend(
+                self._validate_string_list(
+                    data["videos"],
+                    "videos",
+                )
+            )
+
+        if "playlists" in data:
+            errors.extend(
+                self._validate_string_list(
+                    data["playlists"],
+                    "playlists",
+                )
+            )
+
+        if "tags" in data:
+            tags = data["tags"]
+
+            if tags is not None:
+                errors.extend(
+                    self._validate_string_list(
+                        tags,
+                        "tags",
+                    )
+                )
+
+        if "thumbnail" in data:
+            if (
+                data["thumbnail"] is not None
+                and not isinstance(data["thumbnail"], str)
+            ):
+                errors.append(
+                    "'thumbnail' must be a string or null."
+                )
+
+        if "made_for_kids" in data:
+            if not isinstance(data["made_for_kids"], bool):
+                errors.append(
+                    "'made_for_kids' must be a boolean."
+                )
+
+        if "contains_synthetic_media" in data:
+            if not isinstance(
+                data["contains_synthetic_media"],
+                bool,
+            ):
+                errors.append(
+                    "'contains_synthetic_media' must be a boolean."
+                )
+
+        if "publication" in data:
+            if not isinstance(data["publication"], dict):
+                errors.append(
+                    "'publication' must be a mapping."
+                )
+
+        return errors
+
+    def _validate_publication(
+        self,
+        publication: dict[str, Any],
+    ) -> list[str]:
+        errors: list[str] = []
+
+        errors.extend(
+            f"Missing required key: 'publication.{key}'."
+            for key in sorted(
+                self.PUBLICATION_REQUIRED_KEYS
+                - publication.keys()
+            )
+        )
+
+        if "first_publish_at" in publication:
+            value = publication["first_publish_at"]
+
+            if not isinstance(value, str):
+                errors.append(
+                    "'publication.first_publish_at' "
+                    "must be a string."
+                )
+            else:
+                try:
+                    datetime.fromisoformat(value)
+                except ValueError:
+                    errors.append(
+                        "'publication.first_publish_at' "
+                        "must be a valid ISO 8601 datetime."
+                    )
+
+        if "interval_days" in publication:
+            value = publication["interval_days"]
+
+            if isinstance(value, bool) or not isinstance(value, int):
+                errors.append(
+                    "'publication.interval_days' "
+                    "must be an integer."
+                )
+
+        return errors
+
+    @staticmethod
+    def _validate_string_list(
+        value: Any,
+        field: str,
+    ) -> list[str]:
+        errors: list[str] = []
+
+        if not isinstance(value, list):
+            return [f"'{field}' must be a list."]
+
+        for index, item in enumerate(value):
+            if not isinstance(item, str):
+                errors.append(
+                    f"'{field}[{index}]' must be a string."
+                )
+
+        return errors
+
+================================================================================
+FILE: services\youtube\album_manifest\exceptions.py
+================================================================================
+class ManifestError(Exception):
+    """Base exception for manifest loading errors."""
+
+
+class ManifestParseError(ManifestError):
+    """Raised when the YAML cannot be parsed."""
+
+
+class ManifestConfigurationError(ManifestError):
+    """Raised when the manifest structure is invalid."""
+
+================================================================================
+FILE: services\youtube\album_manifest\yaml_mapper.py
+================================================================================
+from __future__ import annotations
+
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+from domain.youtube.album_manifest import AlbumManifest
+from domain.youtube.publication_settings import PublicationSettings
+from services.youtube.album_manifest.exceptions import ManifestConfigurationError
+
+
+class YamlMapper:
+    """Maps validated YAML data into an AlbumManifest."""
+
+    def map(self, data: dict[str, Any]) -> AlbumManifest:
+        """Convert validated YAML data into an AlbumManifest."""
+
+        try:
+            publication = PublicationSettings(
+                first_publish_at=datetime.fromisoformat(
+                    data["publication"]["first_publish_at"]
+                ),
+                interval_days=data["publication"]["interval_days"],
+            )
+
+            return AlbumManifest(
+                name=data["album"],
+                name_prefix=data["name_prefix"],
+                videos=list(data["videos"]),
+                description=data["description"],
+                thumbnail=(
+                    Path(data["thumbnail"])
+                    if data["thumbnail"] is not None
+                    else None
+                ),
+                playlists=list(data["playlists"]),
+                made_for_kids=data["made_for_kids"],
+                contains_synthetic_media=data["contains_synthetic_media"],
+                tags=(
+                    list(data["tags"])
+                    if data["tags"] is not None
+                    else None
+                ),
+                game=data["game"],
+                publication=publication,
+            )
+
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ManifestConfigurationError(
+                f"Unable to map manifest data: {exc}"
+            ) from exc
+
+================================================================================
+FILE: services\youtube\album_manifest\yaml_parser.py
+================================================================================
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from services.youtube.album_manifest.exceptions import (
+    ManifestError,
+    ManifestParseError,
+)
+
+class YamlParser:
+    @staticmethod
+    def parse(path: Path) -> Any:
+        """Parse the YAML document."""
+
+        try:
+            with path.open(
+                "r",
+                encoding="utf-8",
+            ) as file:
+                return yaml.safe_load(file)
+
+        except yaml.YAMLError as exc:
+            problem = getattr(
+                exc,
+                "problem",
+                None,
+            )
+            mark = getattr(
+                exc,
+                "problem_mark",
+                None,
+            )
+
+            if mark is not None:
+                location = (
+                    f"line {mark.line + 1}, "
+                    f"column {mark.column + 1}"
+                )
+            else:
+                location = "unknown location"
+
+            detail = problem or str(exc)
+
+            raise ManifestParseError(
+                f"Invalid YAML at {location}: {detail}"
+            ) from exc
+
+        except OSError as exc:
+            raise ManifestError(
+                f"Unable to read manifest '{path}': {exc}"
+            ) from exc
+
+================================================================================
+FILE: services\youtube\album_manifest\yaml_reader.py
+================================================================================
+from __future__ import annotations
+
+from pathlib import Path
+
+from domain.youtube.album_manifest import AlbumManifest
+
+from services.youtube.album_manifest.album_manifest_validator import (
+    AlbumManifestValidator,
+)
+from services.youtube.album_manifest.exceptions import (
+    ManifestConfigurationError,
+)
+from services.youtube.album_manifest.yaml_parser import YamlParser
+from services.youtube.album_manifest.yaml_mapper import YamlMapper
+
+
+class YamlReader:
+    """Orchestrates the YAML album manifest reading pipeline."""
+
+    def __init__(self) -> None:
+        self._parser = YamlParser()
+        self._validator = AlbumManifestValidator()
+        self._mapper = YamlMapper()
+
+    def read(self, path: Path) -> AlbumManifest:
+        """Read a YAML file and return an AlbumManifest."""
+
+        data = self._parser.parse(path)
+        errors = self._validator.validate(data)
+
+        if errors:
+            raise ManifestConfigurationError(
+                "Invalid manifest configuration:\n"
+                + "\n".join(
+                    f"- {error}"
+                    for error in errors
+                )
+            )
+
+        return self._mapper.map(data)
+
+================================================================================
+FILE: services\youtube\api\client.py
+================================================================================
+from __future__ import annotations
+
+from pathlib import Path
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import Resource, build
+
+
+class YouTubeClient:
+    """Provide authenticated and encapsulated access to the YouTube Data API."""
+
+    SCOPES = [
+        "https://www.googleapis.com/auth/youtube",
+    ]
+
+    def __init__(
+        self,
+        client_secrets_path: Path,
+        token_path: Path,
+    ) -> None:
+        self._client_secrets_path = client_secrets_path
+        self._token_path = token_path
+        self._service = self._authenticate()
+
+    @property
+    def service(self) -> Resource:
+        """Return the authenticated YouTube API service."""
+        return self._service
+
+    def _authenticate(self) -> Resource:
+        """Authenticate the user and create the YouTube API service."""
+        credentials = self._load_credentials()
+
+        if credentials is None or not credentials.valid:
+            credentials = self._refresh_or_authorize(credentials)
+
+        self._save_credentials(credentials)
+
+        return build(
+            "youtube",
+            "v3",
+            credentials=credentials,
+        )
+
+    def _load_credentials(self) -> Credentials | None:
+        """Load previously stored OAuth credentials."""
+        if not self._token_path.exists():
+            return None
+
+        return Credentials.from_authorized_user_file(
+            str(self._token_path),
+            self.SCOPES,
+        )
+
+    def _refresh_or_authorize(
+        self,
+        credentials: Credentials | None,
+    ) -> Credentials:
+        """Refresh existing credentials or perform OAuth authorization."""
+        if credentials is not None and credentials.expired:
+            if credentials.refresh_token is None:
+                raise RuntimeError(
+                    "Stored YouTube credentials have expired and "
+                    "contain no refresh token."
+                )
+
+            credentials.refresh(Request())
+            return credentials
+
+        flow = InstalledAppFlow.from_client_secrets_file(
+            str(self._client_secrets_path),
+            self.SCOPES,
+        )
+
+        return flow.run_local_server(port=0)
+
+    def _save_credentials(self, credentials: Credentials) -> None:
+        """Persist OAuth credentials locally."""
+        self._token_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        self._token_path.write_text(
+            credentials.to_json(),
+            encoding="utf-8",
+        )
+
+================================================================================
+FILE: services\youtube\api\methods.py
+================================================================================
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+from googleapiclient.errors import HttpError
+from googleapiclient.http import MediaFileUpload
+from rich.console import Console
+
+from services.youtube.api.client import YouTubeClient
+
+
+class YouTubeApiError(RuntimeError):
+    """Raised when the YouTube Data API returns an error."""
+
+
+class YouTubeQuotaExceededError(YouTubeApiError):
+    """Raised when YouTube rejects a request because the quota is exhausted."""
+
+
+class YouTubeMethods:
+    """Provide concrete operations against the YouTube Data API."""
+
+    def __init__(self, client: YouTubeClient) -> None:
+        self._service = client.service
+        self._console = Console()
+
+    def channels_list(
+        self,
+        *,
+        part: str = "contentDetails",
+        mine: bool = True,
+    ) -> dict[str, Any]:
+        """Retrieve channel information for the authenticated user."""
+        return self._execute(
+            "channels.list",
+            self._service.channels().list(
+                part=part,
+                mine=mine,
+            ),
+        )
+
+    def playlist_items_list(
+        self,
+        *,
+        playlist_id: str,
+        part: str = "snippet,contentDetails,status",
+        max_results: int = 50,
+        page_token: str | None = None,
+    ) -> dict[str, Any]:
+        """Retrieve a page of items from a YouTube playlist."""
+        request_kwargs: dict[str, Any] = {
+            "part": part,
+            "playlistId": playlist_id,
+            "maxResults": max_results,
+        }
+
+        if page_token is not None:
+            request_kwargs["pageToken"] = page_token
+
+        return self._execute(
+            "playlistItems.list",
+            self._service.playlistItems().list(**request_kwargs),
+        )
+
+    def videos_list(
+        self,
+        *,
+        video_ids: list[str],
+        part: str = "snippet,status",
+    ) -> dict[str, Any]:
+        """Retrieve information for one or more YouTube videos."""
+        if not video_ids:
+            raise ValueError("video_ids must not be empty.")
+
+        return self._execute(
+            "videos.list",
+            self._service.videos().list(
+                part=part,
+                id=",".join(video_ids),
+            ),
+        )
+
+    def videos_update(
+        self,
+        *,
+        video_resource: dict[str, Any],
+        part: str = "snippet,status",
+    ) -> dict[str, Any]:
+        """Update a YouTube video."""
+        return self._execute(
+            "videos.update",
+            self._service.videos().update(
+                part=part,
+                body=video_resource,
+            ),
+        )
+
+    def thumbnails_set(
+        self,
+        *,
+        video_id: str,
+        thumbnail_path: Path,
+    ) -> dict[str, Any]:
+        """Set a video's custom thumbnail."""
+        if not thumbnail_path.is_file():
+            raise FileNotFoundError(
+                f"Thumbnail file does not exist: {thumbnail_path}"
+            )
+
+        media = MediaFileUpload(
+            str(thumbnail_path),
+            mimetype="image/jpeg",
+        )
+
+        return self._execute(
+            "thumbnails.set",
+            self._service.thumbnails().set(
+                videoId=video_id,
+                media_body=media,
+            ),
+        )
+
+    def playlists_list(
+        self,
+        *,
+        part: str = "snippet,contentDetails",
+        mine: bool = True,
+        max_results: int = 50,
+        page_token: str | None = None,
+    ) -> dict[str, Any]:
+        """Retrieve a page of playlists for the authenticated user."""
+        request_kwargs: dict[str, Any] = {
+            "part": part,
+            "mine": mine,
+            "maxResults": max_results,
+        }
+
+        if page_token is not None:
+            request_kwargs["pageToken"] = page_token
+
+        return self._execute(
+            "playlists.list",
+            self._service.playlists().list(**request_kwargs),
+        )
+
+    def playlist_items_insert(
+        self,
+        *,
+        playlist_item_resource: dict[str, Any],
+        part: str = "snippet",
+    ) -> dict[str, Any]:
+        """Add a video to a YouTube playlist."""
+        return self._execute(
+            "playlistItems.insert",
+            self._service.playlistItems().insert(
+                part=part,
+                body=playlist_item_resource,
+            ),
+        )
+
+    def _execute(
+        self,
+        operation: str,
+        request: Any,
+    ) -> dict[str, Any]:
+        """Execute an API request and translate Google API errors."""
+        try:
+            response = request.execute()
+        except HttpError as error:
+            if self._is_quota_exceeded(error):
+                self._console.print(
+                    f"[red][YouTube API][/red] "
+                    f"[bold]{operation}[/bold] → quotaExceeded"
+                )
+                raise YouTubeQuotaExceededError(
+                    "YouTube API quota has been exceeded."
+                ) from error
+
+            self._console.print(
+                f"[red][YouTube API][/red] "
+                f"[bold]{operation}[/bold] → HTTP {error.resp.status}"
+            )
+            raise YouTubeApiError(
+                f"YouTube API request failed for {operation}: {error}"
+            ) from error
+
+        self._console.print(
+            f"[green][YouTube API][/green] "
+            f"[bold]{operation}[/bold] → OK"
+        )
+        return response
+
+    @staticmethod
+    def _is_quota_exceeded(error: HttpError) -> bool:
+        """Return whether an API error represents exhausted quota."""
+        content = error.content
+
+        if isinstance(content, bytes):
+            content = content.decode("utf-8", errors="replace")
+
+        return "quotaExceeded" in str(content)
+
+================================================================================
+FILE: services\youtube\storage\models\album.py
+================================================================================
+
+
+================================================================================
+FILE: services\youtube\storage\models\job.py
+================================================================================
+
+
+================================================================================
+FILE: services\youtube\storage\models\operation.py
+================================================================================
+
+
+================================================================================
+FILE: services\youtube\storage\models\video.py
+================================================================================
+
+
+================================================================================
+FILE: services\youtube\storage\repository.py
+================================================================================
+
+
+================================================================================
+FILE: services\youtube\storage\session.py
+================================================================================
+
+
+================================================================================
+FILE: services\youtube\youtube_discovery.py
+================================================================================
+from __future__ import annotations
+
+from typing import Any
+
+from domain.youtube.youtube_video import PrivacyStatus, YouTubeVideo
+from services.youtube.api.methods import YouTubeMethods
+
+
+class YouTubeDiscovery:
+    """Discover the current album videos uploaded to YouTube."""
+
+    def __init__(self, methods: YouTubeMethods) -> None:
+        self._methods = methods
+
+    def discover(self) -> tuple[YouTubeVideo, ...]:
+        """Discover the first continuous sequence of private videos."""
+
+        uploads_playlist_id = self._get_uploads_playlist_id()
+
+        videos: list[YouTubeVideo] = []
+        found_private_block = False
+        page_token: str | None = None
+
+        while True:
+            response = self._methods.playlist_items_list(
+                playlist_id=uploads_playlist_id,
+                page_token=page_token,
+            )
+
+            for item in response.get("items", []):
+                video = self._map_video(item)
+
+                if video.privacy_status is PrivacyStatus.PRIVATE:
+                    found_private_block = True
+                    videos.append(video)
+                    continue
+
+                if found_private_block:
+                    return tuple(videos)
+
+            page_token = response.get("nextPageToken")
+
+            if page_token is None:
+                return tuple(videos)
+
+    def _get_uploads_playlist_id(self) -> str:
+        """Return the authenticated user's uploads playlist ID."""
+
+        response = self._methods.channels_list()
+
+        items = response.get("items", [])
+
+        if not items:
+            raise RuntimeError("Authenticated YouTube channel was not found.")
+
+        playlist_id = (
+            items[0]
+            .get("contentDetails", {})
+            .get("relatedPlaylists", {})
+            .get("uploads")
+        )
+
+        if not playlist_id:
+            raise RuntimeError("YouTube uploads playlist was not found.")
+
+        return playlist_id
+
+    @staticmethod
+    def _map_video(item: dict[str, Any]) -> YouTubeVideo:
+        """Create a YouTubeVideo from a playlist item."""
+
+        content_details = item.get("contentDetails", {})
+        snippet = item.get("snippet", {})
+        status = item.get("status", {})
+
+        return YouTubeVideo(
+            video_id=content_details["videoId"],
+            title=snippet["title"],
+            description=snippet.get("description"),
+            privacy_status=PrivacyStatus(status["privacyStatus"]),
+        )
+

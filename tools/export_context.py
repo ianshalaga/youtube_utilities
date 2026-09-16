@@ -10,6 +10,8 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 
 # BASE_DIR / <path>
 
+# -----------------------------------------------------------
+
 VIDEO_JOINER_CONTEXT = (
     BASE_DIR / "app.py",
     BASE_DIR / "config.json",
@@ -36,32 +38,76 @@ VIDEO_JOINER_CONTEXT = (
     BASE_DIR / "domain/media/video/video_signature.py",
 )
 
+# -----------------------------------------------------------
+
 RANKING_SYSTEM_CONTEXT = (
     BASE_DIR / "services/ranking/storage",
 )
 
+# -----------------------------------------------------------
+
+# YOUTUBE VIDEO MANAGER
+
+YOUTUBE_APPLICATIONS = BASE_DIR / "applications"
+YOUTUBE_DOMAIN = BASE_DIR / "domain/youtube"
+YOUTUBE_SERVICES = BASE_DIR / "services/youtube"
+YOUTUBE_TESTS_DOMAIN = BASE_DIR / "tests/domain/youtube"
+YOUTUBE_TESTS_SERVICES = BASE_DIR / "tests/services/youtube"
+YOUTUBE_TESTS_INTEGRATION = BASE_DIR / "tests/integration/youtube"
+
 YOUTUBE_VIDEO_MANAGER_CONTEXT = (
-    # App
-    BASE_DIR / "applications/youtube_video_manager/processor.py",
+    # Applications
+    YOUTUBE_APPLICATIONS / "youtube_video_manager/processor.py",
     # Domain
-    BASE_DIR / "domain/youtube/album.py",
-    BASE_DIR / "domain/youtube/album_manifest.py",
-    BASE_DIR / "domain/youtube/video.py",
-    BASE_DIR / "domain/youtube/video_metadata.py",
-    BASE_DIR / "domain/youtube/video_operation.py",
-    BASE_DIR / "domain/youtube/validation.py",
-    BASE_DIR / "domain/youtube/publication_settings.py",
+    YOUTUBE_DOMAIN / "album_manifest.py",
+    YOUTUBE_DOMAIN / "album.py",
+    YOUTUBE_DOMAIN / "publication_settings.py",
+    YOUTUBE_DOMAIN / "validation.py",
+    YOUTUBE_DOMAIN / "video_metadata.py",
+    YOUTUBE_DOMAIN / "video_operation.py",
+    YOUTUBE_DOMAIN / "video.py",
+    YOUTUBE_DOMAIN / "youtube_video.py",
     # Services
-    BASE_DIR / "services/youtube/album_manifest/yaml_reader.py",
-    BASE_DIR / "services/youtube/album_manifest/yaml_parser.py",
-    BASE_DIR / "services/youtube/album_manifest/yaml_mapper.py",
-    BASE_DIR / "services/youtube/album_manifest/album_manifest_validator.py",
-    BASE_DIR / "services/youtube/album_manifest/exceptions.py",
+    YOUTUBE_SERVICES / "album_builder.py",
+    YOUTUBE_SERVICES / "youtube_discovery.py",
+    YOUTUBE_SERVICES / "album_manifest/album_manifest_validator.py",
+    YOUTUBE_SERVICES / "album_manifest/exceptions.py",
+    YOUTUBE_SERVICES / "album_manifest/yaml_mapper.py",
+    YOUTUBE_SERVICES / "album_manifest/yaml_parser.py",
+    YOUTUBE_SERVICES / "album_manifest/yaml_reader.py",
+    YOUTUBE_SERVICES / "api/client.py",
+    YOUTUBE_SERVICES / "api/methods.py",
+    YOUTUBE_SERVICES / "storage/repository.py",
+    YOUTUBE_SERVICES / "storage/session.py",
+    YOUTUBE_SERVICES / "storage/models/album.py",
+    YOUTUBE_SERVICES / "storage/models/job.py",
+    YOUTUBE_SERVICES / "storage/models/operation.py",
+    YOUTUBE_SERVICES / "storage/models/video.py",
+    # Tests Domain
+    YOUTUBE_TESTS_DOMAIN / "test_album_manifest.py",
+    YOUTUBE_TESTS_DOMAIN / "test_album.py",
+    YOUTUBE_TESTS_DOMAIN / "test_publication_settings.py",
+    YOUTUBE_TESTS_DOMAIN / "test_validation.py",
+    YOUTUBE_TESTS_DOMAIN / "test_video_metadata.py",
+    YOUTUBE_TESTS_DOMAIN / "test_video.py",
+    YOUTUBE_TESTS_DOMAIN / "test_youtube_video.py",
+    # Test Services
+    YOUTUBE_TESTS_SERVICES / "test_album_builder.py",
+    YOUTUBE_TESTS_SERVICES / "test_youtube_discovery.py",
+    YOUTUBE_TESTS_SERVICES / "album_manifest/test_yaml_reader.py",
+    YOUTUBE_TESTS_SERVICES / "api/test_client.py",
+    YOUTUBE_TESTS_SERVICES / "api/test_methods.py",
+    # Test Integration
+    YOUTUBE_TESTS_INTEGRATION / "test_youtube_discovery.py",
 )
+
+# -----------------------------------------------------------
 
 INPUT_PATHS = YOUTUBE_VIDEO_MANAGER_CONTEXT
 
-FILE_NAME = "project_context"
+FILE_NAME = "youtube_video_manager_context"
+
+# -----------------------------------------------------------
 
 OUTPUT_NAME = Path("tools") / f"{FILE_NAME}"
 

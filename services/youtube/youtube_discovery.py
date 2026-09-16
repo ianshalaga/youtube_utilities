@@ -13,11 +13,12 @@ class YouTubeDiscovery:
         self._methods = methods
 
     def discover(self) -> tuple[YouTubeVideo, ...]:
-        """Discover the most recent continuous sequence of private videos."""
+        """Discover the first continuous sequence of private videos."""
 
         uploads_playlist_id = self._get_uploads_playlist_id()
 
         videos: list[YouTubeVideo] = []
+        found_private_block = False
         page_token: str | None = None
 
         while True:
@@ -29,11 +30,13 @@ class YouTubeDiscovery:
             for item in response.get("items", []):
                 video = self._map_video(item)
 
-                if video.privacy_status is not PrivacyStatus.PRIVATE:
-                    return tuple(videos)
-
                 if video.privacy_status is PrivacyStatus.PRIVATE:
+                    found_private_block = True
                     videos.append(video)
+                    continue
+
+                if found_private_block:
+                    return tuple(videos)
 
             page_token = response.get("nextPageToken")
 

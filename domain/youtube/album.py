@@ -119,6 +119,34 @@ class Album:
         self._videos.append(video)
 
     @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def playlists(self) -> tuple[str, ...]:
+        return tuple(self._playlists)
+
+    @property
+    def game(self) -> str:
+        return self._game
+
+    @property
+    def tags(self) -> tuple[str, ...] | None:
+        return tuple(self._tags) if self._tags is not None else None
+
+    @property
+    def thumbnail(self) -> Path | None:
+        return self._thumbnail
+
+    @property
+    def videos(self) -> tuple[Video, ...]:
+        return tuple(self._videos)
+
+    @property
     def publication(self) -> PublicationSettings:
         return self._publication
 
