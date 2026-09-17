@@ -63,6 +63,8 @@ YOUTUBE_TESTS_SERVICES = BASE_DIR / "tests/services/youtube"
 YOUTUBE_TESTS_INTEGRATION = BASE_DIR / "tests/integration/youtube"
 
 YOUTUBE_VIDEO_MANAGER_CONTEXT = (
+    BASE_DIR / "config.json",
+    BASE_DIR / "core/config_manager.py",
     # Applications
     YOUTUBE_APPLICATIONS / "processor.py",
     # Domain
@@ -121,14 +123,15 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     YOUTUBE_TESTS_SERVICES / "storage/test_schema.py",
     YOUTUBE_TESTS_SERVICES / "storage/mappers/test_job_mapper.py",
     # Test Integration
+    YOUTUBE_TESTS_INTEGRATION / "test_repository.py",
     YOUTUBE_TESTS_INTEGRATION / "test_youtube_discovery.py",
 )
 
 # -----------------------------------------------------------
 
-INPUT_PATHS = RANKING_SYSTEM_CONTEXT
+INPUT_PATHS = YOUTUBE_VIDEO_MANAGER_CONTEXT
 
-FILE_NAME = "ranking_system_persistence_context"
+FILE_NAME = "youtube_video_manager_context"
 
 # -----------------------------------------------------------
 

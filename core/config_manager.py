@@ -101,6 +101,14 @@ class ConfigManager:
     def youtube_video_manager_max_attempts(self) -> int:
         return self._config["apps"]["youtube_video_manager"]["max_attempts"]
 
+    @property
+    def youtube_video_manager_client_secrets_path(self) -> Path:
+        return self._config["apps"]["youtube_video_manager"]["client_secrets_path"]
+    
+    @property
+    def youtube_video_manager_token_path(self) -> Path:
+        return self._config["apps"]["youtube_video_manager"]["token_path"]
+
     # ───────────────────────────────
     # VIDEO MUSIC @@@@
     # ───────────────────────────────

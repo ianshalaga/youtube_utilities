@@ -1,39 +1,20 @@
 from pathlib import Path
-from typing import Callable, Protocol
+from typing import Callable
 
-from domain.youtube.album import Album
-from domain.youtube.album_manifest import AlbumManifest
 from domain.youtube.job import Job
 from services.youtube.album_builder import AlbumBuilder
 from services.youtube.planner import Planner
 from services.youtube.youtube_discovery import YouTubeDiscovery
+from domain.youtube.job_repository import JobRepository
+from services.youtube.updater import Updater
+from services.youtube.album_manifest.yaml_reader import YamlReader
 
-
-class ManifestReader(Protocol):
-    def read(self, path: Path) -> AlbumManifest:
-        ...
-
-
-class Updater(Protocol):
-    def update(self, job: Job) -> None:
-        ...
-
-
-class JobRepository(Protocol):
-    def find_pending(self) -> Job | None:
-        ...
-
-    def find_failed(self) -> Job | None:
-        ...
-
-    def save(self, job: Job) -> None:
-        ...
 
 
 class YouTubeVideoManagerProcessor:
     def __init__(
         self,
-        manifest_reader: ManifestReader,
+        manifest_reader: YamlReader,
         youtube_discovery: YouTubeDiscovery,
         album_builder: AlbumBuilder,
         planner: Planner,
@@ -63,7 +44,6 @@ class YouTubeVideoManagerProcessor:
 
             if action == "retry":
                 job.retry()
-                self._job_repository.save(job)
                 self._updater.update(job)
                 return
 

@@ -160,7 +160,7 @@ class JobMapper:
                 game=metadata.game,
                 made_for_kids=metadata.made_for_kids,
                 contains_synthetic_media=metadata.contains_synthetic_media,
-                publish_at=metadata.publish_at,
+                publish_at=metadata.publish_at.isoformat(),
                 thumbnail=(
                     str(metadata.thumbnail)
                     if metadata.thumbnail is not None
@@ -204,7 +204,7 @@ class JobMapper:
                 game=data_model.game,
                 made_for_kids=data_model.made_for_kids,
                 contains_synthetic_media=data_model.contains_synthetic_media,
-                publish_at=data_model.publish_at,
+                publish_at=datetime.fromisoformat(data_model.publish_at),
                 thumbnail=(
                     Path(data_model.thumbnail)
                     if data_model.thumbnail is not None

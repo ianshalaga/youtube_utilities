@@ -1,27 +1,20 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Protocol
 
 from domain.youtube.job import Job, JobStatus
+from domain.youtube.job_repository import JobRepository
+from domain.youtube.video_metadata import VideoMetadata
 from domain.youtube.operation import (
     Operation,
     OperationStatus,
     OperationType,
 )
-from domain.youtube.video_metadata import VideoMetadata
+
 from services.youtube.api.methods import (
     YouTubeMethods,
     YouTubeQuotaExceededError,
 )
-
-
-class JobRepository(Protocol):
-    """Persistence contract required by Updater."""
-
-    def save(self, job: Job) -> None:
-        """Persist the current state of a Job."""
-        ...
 
 
 class Updater:
