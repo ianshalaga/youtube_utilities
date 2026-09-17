@@ -53,3 +53,21 @@ class Job:
             raise ValueError("Only running jobs can be failed.")
 
         self._status = JobStatus.FAILED
+
+    def retry(self) -> None:
+        if self._status is not JobStatus.FAILED:
+            raise ValueError("Only failed jobs can be retried.")
+
+        failed_operations = [
+            operation
+            for operation in self._operations
+            if operation.status is OperationStatus.FAILED
+        ]
+
+        if len(failed_operations) != 1:
+            raise ValueError(
+                "A failed job must contain exactly one failed operation to be retried."
+            )
+
+        failed_operations[0].retry()
+        self._status = JobStatus.PENDING

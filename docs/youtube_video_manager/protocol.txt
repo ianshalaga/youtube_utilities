@@ -1,134 +1,79 @@
-                         USUARIO
-                           │
-                           │ 1. Sube manualmente
-                           ▼
-                    ┌──────────────┐
-                    │ YouTube      │
-                    │ Studio       │
-                    └──────┬───────┘
-                           │
-                           │ vídeos ya subidos
-                           │
-                           ▼
-              ┌────────────────────────┐
-              │ youtube_video_manager  │
-              │                        │
-              │ AlbumManifest          │◄── manifiesto
-              │          +             │
-              │ YouTubeDiscovery       │◄── YouTube
-              └───────────┬────────────┘
-                          │
-                          │ combinación
-                          ▼
-                    ┌─────────────┐
-                    │    Album    │
-                    │             │
-                    │ Video       │
-                    │  └ metadata │
-                    │ Publication │
-                    └──────┬──────┘
-                           │
-                           │ material preparado
-                           ▼
-                      ┌──────────┐
-                      │ Planner  │
-                      └────┬─────┘
-                           │
-                           │ operaciones necesarias
-                           ▼
-                    ┌──────────────┐
-                    │     Job      │
-                    │              │
-                    │ Operation ───┼──► Video
-                    │ Operation ───┼──► Video
-                    │ Operation ───┼──► Video
-                    └──────┬───────┘
-                           │
-                           ▼
-                      ┌─────────┐
-                      │ Updater │
-                      └────┬────┘
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │ YouTube API │
-                    └─────────────┘
+                         MANIFEST YAML
+                              │
+                              ▼
+                    ┌──────────────────┐
+                    │ AlbumManifest    │
+                    └────────┬─────────┘
+                             │
+                             │
+                 YouTubeDiscovery
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │  AlbumBuilder    │
+                    │                  │
+                    │ Manifest +       │
+                    │ YouTube videos   │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │      Album       │
+                    │                  │
+                    │ Desired state    │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                  ┌─────────────────────┐
+                  │ OperationsBuilder  │
+                  └──────────┬──────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │   Operation[]    │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                     ┌──────────────┐
+                     │   Planner    │
+                     └──────┬───────┘
+                            │
+                            ▼
+                     ┌──────────────┐
+                     │     Job      │
+                     └──────┬───────┘
+                            │
+                            ▼
+                     ┌──────────────┐
+                     │   Updater    │
+                     └──────┬───────┘
+                            │
+                            ▼
+                       YouTube API
 
 
-                    ┌──────────────┐
-Manifest ──────────►│              │
-                    │ AlbumBuilder │──► Album
-YouTubeDiscovery ──►│              │
-                    └──────────────┘
-                           │
-                           ▼
-                      ┌─────────┐
-                      │ Planner │
-                      └────┬────┘
-                           │
-                           ▼
-                         Job
-                           │
-                    ┌──────┴──────┐
-                    ▼             ▼
-                Operation     Operation
-                    │             │
-                    └──────┬──────┘
-                           ▼
-                        Updater
-                           │
-                           ▼
-                      YouTube API
 
 
-                         PREPARACIÓN
-────────────────────────────────────────────────────
-
-Manifest ───────────────┐
-                        ▼
-                  AlbumBuilder
-                        ▲
-                        │
-YouTubeDiscovery ───────┘
-                        │
-                        ▼
-                      Album
-
-
-                         PLANIFICACIÓN
-────────────────────────────────────────────────────
-
-                      Album
-                        │
-                        ▼
-                     Planner
-                        │
-                        ▼
-                       Job
-                        │
-             ┌──────────┼──────────┐
-             ▼          ▼          ▼
-         Operation  Operation  Operation
-             │          │          │
-             └──────────┼──────────┘
-                        │
-                        ▼
-                   PERSISTENCIA
-
-
-                         EJECUCIÓN
-────────────────────────────────────────────────────
-
-                       Job
-                        │
-                        ▼
-                     Updater
-                        │
-                        ├── Operation
-                        │       ↓
-                        │   QuotaManager
-                        │       ↓
-                        │   YouTube API
-                        │
-                        └── siguiente Operation
-                        
+processor
+    │
+    │ decide el flujo
+    ▼
+┌─────────────────────────────┐
+│ Nuevo Job    /    Pendiente │
+└──────────────┬──────────────┘
+               ▼
+             Job
+               │
+               ▼
+            Updater
+               │
+               ├── Operation 1
+               ├── Operation 2
+               ├── Operation 3
+               └── ...
+               │
+               ▼
+          YouTube API
+               │
+               ▼
+          persistencia

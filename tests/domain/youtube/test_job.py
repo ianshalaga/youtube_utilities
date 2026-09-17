@@ -311,3 +311,76 @@ def test_job_requires_all_operations_to_be_completed(
     assert job.status is JobStatus.RUNNING
     assert completed.status is OperationStatus.COMPLETED
     assert pending.status is OperationStatus.PENDING
+
+def test_retry_changes_failed_job_to_pending_and_resets_failed_operation(
+    operation: Operation,
+) -> None:
+    operation.start()
+    operation.fail()
+
+    job = Job([operation])
+    job.start()
+    job.fail()
+
+    job.retry()
+
+    assert job.status is JobStatus.PENDING
+    assert operation.status is OperationStatus.PENDING
+
+
+def test_retry_preserves_completed_operations(
+    completed_operation: Operation,
+    operation: Operation,
+) -> None:
+    operation.start()
+    operation.fail()
+
+    job = Job([completed_operation, operation])
+    job.start()
+    job.fail()
+
+    job.retry()
+
+    assert job.status is JobStatus.PENDING
+    assert completed_operation.status is OperationStatus.COMPLETED
+    assert operation.status is OperationStatus.PENDING
+
+
+@pytest.mark.parametrize(
+    "status",
+    [JobStatus.PENDING, JobStatus.RUNNING, JobStatus.COMPLETED],
+)
+def test_retry_rejects_non_failed_job(
+    operation: Operation,
+    status: JobStatus,
+) -> None:
+    job = Job([operation])
+
+    if status is JobStatus.RUNNING:
+        job.start()
+    elif status is JobStatus.COMPLETED:
+        operation.start()
+        operation.complete()
+        job.start()
+        job.complete()
+
+    with pytest.raises(
+        ValueError,
+        match="Only failed jobs can be retried.",
+    ):
+        job.retry()
+
+
+def test_retry_rejects_failed_job_without_failed_operation(
+    completed_operation: Operation,
+) -> None:
+    job = Job([completed_operation])
+    job.start()
+    job.fail()
+
+    with pytest.raises(
+        ValueError,
+        match="A failed job must contain exactly one failed operation to be retried.",
+    ):
+        job.retry()
+

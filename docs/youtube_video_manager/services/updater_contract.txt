@@ -1,0 +1,350 @@
+CONTRATO DEL UPDATER
+====================
+
+Propósito
+-------
+Updater ejecuta un Job sobre YouTube.
+
+El Job contiene una colección ordenada de Operations. Cada Operation describe:
+- el Video que se debe modificar;
+- el OperationType;
+- los datos requeridos por esa operación;
+- su estado actual de ejecución.
+
+Updater es responsable de la ejecución y de las transiciones de estado de ejecución. No
+construye Albums, descubre vídeos de YouTube, crea Operations ni determina la
+configuración deseada.
+
+Responsabilidades
+-----------------
+1. Recibir un Job.
+2. Procesar sus operaciones en el orden establecido previamente por
+   OperationsBuilder.
+3. Omitir las operaciones cuyo estado sea COMPLETED.
+4. Ejecutar las operaciones cuyo estado sea PENDING.
+5. Cambiar una operación PENDING a RUNNING antes de llamar a la API de YouTube.
+6. Seleccionar el método de YouTube correspondiente según el OperationType.
+7. Marcar la operación como COMPLETED después de una llamada a la API exitosa.
+8. Cuando una operación falle por una causa distinta del agotamiento de cuota,
+   reintentar la misma operación hasta el número máximo configurado de intentos.
+   El valor predeterminado es 3 intentos.
+9. Informar la razón del fallo en cada intento de una operación.
+10. Si todos los intentos de una operación fallan:
+    - marcar la operación como FAILED;
+    - detener inmediatamente la ejecución del Job;
+    - dejar las operaciones posteriores en PENDING;
+    - marcar el Job como FAILED;
+    - informar la razón del fallo del Job;
+    - persistir el Job.
+11. Cuando se agote la cuota de YouTube:
+    - la operación actualmente en RUNNING debe volver a PENDING;
+    - las operaciones posteriores permanecen en PENDING;
+    - las operaciones que ya estén COMPLETED permanecen en COMPLETED;
+    - el Job debe permanecer reanudable;
+    - el Job debe persistirse;
+    - la ejecución debe detenerse inmediatamente.
+12. Persistir también el Job después de completarlo correctamente.
+13. Mantener un Job completado en estado COMPLETED.
+14. Permitir volver a pasar a Updater un Job persistido previamente para que la
+    ejecución se reanude desde su primera operación que no esté en COMPLETED.
+
+Despacho de operaciones
+---------------------------------------
+OperationType.UPDATE_METADATA
+    -> YouTube methods.videos_update
+    Datos: VideoMetadata
+    Vídeo: operation.video
+
+OperationType.SET_THUMBNAIL
+    -> YouTube methods.thumbnails_set
+    Datos: Path
+    Vídeo: operation.video
+
+OperationType.ADD_TO_PLAYLIST
+    -> YouTube methods.playlist_items_insert
+    Datos: ID de playlist (str)
+    Vídeo: operation.video
+
+Estados de ejecución
+-------------------
+Ejecución normal exitosa:
+
+    PENDING
+       |
+       | start()
+       v
+    RUNNING
+       |
+       | API correcta
+       v
+    COMPLETED
+
+Fallo recuperable mediante reintentos:
+
+    PENDING
+       |
+       | start()
+       v
+    RUNNING
+       |
+       | error
+       v
+    RUNNING / nuevo intento
+       |
+       | ...
+       v
+    FAILED
+
+El estado de la operación vuelve a RUNNING en cada nuevo intento. El número
+máximo predeterminado de intentos es 3.
+
+Si se agotan todos los intentos, la operación pasa definitivamente a FAILED.
+
+Agotamiento de cuota:
+
+    PENDING
+       |
+       | start()
+       v
+    RUNNING
+       |
+       | YouTubeQuotaExceededError
+       v
+    PENDING
+
+El agotamiento de cuota no es un fallo de la operación. La operación no se
+completó porque la ejecución fue interrumpida por el límite de cuota y debe
+intentarse de nuevo más adelante.
+
+En todos los intentos de una operación que falle por una causa distinta de la
+cuota se debe informar de la razón del fallo. Cuando el Job pase a FAILED,
+también se debe informar de la razón por la que el Job ha fallado.
+
+Orden
+--------
+Updater no debe calcular ni reordenar las operaciones por su cuenta.
+
+El orden se establece previamente:
+    Album
+      -> OperationsBuilder
+      -> Operation[] ordenadas
+      -> Planner
+      -> Job
+      -> Updater
+
+Updater recorre Job.operations respetando el orden existente.
+
+Una operación COMPLETED nunca se ejecuta de nuevo.
+
+Persistencia
+----------
+Updater depende de una abstracción JobRepository.
+
+Updater no debe depender directamente de SQLite ni de SQLAlchemy.
+
+Conceptually:
+
+    Updater
+       |
+       v
+    JobRepository
+       |
+       v
+    implementación de persistencia
+       |
+       v
+    SQLite / SQLAlchemy
+
+El repositorio debe proporcionar la capacidad de persistencia requerida por Updater,
+como mínimo, la capacidad de guardar el estado actual del Job.
+
+The exact repository interface and implementación de persistencia will be defined
+por separado.
+
+Ciclo de vida del Job
+--------------------
+Para un Job recién planificado:
+
+    Job(PENDING)
+        |
+        | Updater comienza la ejecución
+        v
+    Job(RUNNING)
+        |
+        | todas las operaciones completadas
+        v
+    Job(COMPLETED)
+
+Cuando se agota la cuota:
+
+    Job(RUNNING)
+        |
+        | operación actual vuelve a PENDING
+        v
+    Job reanudable
+
+Cuando una operación falla después de agotar todos los reintentos:
+
+    Job(RUNNING)
+        |
+        | operación actual -> FAILED
+        v
+    Job(FAILED)
+
+Las operaciones posteriores permanecen PENDING.
+
+Un Job FAILED no se reintenta automáticamente.
+
+Si el usuario decide reintentar un Job FAILED, el orquestador debe:
+- cambiar el Job de FAILED a PENDING;
+- cambiar la operación que quedó FAILED a PENDING;
+- conservar como COMPLETED las operaciones que ya habían terminado;
+- volver a entregar el Job al Updater.
+
+Si el usuario decide descartar un Job FAILED, el orquestador debe:
+- informar de que el Job será descartado;
+- solicitar y recibir la confirmación del usuario;
+- eliminar el Job de la base de datos mediante el JobRepository;
+- terminar la ejecución de la aplicación;
+- no crear ni ejecutar un nuevo Job en esa ejecución.
+
+El mecanismo concreto para estas transiciones y para el descarte debe formar parte
+del contrato del dominio y de la persistencia de Job/Operation.
+
+Propagación de errores
+---------------------
+Updater debe distinguir al menos dos categorías:
+
+1. YouTubeQuotaExceededError
+
+   Condición especial de control de flujo:
+   - no consumir los reintentos normales;
+   - devolver la operación actual de RUNNING a PENDING;
+   - persistir el Job;
+   - detener el procesamiento;
+   - no continuar con las operaciones posteriores.
+
+2. Otros errores de ejecución
+
+   La operación debe reintentarse hasta el máximo configurado, 3 intentos por
+   defecto.
+
+   En cada intento se debe informar de la razón del fallo.
+
+   Si todos los intentos fallan:
+   - la operación pasa a FAILED;
+   - el Job pasa a FAILED;
+   - se informa de la razón del fallo del Job;
+   - el Job se persiste;
+   - no se ejecutan las operaciones posteriores.
+
+Los errores no deben ocultarse silenciosamente ni recibir comportamientos
+alternativos que no estén definidos por el contrato.
+
+Comportamiento de reanudación
+-------------------------------------------------------------------
+Given a persisted Job such as:
+
+    Operation 1 -> COMPLETED
+    Operation 2 -> COMPLETED
+    Operation 3 -> PENDING
+    Operation 4 -> PENDING
+
+una llamada posterior a Updater debe:
+- omitir las Operations 1 y 2;
+- ejecutar la Operation 3;
+- después ejecutar la Operation 4;
+- conservar el orden original.
+
+Updater nunca debe volver a ejecutar una operación COMPLETED.
+
+Dependencias
+------------
+Updater debe recibir sus colaboradores mediante inyección de dependencias.
+
+Como mínimo:
+- los métodos/cliente de la API de YouTube utilizados para ejecutar las
+  operaciones;
+- un JobRepository utilizado para persistir el estado del Job.
+
+El número máximo de intentos debe ser configurable y su valor predeterminado
+debe ser 3.
+
+Updater no debe instanciar internamente estas dependencias de infraestructura.
+
+Responsabilidades que no corresponden a Updater
+---------------------------------------------------------------
+Updater NO:
+- lee YAML;
+- analiza AlbumManifest;
+- descubre vídeos;
+- compara el manifest con los vídeos de YouTube;
+- construye Album;
+- construye Operations;
+- calcula fechas de publicación;
+- genera metadatos;
+- determina el orden de las operaciones;
+- se comunica directamente con SQLite;
+- contiene modelos de SQLAlchemy;
+- decide si la aplicación debe crear un Job nuevo o reanudar uno existente.
+
+Orquestación de la aplicación
+------------------------------------------------------------------
+processor.py decide entre dos flujos:
+
+1. Existe un Job pendiente:
+       cargar Job
+       -> informar de que se está reanudando un Job pendiente
+       -> Updater.update(Job)
+
+2. Existe un Job FAILED:
+       cargar Job
+       -> informar del Job y de la causa de su fallo
+       -> preguntar al usuario si desea reintentarlo o descartarlo
+       -> si reintenta: restablecer Job y operación fallida a PENDING
+          y entregar el Job al Updater
+       -> si descarta: eliminar el Job mediante JobRepository
+          y terminar la ejecución
+
+3. No existe un Job pendiente ni un Job FAILED:
+       leer Manifest
+       -> Discovery
+       -> AlbumBuilder
+       -> Album
+       -> Planner
+       -> Job
+       -> informar de que se está ejecutando un Job nuevo
+       -> Updater.update(Job)
+
+Por tanto, Updater es un servicio de ejecución, mientras que processor.py es el orquestador de la
+aplicación.
+
+Requisitos de las pruebas
+-------------------------
+Las pruebas de Updater deben verificar como mínimo:
+
+- todas las operaciones PENDING se ejecutan en orden;
+- las operaciones COMPLETED se omiten;
+- se selecciona el método de YouTube correcto para cada OperationType;
+- se pasan los datos correctos de la operación al método de la API;
+- una operación cambia PENDING -> RUNNING -> COMPLETED cuando tiene éxito;
+- una operación que falla se reintenta hasta 3 veces por defecto;
+- el número máximo de reintentos puede configurarse;
+- se informa la razón del fallo en cada intento;
+- después del último intento fallido, la operación pasa a FAILED;
+- después del fallo definitivo de una operación, el Job pasa a FAILED;
+- se informa la razón del fallo del Job;
+- las operaciones posteriores a una operación FAILED no se ejecutan;
+- el Job FAILED se persiste;
+- el agotamiento de cuota devuelve la operación actual de RUNNING -> PENDING;
+- el agotamiento de cuota no consume los reintentos normales;
+- el agotamiento de cuota no ejecuta las operaciones posteriores;
+- las operaciones completadas previamente permanecen COMPLETED después del
+  agotamiento de cuota;
+- el Job se persiste cuando se agota la cuota;
+- un Job completamente terminado se persiste;
+- un Job parcialmente completado y persistido puede reanudarse sin volver a
+  ejecutar las operaciones completadas;
+- las dependencias se utilizan mediante colaboradores inyectados en lugar de
+  ser instanciadas dentro de Updater.
+

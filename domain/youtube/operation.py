@@ -78,6 +78,22 @@ class Operation:
 
         self._status = OperationStatus.FAILED
 
+    def reset(self) -> None:
+        if self._status is not OperationStatus.RUNNING:
+            raise ValueError(
+                "Only running operations can be reset."
+            )
+
+        self._status = OperationStatus.PENDING
+
+    def retry(self) -> None:
+        if self._status is not OperationStatus.FAILED:
+            raise ValueError(
+                "Only failed operations can be retried."
+            )
+
+        self._status = OperationStatus.PENDING
+
     @staticmethod
     def _validate_data(
         operation_type: OperationType,

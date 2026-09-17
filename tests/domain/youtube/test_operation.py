@@ -152,3 +152,77 @@ def test_add_to_playlist_accepts_string(video: Video) -> None:
 def test_operation_rejects_invalid_data_type(video: Video, operation_type: OperationType, data: object) -> None:
     with pytest.raises(TypeError):
         Operation(video, operation_type, data)
+
+def test_reset_changes_status_from_running_to_pending(
+    video: Video,
+    video_metadata: VideoMetadata,
+) -> None:
+    operation = Operation(video, OperationType.UPDATE_METADATA, video_metadata)
+    operation.start()
+
+    operation.reset()
+
+    assert operation.status is OperationStatus.PENDING
+
+
+@pytest.mark.parametrize(
+    "status",
+    [OperationStatus.PENDING, OperationStatus.COMPLETED, OperationStatus.FAILED],
+)
+def test_reset_rejects_non_running_status(
+    video: Video,
+    video_metadata: VideoMetadata,
+    status: OperationStatus,
+) -> None:
+    operation = Operation(video, OperationType.UPDATE_METADATA, video_metadata)
+
+    if status is OperationStatus.COMPLETED:
+        operation.start()
+        operation.complete()
+    elif status is OperationStatus.FAILED:
+        operation.start()
+        operation.fail()
+
+    with pytest.raises(
+        ValueError,
+        match="Only running operations can be reset.",
+    ):
+        operation.reset()
+
+
+def test_retry_changes_status_from_failed_to_pending(
+    video: Video,
+    video_metadata: VideoMetadata,
+) -> None:
+    operation = Operation(video, OperationType.UPDATE_METADATA, video_metadata)
+    operation.start()
+    operation.fail()
+
+    operation.retry()
+
+    assert operation.status is OperationStatus.PENDING
+
+
+@pytest.mark.parametrize(
+    "status",
+    [OperationStatus.PENDING, OperationStatus.RUNNING, OperationStatus.COMPLETED],
+)
+def test_retry_rejects_non_failed_status(
+    video: Video,
+    video_metadata: VideoMetadata,
+    status: OperationStatus,
+) -> None:
+    operation = Operation(video, OperationType.UPDATE_METADATA, video_metadata)
+
+    if status is OperationStatus.RUNNING:
+        operation.start()
+    elif status is OperationStatus.COMPLETED:
+        operation.start()
+        operation.complete()
+
+    with pytest.raises(
+        ValueError,
+        match="Only failed operations can be retried.",
+    ):
+        operation.retry()
+

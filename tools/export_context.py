@@ -71,6 +71,8 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     # Services
     YOUTUBE_SERVICES / "album_builder.py",
     YOUTUBE_SERVICES / "operations_builder.py",
+    YOUTUBE_SERVICES / "planner.py",
+    YOUTUBE_SERVICES / "updater.py",
     YOUTUBE_SERVICES / "youtube_discovery.py",
     YOUTUBE_SERVICES / "album_manifest/album_manifest_validator.py",
     YOUTUBE_SERVICES / "album_manifest/exceptions.py",
@@ -98,6 +100,8 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     # Test Services
     YOUTUBE_TESTS_SERVICES / "test_album_builder.py",
     YOUTUBE_TESTS_SERVICES / "test_operations_builder.py",
+    YOUTUBE_TESTS_SERVICES / "test_planner.py",
+    YOUTUBE_TESTS_SERVICES / "test_updater.py",
     YOUTUBE_TESTS_SERVICES / "test_youtube_discovery.py",
     YOUTUBE_TESTS_SERVICES / "album_manifest/test_yaml_reader.py",
     YOUTUBE_TESTS_SERVICES / "api/test_client.py",
