@@ -396,3 +396,53 @@ def test_to_domain_maps_failed_job():
 
     assert job.status is JobStatus.FAILED
     assert job.operations[0].status is OperationStatus.FAILED
+
+
+def test_update_model_updates_existing_job():
+    mapper = JobMapper()
+
+    operation = create_update_metadata_operation()
+    job = Job([operation])
+
+    job_model = JobModel(
+        id=42,
+        status=JobStatus.RUNNING.value,
+    )
+
+    mapper.update_model(job_model, job)
+
+    assert job_model.id == 42
+    assert job_model.status == JobStatus.PENDING.value
+    assert len(job_model.operations) == 1
+
+    operation_model = job_model.operations[0]
+
+    assert operation_model.operation_type == OperationType.UPDATE_METADATA.value
+    assert operation_model.status == OperationStatus.PENDING.value
+
+
+def test_update_model_replaces_existing_operations():
+    mapper = JobMapper()
+
+    old_operation = OperationModel(
+        operation_type=OperationType.ADD_TO_PLAYLIST.value,
+        status=OperationStatus.COMPLETED.value,
+    )
+
+    job_model = JobModel(
+        id=42,
+        status=JobStatus.RUNNING.value,
+    )
+    job_model.operations = [old_operation]
+
+    new_operation = create_update_metadata_operation()
+    job = Job([new_operation])
+
+    mapper.update_model(job_model, job)
+
+    assert len(job_model.operations) == 1
+    assert job_model.operations[0] is not old_operation
+    assert (
+        job_model.operations[0].operation_type
+        == OperationType.UPDATE_METADATA.value
+    )

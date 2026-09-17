@@ -31,6 +31,13 @@ class JobMapper:
 
         return job_model
 
+    def update_model(self, job_model: JobModel, job: Job) -> None:
+        job_model.status = job.status.value
+        job_model.operations = [
+            self._operation_to_model(operation)
+            for operation in job.operations
+        ]
+
     def to_domain(self, job_model: JobModel) -> Job:
         operations = [
             self._operation_to_domain(operation_model)
