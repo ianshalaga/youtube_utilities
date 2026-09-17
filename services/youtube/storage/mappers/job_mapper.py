@@ -24,8 +24,10 @@ class JobMapper:
             status=job.status.value,
         )
 
+        videos_by_id: dict[str, VideoModel] = {}
+
         job_model.operations = [
-            self._operation_to_model(operation)
+            self._operation_to_model(operation, videos_by_id)
             for operation in job.operations
         ]
 
@@ -33,8 +35,14 @@ class JobMapper:
 
     def update_model(self, job_model: JobModel, job: Job) -> None:
         job_model.status = job.status.value
+
+        videos_by_id: dict[str, VideoModel] = {
+            operation.video.video_id: operation.video
+            for operation in job_model.operations
+        }
+
         job_model.operations = [
-            self._operation_to_model(operation)
+            self._operation_to_model(operation, videos_by_id)
             for operation in job.operations
         ]
 
@@ -57,13 +65,22 @@ class JobMapper:
 
         return job
 
-    def _operation_to_model(self, operation: Operation) -> OperationModel:
+    def _operation_to_model(
+        self,
+        operation: Operation,
+        videos_by_id: dict[str, VideoModel],
+    ) -> OperationModel:
         operation_model = OperationModel(
             operation_type=operation.operation_type.value,
             status=operation.status.value,
         )
 
-        operation_model.video = self._video_to_model(operation.video)
+        video = videos_by_id.get(operation.video.video_id)
+        if video is None:
+            video = self._video_to_model(operation.video)
+            videos_by_id[operation.video.video_id] = video
+
+        operation_model.video = video
         operation_model.data = self._data_to_model(
             operation.operation_type,
             operation.data,
