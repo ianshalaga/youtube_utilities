@@ -216,7 +216,7 @@ def test_update_metadata_sends_complete_supported_metadata(
             },
             "status": {
                 "privacyStatus": "private",
-                "publishAt": video_metadata.publish_at,
+                "publishAt": video_metadata.publish_at.isoformat(),
                 "selfDeclaredMadeForKids": True,
                 "containsSyntheticMedia": True,
             },
@@ -344,7 +344,7 @@ def test_operations_execute_in_job_order(
                 },
                 "status": {
                     "privacyStatus": "private",
-                    "publishAt": datetime(2026, 10, 15, 18, 30),
+                    "publishAt": datetime(2026, 10, 15, 18, 30).isoformat(),
                     "selfDeclaredMadeForKids": True,
                     "containsSyntheticMedia": True,
                 },

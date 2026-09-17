@@ -174,7 +174,7 @@ class Updater:
 
         status = {
             "privacyStatus": "private",
-            "publishAt": metadata.publish_at,
+            "publishAt": metadata.publish_at.isoformat(),
             "selfDeclaredMadeForKids": metadata.made_for_kids,
             "containsSyntheticMedia": metadata.contains_synthetic_media,
         }
