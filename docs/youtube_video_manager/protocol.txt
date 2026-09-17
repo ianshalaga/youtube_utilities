@@ -77,3 +77,53 @@ processor
                │
                ▼
           persistencia
+
+
+services/youtube/storage/
+├── __init__.py
+├── session.py
+├── repository.py
+├── mappers/
+│   ├── __init__.py
+│   └── job_mapper.py
+└── models/
+    ├── __init__.py
+    ├── job.py
+    ├── operation.py
+    └── video.py
+
+
+                    DOMAIN
+                       │
+                       │
+                 ┌─────▼─────┐
+                 │    Job    │
+                 └─────┬─────┘
+                       │
+                 ┌─────▼─────┐
+                 │ Operation │
+                 └─────┬─────┘
+                       │
+                 ┌─────▼─────┐
+                 │   Video   │
+                 └─────┬─────┘
+                       │
+                 VideoMetadata
+                       │
+                       ▼
+                 ┌───────────┐
+                 │  Mapper   │
+                 └─────┬─────┘
+                       │
+                       ▼
+                ┌─────────────┐
+                │ ORM Models  │
+                └──────┬──────┘
+                       │
+                       ▼
+                 ┌───────────┐
+                 │ Repository│
+                 └─────┬─────┘
+                       │
+                       ▼
+                    SQLite

@@ -40,8 +40,14 @@ VIDEO_JOINER_CONTEXT = (
 
 # -----------------------------------------------------------
 
+# RANKING SYSTEM
+
+RANKING_SERVICES = BASE_DIR / "services/ranking"
+
 RANKING_SYSTEM_CONTEXT = (
-    BASE_DIR / "services/ranking/storage",
+    # Services
+    RANKING_SERVICES / "storage",
+    RANKING_SERVICES / "filters.py",
 )
 
 # -----------------------------------------------------------
@@ -83,11 +89,13 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     YOUTUBE_SERVICES / "album_manifest/yaml_reader.py",
     YOUTUBE_SERVICES / "api/client.py",
     YOUTUBE_SERVICES / "api/methods.py",
+    YOUTUBE_SERVICES / "storage/base.py",
     YOUTUBE_SERVICES / "storage/repository.py",
     YOUTUBE_SERVICES / "storage/session.py",
-    YOUTUBE_SERVICES / "storage/models/album.py",
+    YOUTUBE_SERVICES / "storage/mappers/job_mapper.py",
     YOUTUBE_SERVICES / "storage/models/job.py",
     YOUTUBE_SERVICES / "storage/models/operation.py",
+    YOUTUBE_SERVICES / "storage/models/video_metadata.py",
     YOUTUBE_SERVICES / "storage/models/video.py",
     # Test Applications
     YOUTUBE_TESTS_APPLICATIONS / "test_processor.py",
@@ -110,15 +118,17 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     YOUTUBE_TESTS_SERVICES / "album_manifest/test_yaml_reader.py",
     YOUTUBE_TESTS_SERVICES / "api/test_client.py",
     YOUTUBE_TESTS_SERVICES / "api/test_methods.py",
+    YOUTUBE_TESTS_SERVICES / "storage/test_schema.py",
+    YOUTUBE_TESTS_SERVICES / "storage/mappers/test_job_mapper.py",
     # Test Integration
     YOUTUBE_TESTS_INTEGRATION / "test_youtube_discovery.py",
 )
 
 # -----------------------------------------------------------
 
-INPUT_PATHS = YOUTUBE_VIDEO_MANAGER_CONTEXT
+INPUT_PATHS = RANKING_SYSTEM_CONTEXT
 
-FILE_NAME = "youtube_video_manager_context"
+FILE_NAME = "ranking_system_persistence_context"
 
 # -----------------------------------------------------------
 
