@@ -30,13 +30,18 @@ from core.config_manager import ConfigManager
 from applications.video_music.processor import VideoMusicProcessor
 from applications.video_joiner.processor import VideoJoinerProcessor
 from applications.ranking_system.create_db import create_db
+
 from applications.ranking_system.loaders.load_legacy import (
     run as run_load_legacy
 )
+
 from applications.ranking_system.queries.builder import (
     RankingQueryBuilder
 )
-from applications.youtube_video_manager.processor import main as run_video_manager
+from applications.youtube_video_manager.processor import (
+    Updater,
+    YouTubeVideoManagerProcessor
+)
 
 # SERVICES
 from services.system.process_runner import ProcessRunner
@@ -45,6 +50,7 @@ from services.media.video.mkvmerge_runner import MKVMergeRunner
 from services.media.audio.converter import AudioConverter
 from services.media.ffprobe_provider import FFProbeProvider
 from services.ranking.storage.session import SessionLocal
+from services.youtube.api.methods import YouTubeMethods
 
 config = ConfigManager()
 
@@ -175,6 +181,33 @@ def run_ranking() -> None:
     print(query)
 
 
+def run_youtube_video_manager() -> None:
+    youtube_client = ...
+    youtube_methods = YouTubeMethods(youtube_client)
+
+    job_repository = ...
+
+    updater = Updater(
+        youtube_methods=youtube_methods,
+        job_repository=job_repository,
+        max_attempts=config.youtube_video_manager_max_attempts,
+    )
+
+    processor = YouTubeVideoManagerProcessor(
+        manifest_reader=...,
+        youtube_discovery=...,
+        album_builder=...,
+        planner=...,
+        updater=updater,
+        job_repository=job_repository,
+        failure_action=...,
+    )
+
+    processor.process(
+        config.youtube_video_manager_album_manifest_path
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     """
     Construye el parser principal del CLI.
@@ -201,9 +234,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     return parser
 
-
-def run_youtube_video_manager() -> None:
-    run_video_manager()
 
 def main() -> None:
     """

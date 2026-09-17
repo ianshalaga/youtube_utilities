@@ -89,6 +89,19 @@ class ConfigManager:
     # ───────────────────────────────
 
     # ───────────────────────────────
+    # YOUTUBE VIDEO MANAGER @@@@
+    # ───────────────────────────────
+    @property
+    def youtube_video_manager_album_manifest_path(self) -> Path:
+        return Path(
+            self._config["apps"]["youtube_video_manager"]["album_manifest_path"]
+        )
+
+    @property
+    def youtube_video_manager_max_attempts(self) -> int:
+        return self._config["apps"]["youtube_video_manager"]["max_attempts"]
+
+    # ───────────────────────────────
     # VIDEO MUSIC @@@@
     # ───────────────────────────────
     @property

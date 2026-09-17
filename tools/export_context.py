@@ -51,13 +51,14 @@ RANKING_SYSTEM_CONTEXT = (
 YOUTUBE_APPLICATIONS = BASE_DIR / "applications/youtube_video_manager"
 YOUTUBE_DOMAIN = BASE_DIR / "domain/youtube"
 YOUTUBE_SERVICES = BASE_DIR / "services/youtube"
+YOUTUBE_TESTS_APPLICATIONS = BASE_DIR / "tests/applications/youtube_video_manager"
 YOUTUBE_TESTS_DOMAIN = BASE_DIR / "tests/domain/youtube"
 YOUTUBE_TESTS_SERVICES = BASE_DIR / "tests/services/youtube"
 YOUTUBE_TESTS_INTEGRATION = BASE_DIR / "tests/integration/youtube"
 
 YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     # Applications
-    YOUTUBE_APPLICATIONS / "youtube_video_manager/processor.py",
+    YOUTUBE_APPLICATIONS / "processor.py",
     # Domain
     YOUTUBE_DOMAIN / "album_manifest.py",
     YOUTUBE_DOMAIN / "album.py",
@@ -89,7 +90,7 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     YOUTUBE_SERVICES / "storage/models/operation.py",
     YOUTUBE_SERVICES / "storage/models/video.py",
     # Test Applications
-    YOUTUBE_APPLICATIONS / "test_processor.py",
+    YOUTUBE_TESTS_APPLICATIONS / "test_processor.py",
     # Tests Domain
     YOUTUBE_TESTS_DOMAIN / "test_album_manifest.py",
     YOUTUBE_TESTS_DOMAIN / "test_album.py",

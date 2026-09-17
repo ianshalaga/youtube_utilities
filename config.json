@@ -54,6 +54,10 @@
       "default_timestamps_secuence": false,
       "default_extra_description": ""
     },
+    "youtube_video_manager": {
+      "album_manifest_path": "F:/@Seyfer/Proyectos/youtube_utilities/config/youtube/album_manifest.yaml",
+      "max_attempts": 3
+    },
     "video_converter": {
       "video_formats": {
         "youtube_1080p60": {
