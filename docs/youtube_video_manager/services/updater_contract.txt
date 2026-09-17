@@ -2,7 +2,7 @@ CONTRATO DEL UPDATER
 ====================
 
 Propósito
--------
+---------
 Updater ejecuta un Job sobre YouTube.
 
 El Job contiene una colección ordenada de Operations. Cada Operation describe:
@@ -18,8 +18,7 @@ configuración deseada.
 Responsabilidades
 -----------------
 1. Recibir un Job.
-2. Procesar sus operaciones en el orden establecido previamente por
-   OperationsBuilder.
+2. Procesar sus operaciones en el orden establecido previamente por OperationsBuilder.
 3. Omitir las operaciones cuyo estado sea COMPLETED.
 4. Ejecutar las operaciones cuyo estado sea PENDING.
 5. Cambiar una operación PENDING a RUNNING antes de llamar a la API de YouTube.
@@ -40,20 +39,29 @@ Responsabilidades
     - la operación actualmente en RUNNING debe volver a PENDING;
     - las operaciones posteriores permanecen en PENDING;
     - las operaciones que ya estén COMPLETED permanecen en COMPLETED;
-    - el Job debe permanecer reanudable;
-    - el Job debe persistirse;
-    - la ejecución debe detenerse inmediatamente.
+    - el Job actualmente en RUNNING debe volver a PENDING;
+    - persistir el Job;
+    - detener inmediatamente la ejecución.
 12. Persistir también el Job después de completarlo correctamente.
 13. Mantener un Job completado en estado COMPLETED.
 14. Permitir volver a pasar a Updater un Job persistido previamente para que la
     ejecución se reanude desde su primera operación que no esté en COMPLETED.
 
 Despacho de operaciones
----------------------------------------
+-----------------------
 OperationType.UPDATE_METADATA
     -> YouTube methods.videos_update
     Datos: VideoMetadata
     Vídeo: operation.video
+
+    Adaptación:
+    - Updater adapta VideoMetadata al diccionario video_resource requerido por
+      YouTube Data API.
+    - Esta adaptación no forma parte del dominio y no requiere un objeto de
+      dominio adicional.
+    - metadata.game contiene el nombre del videojuego.
+    - La categoría de YouTube es siempre "Videojuegos". Su categoryId es una
+      constante de la capa de YouTube y no forma parte de VideoMetadata.
 
 OperationType.SET_THUMBNAIL
     -> YouTube methods.thumbnails_set
@@ -66,7 +74,7 @@ OperationType.ADD_TO_PLAYLIST
     Vídeo: operation.video
 
 Estados de ejecución
--------------------
+--------------------
 Ejecución normal exitosa:
 
     PENDING
@@ -112,6 +120,14 @@ Agotamiento de cuota:
        v
     PENDING
 
+Job:
+
+    RUNNING
+       |
+       | YouTubeQuotaExceededError
+       v
+    PENDING
+
 El agotamiento de cuota no es un fallo de la operación. La operación no se
 completó porque la ejecución fue interrumpida por el límite de cuota y debe
 intentarse de nuevo más adelante.
@@ -121,10 +137,11 @@ cuota se debe informar de la razón del fallo. Cuando el Job pase a FAILED,
 también se debe informar de la razón por la que el Job ha fallado.
 
 Orden
---------
+-----
 Updater no debe calcular ni reordenar las operaciones por su cuenta.
 
 El orden se establece previamente:
+
     Album
       -> OperationsBuilder
       -> Operation[] ordenadas
@@ -137,12 +154,12 @@ Updater recorre Job.operations respetando el orden existente.
 Una operación COMPLETED nunca se ejecuta de nuevo.
 
 Persistencia
-----------
+------------
 Updater depende de una abstracción JobRepository.
 
 Updater no debe depender directamente de SQLite ni de SQLAlchemy.
 
-Conceptually:
+Conceptualmente:
 
     Updater
        |
@@ -158,37 +175,41 @@ Conceptually:
 El repositorio debe proporcionar la capacidad de persistencia requerida por Updater,
 como mínimo, la capacidad de guardar el estado actual del Job.
 
-The exact repository interface and implementación de persistencia will be defined
+La interfaz exacta del repositorio y su implementación de persistencia se definirán
 por separado.
 
 Ciclo de vida del Job
---------------------
+---------------------
 Para un Job recién planificado:
 
     Job(PENDING)
-        |
-        | Updater comienza la ejecución
-        v
+       |
+       | Updater comienza la ejecución
+       v
     Job(RUNNING)
-        |
-        | todas las operaciones completadas
-        v
+       |
+       | todas las operaciones completadas
+       v
     Job(COMPLETED)
 
 Cuando se agota la cuota:
 
     Job(RUNNING)
-        |
-        | operación actual vuelve a PENDING
-        v
-    Job reanudable
+       |
+       | operación actual -> PENDING
+       | Job -> PENDING
+       v
+    Job(PENDING)
+
+Las operaciones completadas previamente permanecen COMPLETED y las operaciones
+posteriores permanecen PENDING.
 
 Cuando una operación falla después de agotar todos los reintentos:
 
     Job(RUNNING)
-        |
-        | operación actual -> FAILED
-        v
+       |
+       | operación actual -> FAILED
+       v
     Job(FAILED)
 
 Las operaciones posteriores permanecen PENDING.
@@ -212,7 +233,7 @@ El mecanismo concreto para estas transiciones y para el descarte debe formar par
 del contrato del dominio y de la persistencia de Job/Operation.
 
 Propagación de errores
----------------------
+----------------------
 Updater debe distinguir al menos dos categorías:
 
 1. YouTubeQuotaExceededError
@@ -220,6 +241,7 @@ Updater debe distinguir al menos dos categorías:
    Condición especial de control de flujo:
    - no consumir los reintentos normales;
    - devolver la operación actual de RUNNING a PENDING;
+   - devolver el Job de RUNNING a PENDING;
    - persistir el Job;
    - detener el procesamiento;
    - no continuar con las operaciones posteriores.
@@ -242,8 +264,8 @@ Los errores no deben ocultarse silenciosamente ni recibir comportamientos
 alternativos que no estén definidos por el contrato.
 
 Comportamiento de reanudación
--------------------------------------------------------------------
-Given a persisted Job such as:
+-----------------------------
+Dado un Job persistido como:
 
     Operation 1 -> COMPLETED
     Operation 2 -> COMPLETED
@@ -273,7 +295,7 @@ debe ser 3.
 Updater no debe instanciar internamente estas dependencias de infraestructura.
 
 Responsabilidades que no corresponden a Updater
----------------------------------------------------------------
+-----------------------------------------------
 Updater NO:
 - lee YAML;
 - analiza AlbumManifest;
@@ -289,7 +311,7 @@ Updater NO:
 - decide si la aplicación debe crear un Job nuevo o reanudar uno existente.
 
 Orquestación de la aplicación
-------------------------------------------------------------------
+-----------------------------
 processor.py decide entre dos flujos:
 
 1. Existe un Job pendiente:
@@ -316,8 +338,8 @@ processor.py decide entre dos flujos:
        -> informar de que se está ejecutando un Job nuevo
        -> Updater.update(Job)
 
-Por tanto, Updater es un servicio de ejecución, mientras que processor.py es el orquestador de la
-aplicación.
+Por tanto, Updater es un servicio de ejecución, mientras que processor.py es el
+orquestador de la aplicación.
 
 Requisitos de las pruebas
 -------------------------
@@ -337,6 +359,7 @@ Las pruebas de Updater deben verificar como mínimo:
 - las operaciones posteriores a una operación FAILED no se ejecutan;
 - el Job FAILED se persiste;
 - el agotamiento de cuota devuelve la operación actual de RUNNING -> PENDING;
+- el agotamiento de cuota devuelve el Job de RUNNING -> PENDING;
 - el agotamiento de cuota no consume los reintentos normales;
 - el agotamiento de cuota no ejecuta las operaciones posteriores;
 - las operaciones completadas previamente permanecen COMPLETED después del
@@ -347,4 +370,3 @@ Las pruebas de Updater deben verificar como mínimo:
   ejecutar las operaciones completadas;
 - las dependencias se utilizan mediante colaboradores inyectados en lugar de
   ser instanciadas dentro de Updater.
-

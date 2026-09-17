@@ -48,7 +48,7 @@ RANKING_SYSTEM_CONTEXT = (
 
 # YOUTUBE VIDEO MANAGER
 
-YOUTUBE_APPLICATIONS = BASE_DIR / "applications"
+YOUTUBE_APPLICATIONS = BASE_DIR / "applications/youtube_video_manager"
 YOUTUBE_DOMAIN = BASE_DIR / "domain/youtube"
 YOUTUBE_SERVICES = BASE_DIR / "services/youtube"
 YOUTUBE_TESTS_DOMAIN = BASE_DIR / "tests/domain/youtube"
@@ -61,6 +61,7 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     # Domain
     YOUTUBE_DOMAIN / "album_manifest.py",
     YOUTUBE_DOMAIN / "album.py",
+    YOUTUBE_DOMAIN / "job_repository.py",
     YOUTUBE_DOMAIN / "job.py",
     YOUTUBE_DOMAIN / "operation.py",
     YOUTUBE_DOMAIN / "publication_settings.py",
@@ -87,6 +88,8 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     YOUTUBE_SERVICES / "storage/models/job.py",
     YOUTUBE_SERVICES / "storage/models/operation.py",
     YOUTUBE_SERVICES / "storage/models/video.py",
+    # Test Applications
+    YOUTUBE_APPLICATIONS / "test_processor.py",
     # Tests Domain
     YOUTUBE_TESTS_DOMAIN / "test_album_manifest.py",
     YOUTUBE_TESTS_DOMAIN / "test_album.py",

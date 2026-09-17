@@ -384,3 +384,57 @@ def test_retry_rejects_failed_job_without_failed_operation(
     ):
         job.retry()
 
+
+def test_reset_changes_running_job_to_pending(
+    operation: Operation,
+) -> None:
+    job = Job([operation])
+    job.start()
+
+    job.reset()
+
+    assert job.status is JobStatus.PENDING
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        JobStatus.PENDING,
+        JobStatus.COMPLETED,
+        JobStatus.FAILED,
+    ],
+)
+def test_reset_rejects_non_running_status(
+    operation: Operation,
+    status: JobStatus,
+) -> None:
+    job = Job([operation])
+
+    if status is JobStatus.COMPLETED:
+        operation.start()
+        operation.complete()
+        job.start()
+        job.complete()
+    elif status is JobStatus.FAILED:
+        job.start()
+        job.fail()
+
+    with pytest.raises(
+        ValueError,
+        match="Only running jobs can be reset.",
+    ):
+        job.reset()
+
+
+def test_reset_preserves_completed_operations_and_pending_operations(
+    completed_operation: Operation,
+    operation: Operation,
+) -> None:
+    job = Job([completed_operation, operation])
+    job.start()
+
+    job.reset()
+
+    assert job.status is JobStatus.PENDING
+    assert completed_operation.status is OperationStatus.COMPLETED
+    assert operation.status is OperationStatus.PENDING

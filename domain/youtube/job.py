@@ -54,6 +54,13 @@ class Job:
 
         self._status = JobStatus.FAILED
 
+    def reset(self) -> None:
+        """Return a running job to pending after a quota interruption."""
+        if self._status is not JobStatus.RUNNING:
+            raise ValueError("Only running jobs can be reset.")
+
+        self._status = JobStatus.PENDING
+
     def retry(self) -> None:
         if self._status is not JobStatus.FAILED:
             raise ValueError("Only failed jobs can be retried.")
