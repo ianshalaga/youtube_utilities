@@ -1,44 +1,67 @@
-album: Signalis | Piano Collections
+album: Street Fighter II Complete File
 
-name_prefix: Signalis OST
+name_prefix: Street Fighter II OST
 
 videos:
-  - "01 Causal Loop"
-  - "02 The Promise"
-  - "03 Turned Around"
-  - "04 Die Toteninsel | Emptiness"
-  - "05 MNHR"
-  - "06 Train Ride"
-  - "07 Sea Smoke"
-  - "08 Safe Room"
-  - "SIGNALIS | Piano Collections"
+  - "01 Theme of World Warriors | Title Demo"
+  - "02 Ryu | Sound Profile"
+  - "03 Ken |Sound Profile"
+  - "04 Guile | Sound Profile"
+  - "05 Patio de la Noche | Balrog"
+  - "06 A Violent Emotion | Guile"
+  - "07 Zangief | Sound Profile"
+  - "08 Dhalsim | Sound Profile"
+  - "09 Blanka | Sound Profile"
+  - "10 Fight it Out | Ken"
+  - "11 E. Honda | Sound Profile"
+  - "12 Chun-Li | Sound Profile"
+  - "13 Go Flying Through the Air | Ryu"
+  - "14 Solid and Tough | Zangief"
+  - "15 M. Bison | Sound Profile"
+  - "16 Balrog | Sound Profile"
+  - "17 Sagat | Sound Profile"
+  - "18 Vega | Sound Profile"
+  - "19 Repose of Soldier | Ending remix"
+  - "20 Special Remix Medley from 'Street Fighter II'"
+  - "21 Ready to Fight! | Staff Roll"
+  - "Street Fighter II Complete File"
 
 description: |
-  🎮 SIGNALIS | 2022
+  🎮 STREET FIGHTER | 1987
 
-  📀 SIGNALIS OST Digital | https://www.youtube.com/playlist?list=PLYOHqjifKHSo
-  📀 SIGNALIS - Piano Collections | https://www.youtube.com/playlist?list=PLPNYZMiCbe-s
-  📀 SIGNALIS Complete OST | https://www.youtube.com/playlist?list=PLT1qp-WhO0TI
+  📀 Street Fighter (Arcade CPS-1 / JAMMA) - Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t6uHLZbIcFX6B7y-_2oIXlc
+  📀 Street Fighter (Atari ST) - Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t4VelZf9gxS3HzaiB3xPpPy
+  📀 Fighting Street (PC Engine Duo Redbook) - Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t7tTI5kH14I06v2jNleidfY
+  📀 Fighting Street (TurboGrafx CD) - Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t42St-a3t3VOhU5wOy6uz7i
+  📀 Street Fighter Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t710ZbuXQCdcqb4Y0Ikj2Ac
 
-thumbnail: "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/SIGNALIS/02 Piano Collections/images/miniatura1.png"
+  🎮 STREET FIGHTER II: THE WORLD WARRIOR | 1991
+
+  📀 Street Fighter II -G.S.M. CAPCOM 4- - Disc 1 | https://www.youtube.com/playlist?list=PL90QAKwVH1t6AwV7H4t7bRQUNQ3kNn-9_
+  📀 Street Fighter II -G.S.M. CAPCOM 4- - Disc 2 | https://www.youtube.com/playlist?list=PL90QAKwVH1t7Mx9ds3KYli59TnKqCFzuE
+  📀 Street Fighter II -G.S.M. CAPCOM 4- | https://www.youtube.com/playlist?list=PL90QAKwVH1t75N8ir_G0A1F7Z9en4da8_
+  📀 Street Fighter II Image Album -G.S.M. CAPCOM- | https://www.youtube.com/playlist?list=PL90QAKwVH1t5rxcdwKzoSsvriV22Fpl6n
+  📀 Street Fighter II Nintendo Magazine System Promo | https://www.youtube.com/playlist?list=PLUE19ghUVc5g
+  📀 Street Fighter II Chun-Li Flying Legend | https://www.youtube.com/playlist?list=PLQk7mI-BZ-xc
+  📀 Street Fighter II Complete File | https://www.youtube.com/playlist?list=PLAkjCFH2NonU
+  📀 Street Fighter II: The World Warrior Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t4d5hgKTaRaMjWSRnrEsGKP
+
+thumbnail: "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Street Fighter/2 Street Fighter II/05 Street Fighter II Complete File/images/miniatura4.png"
 
 playlists:
-  - PLPNYZMiCbe-s # SIGNALIS | Piano Collections
-  - PLT1qp-WhO0TI # SIGNALIS Complete OST
+  - PLAkjCFH2NonU # Street Fighter II Complete File
+  - PL90QAKwVH1t4d5hgKTaRaMjWSRnrEsGKP # Street Fighter II: The World Warrior Complete OST
 
 made_for_kids: false
 contains_synthetic_media: false
 
 tags:
-  - signalis
-  - ost
-  - piano
-  - collections
+  - "street fighter"
 
-game: Signalis
+game: Street Fighter II
 
 publication:
   # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS
-  first_publish_at: "2026-11-03T09:00:00"
+  first_publish_at: "2026-09-19T02:00:00"
   timezone: "Europe/Paris"
   interval_days: 1

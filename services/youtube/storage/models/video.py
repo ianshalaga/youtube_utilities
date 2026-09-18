@@ -9,5 +9,5 @@ class VideoModel(Base):
     id = Column(Integer, primary_key=True)
 
     video_id = Column(String(20), nullable=False, unique=True)
-    position = Column(Integer, nullable=False, unique=True)
+    position = Column(Integer, nullable=False)
     video_type = Column(String(20), nullable=False)
