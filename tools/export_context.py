@@ -63,6 +63,11 @@ YOUTUBE_TESTS_SERVICES = BASE_DIR / "tests/services/youtube"
 YOUTUBE_TESTS_INTEGRATION = BASE_DIR / "tests/integration/youtube"
 
 YOUTUBE_VIDEO_MANAGER_CONTEXT = (
+    # Base
+    BASE_DIR / "app.py",
+    BASE_DIR / "interfaces/cli/app_cli.py",
+    # Config
+    BASE_DIR / "config/youtube/album_manifest.yaml",
     BASE_DIR / "config.json",
     BASE_DIR / "core/config_manager.py",
     # Applications
@@ -117,14 +122,16 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
     YOUTUBE_TESTS_SERVICES / "test_planner.py",
     YOUTUBE_TESTS_SERVICES / "test_updater.py",
     YOUTUBE_TESTS_SERVICES / "test_youtube_discovery.py",
+    YOUTUBE_TESTS_SERVICES / "album_manifest/test_album_manifest_validator.py",
     YOUTUBE_TESTS_SERVICES / "album_manifest/test_yaml_reader.py",
     YOUTUBE_TESTS_SERVICES / "api/test_client.py",
     YOUTUBE_TESTS_SERVICES / "api/test_methods.py",
     YOUTUBE_TESTS_SERVICES / "storage/test_schema.py",
     YOUTUBE_TESTS_SERVICES / "storage/mappers/test_job_mapper.py",
     # Test Integration
+    YOUTUBE_TESTS_INTEGRATION / "test_end_to_end_persistence.py",
+    YOUTUBE_TESTS_INTEGRATION / "test_real_youtube_discovery.py",
     YOUTUBE_TESTS_INTEGRATION / "test_repository.py",
-    YOUTUBE_TESTS_INTEGRATION / "test_youtube_discovery.py",
 )
 
 # -----------------------------------------------------------

@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, call
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -22,7 +23,14 @@ def video_metadata() -> VideoMetadata:
         game="Test game",
         made_for_kids=True,
         contains_synthetic_media=True,
-        publish_at=datetime(2026, 10, 15, 18, 30),
+        publish_at=datetime(
+            2026,
+            10,
+            15,
+            18,
+            30,
+            tzinfo=ZoneInfo("Europe/Paris"),
+        ),
         thumbnail=Path("thumbnail.jpg"),
     )
 
@@ -253,7 +261,14 @@ def test_update_metadata_preserves_none_tags_as_empty_list(
         game="Game",
         made_for_kids=False,
         contains_synthetic_media=False,
-        publish_at=datetime(2026, 10, 15, 18, 30),
+        publish_at=datetime(
+            2026,
+            10,
+            15,
+            18,
+            30,
+            tzinfo=ZoneInfo("Europe/Paris"),
+        ),
         thumbnail=None,
     )
     operation = Operation(
@@ -344,7 +359,14 @@ def test_operations_execute_in_job_order(
                 },
                 "status": {
                     "privacyStatus": "private",
-                    "publishAt": datetime(2026, 10, 15, 18, 30).isoformat(),
+                    "publishAt": datetime(
+                        2026,
+                        10,
+                        15,
+                        18,
+                        30,
+                        tzinfo=ZoneInfo("Europe/Paris")
+                    ).isoformat(),
                     "selfDeclaredMadeForKids": True,
                     "containsSyntheticMedia": True,
                 },

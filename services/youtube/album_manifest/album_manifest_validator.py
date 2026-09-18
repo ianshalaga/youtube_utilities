@@ -23,6 +23,7 @@ class AlbumManifestValidator:
 
     PUBLICATION_REQUIRED_KEYS = {
         "first_publish_at",
+        "timezone",
         "interval_days",
     }
 
@@ -160,11 +161,33 @@ class AlbumManifestValidator:
                 )
             else:
                 try:
-                    datetime.fromisoformat(value)
+                    parsed = datetime.fromisoformat(value)
+                    if parsed.tzinfo is not None:
+                        errors.append(
+                            "'publication.first_publish_at' "
+                            "must not include a timezone offset."
+                        )
                 except ValueError:
                     errors.append(
                         "'publication.first_publish_at' "
                         "must be a valid ISO 8601 datetime."
+                    )
+
+        if "timezone" in publication:
+            value = publication["timezone"]
+
+            if not isinstance(value, str):
+                errors.append(
+                    "'publication.timezone' must be a string."
+                )
+            else:
+                from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+                try:
+                    ZoneInfo(value)
+                except ZoneInfoNotFoundError:
+                    errors.append(
+                        "'publication.timezone' must be a valid IANA timezone."
                     )
 
         if "interval_days" in publication:

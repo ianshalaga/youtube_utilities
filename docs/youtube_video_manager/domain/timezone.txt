@@ -1,0 +1,71 @@
+FASE 1
+PublicationSettings
+        ↓
+tests/domain/youtube/test_publication_settings.py
+        ↓
+TODOS PASS
+
+↓
+
+FASE 2
+AlbumManifestValidator
+YamlMapper
+        ↓
+test_yaml_reader.py
+validator tests
+        ↓
+TODOS PASS
+
+↓
+
+FASE 3
+AlbumManifest
+        ↓
+test_album_manifest.py
+        ↓
+TODOS PASS
+
+↓
+
+FASE 4
+AlbumBuilder
+        ↓
+test_album_builder.py
+        ↓
+TODOS PASS
+
+↓
+
+FASE 5
+JobMapper / persistencia
+        ↓
+test_job_mapper.py
+        ↓
+test_end_to_end_persistence.py
+        ↓
+TODOS PASS
+
+↓
+
+FASE 6
+Updater
+        ↓
+test_updater.py
+        ↓
+TODOS PASS
+
+↓
+
+FASE 7
+Manifest REAL
+        ↓
+config/youtube/album_manifest.yaml
+
+↓
+
+FASE 8
+Aplicación REAL
+        ↓
+YouTube API
+        ↓
+09:00 Europe/Paris

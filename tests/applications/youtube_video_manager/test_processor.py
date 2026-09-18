@@ -7,9 +7,9 @@ from domain.youtube.job import Job, JobStatus
 from services.youtube.album_builder import AlbumBuilder
 from services.youtube.planner import Planner
 from services.youtube.youtube_discovery import YouTubeDiscovery
+from services.youtube.album_manifest.yaml_reader import YamlReader
 from applications.youtube_video_manager.processor import (
     JobRepository,
-    ManifestReader,
     Updater,
     YouTubeVideoManagerProcessor,
 )
@@ -58,7 +58,7 @@ def failed_job() -> Mock:
 
 @pytest.fixture
 def manifest_reader() -> Mock:
-    return Mock(spec=ManifestReader)
+    return Mock(spec=YamlReader)
 
 
 @pytest.fixture

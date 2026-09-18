@@ -39,6 +39,7 @@ class JobMapper:
         videos_by_id: dict[str, VideoModel] = {
             operation.video.video_id: operation.video
             for operation in job_model.operations
+            if operation.video is not None
         }
 
         job_model.operations = [
@@ -76,6 +77,7 @@ class JobMapper:
         )
 
         video = videos_by_id.get(operation.video.video_id)
+        
         if video is None:
             video = self._video_to_model(operation.video)
             videos_by_id[operation.video.video_id] = video

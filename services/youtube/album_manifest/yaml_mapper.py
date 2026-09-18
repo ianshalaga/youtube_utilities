@@ -20,6 +20,7 @@ class YamlMapper:
                 first_publish_at=datetime.fromisoformat(
                     data["publication"]["first_publish_at"]
                 ),
+                timezone=data["publication"]["timezone"],
                 interval_days=data["publication"]["interval_days"],
             )
 

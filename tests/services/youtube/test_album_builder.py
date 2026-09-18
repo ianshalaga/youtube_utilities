@@ -1,6 +1,7 @@
 # tests\services\youtube\test_album_builder.py
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -45,6 +46,7 @@ def _create_manifest(
         game="Soul Edge",
         publication=PublicationSettings(
             first_publish_at=datetime(2026, 10, 1, 18, 0),
+            timezone="Europe/Paris",
             interval_days=interval_days,
         ),
     )
@@ -235,11 +237,58 @@ def test_builder_calculates_publication_dates():
     ]
 
     assert publish_dates == [
-        datetime(2026, 10, 1, 18, 0),
-        datetime(2026, 10, 3, 18, 0),
-        datetime(2026, 10, 5, 18, 0),
-        datetime(2026, 10, 7, 18, 0),
+        datetime(2026, 10, 1, 18, 0, tzinfo=ZoneInfo("Europe/Paris")),
+        datetime(2026, 10, 3, 18, 0, tzinfo=ZoneInfo("Europe/Paris")),
+        datetime(2026, 10, 5, 18, 0, tzinfo=ZoneInfo("Europe/Paris")),
+        datetime(2026, 10, 7, 18, 0, tzinfo=ZoneInfo("Europe/Paris")),
     ]
+
+
+def test_builder_preserves_local_publication_time_across_dst():
+    manifest = _create_manifest(interval_days=1)
+
+    # Start before the end of daylight saving time in Europe/Paris.
+    manifest = AlbumManifest(
+        name=manifest.name,
+        name_prefix=manifest.name_prefix,
+        videos=list(manifest.videos),
+        description=manifest.description,
+        thumbnail=manifest.thumbnail,
+        playlists=list(manifest.playlists),
+        made_for_kids=manifest.made_for_kids,
+        contains_synthetic_media=manifest.contains_synthetic_media,
+        tags=list(manifest.tags) if manifest.tags is not None else None,
+        game=manifest.game,
+        publication=PublicationSettings(
+            first_publish_at=datetime(2026, 10, 24, 9, 0),
+            timezone="Europe/Paris",
+            interval_days=1,
+        ),
+    )
+
+    youtube_videos = (
+        _compilation(),
+        _song(3),
+        _song(2),
+        _song(1),
+    )
+
+    album = AlbumBuilder().build(manifest, youtube_videos)
+
+    publish_dates = [
+        video.metadata.publish_at
+        for video in album.videos
+    ]
+
+    assert publish_dates == [
+        datetime(2026, 10, 24, 9, 0, tzinfo=ZoneInfo("Europe/Paris")),
+        datetime(2026, 10, 25, 9, 0, tzinfo=ZoneInfo("Europe/Paris")),
+        datetime(2026, 10, 26, 9, 0, tzinfo=ZoneInfo("Europe/Paris")),
+        datetime(2026, 10, 27, 9, 0, tzinfo=ZoneInfo("Europe/Paris")),
+    ]
+
+    assert publish_dates[0].utcoffset().total_seconds() == 2 * 3600
+    assert publish_dates[1].utcoffset().total_seconds() == 1 * 3600
 
 
 # =============================================================================

@@ -65,6 +65,7 @@ def _publication():
 
     return PublicationSettings(
         first_publish_at=datetime(2026, 10, 1, 18, 0),
+        timezone="Europe/Paris",
         interval_days=1,
     )
 

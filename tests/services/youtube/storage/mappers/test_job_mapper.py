@@ -125,14 +125,7 @@ def test_to_model_maps_update_metadata():
     assert data_model.game == "Test Game"
     assert data_model.made_for_kids is False
     assert data_model.contains_synthetic_media is False
-    assert data_model.publish_at == datetime(
-        2026,
-        9,
-        17,
-        18,
-        0,
-        tzinfo=timezone.utc,
-    )
+    assert data_model.publish_at == "2026-09-17T18:00:00+00:00"
     assert data_model.thumbnail == "thumbnail.jpg"
     assert data_model.playlist is None
 
@@ -197,14 +190,7 @@ def test_to_domain_maps_pending_job():
         game="Test Game",
         made_for_kids=False,
         contains_synthetic_media=False,
-        publish_at=datetime(
-            2026,
-            9,
-            17,
-            18,
-            0,
-            tzinfo=timezone.utc,
-        ),
+        publish_at="2026-09-17T18:00:00+00:00",
         thumbnail="thumbnail.jpg",
     )
     job_model.operations = [operation_model]
@@ -264,14 +250,7 @@ def test_to_domain_maps_update_metadata():
         game="Test Game",
         made_for_kids=False,
         contains_synthetic_media=False,
-        publish_at=datetime(
-            2026,
-            9,
-            17,
-            18,
-            0,
-            tzinfo=timezone.utc,
-        ),
+        publish_at="2026-09-17T18:00:00+00:00",
         thumbnail="thumbnail.jpg",
     )
 

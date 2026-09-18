@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from textwrap import dedent
 
@@ -34,7 +35,8 @@ def test_yaml_reader_reads_valid_manifest(tmp_path):
           - "album"
         game: "Test Game"
         publication:
-          first_publish_at: "2026-11-11T02:00:00+02:00"
+          first_publish_at: "2026-11-11T02:00:00"
+          timezone: "Europe/Paris"
           interval_days: 1
         """
     )
@@ -61,8 +63,9 @@ def test_yaml_reader_reads_valid_manifest(tmp_path):
         11,
         2,
         0,
-        tzinfo=timezone(timedelta(hours=2)),
+        tzinfo=ZoneInfo("Europe/Paris"),
     )
+    assert manifest.publication.timezone == ZoneInfo("Europe/Paris")
     assert manifest.publication.interval_days == 1
 
     assert isinstance(manifest.thumbnail, Path)
@@ -101,6 +104,94 @@ def test_yaml_reader_rejects_invalid_configuration(tmp_path):
         invalid_configuration,
         encoding="utf-8",
     )
+
+    with pytest.raises(ManifestConfigurationError):
+        reader.read(manifest_path)
+
+def test_yaml_reader_rejects_missing_publication_timezone(tmp_path):
+    reader = YamlReader()
+
+    manifest_content = dedent(
+        """
+        album: "Test Album"
+        name_prefix: "Test Album"
+        videos:
+          - "Song One"
+        description: "Test album description."
+        thumbnail: null
+        playlists: []
+        made_for_kids: false
+        contains_synthetic_media: false
+        tags: null
+        game: "Test Game"
+        publication:
+          first_publish_at: "2026-11-11T02:00:00"
+          interval_days: 1
+        """
+    )
+
+    manifest_path = tmp_path / "missing_timezone.yaml"
+    manifest_path.write_text(manifest_content, encoding="utf-8")
+
+    with pytest.raises(ManifestConfigurationError):
+        reader.read(manifest_path)
+
+
+def test_yaml_reader_rejects_invalid_publication_timezone(tmp_path):
+    reader = YamlReader()
+
+    manifest_content = dedent(
+        """
+        album: "Test Album"
+        name_prefix: "Test Album"
+        videos:
+          - "Song One"
+        description: "Test album description."
+        thumbnail: null
+        playlists: []
+        made_for_kids: false
+        contains_synthetic_media: false
+        tags: null
+        game: "Test Game"
+        publication:
+          first_publish_at: "2026-11-11T02:00:00"
+          timezone: "Invalid/Timezone"
+          interval_days: 1
+        """
+    )
+
+    manifest_path = tmp_path / "invalid_timezone.yaml"
+    manifest_path.write_text(manifest_content, encoding="utf-8")
+
+    with pytest.raises(ManifestConfigurationError):
+        reader.read(manifest_path)
+
+
+def test_yaml_reader_rejects_non_string_publication_timezone(tmp_path):
+    reader = YamlReader()
+
+    manifest_content = dedent(
+        """
+        album: "Test Album"
+        name_prefix: "Test Album"
+        videos:
+          - "Song One"
+        description: "Test album description."
+        thumbnail: null
+        playlists: []
+        made_for_kids: false
+        contains_synthetic_media: false
+        tags: null
+        game: "Test Game"
+        publication:
+          first_publish_at: "2026-11-11T02:00:00"
+          timezone: 123
+          interval_days: 1
+        """
+    )
+
+    manifest_path = tmp_path / "non_string_timezone.yaml"
+    manifest_path.write_text(manifest_content, encoding="utf-8")
 
     with pytest.raises(ManifestConfigurationError):
         reader.read(manifest_path)

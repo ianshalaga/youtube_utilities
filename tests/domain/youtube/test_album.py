@@ -28,8 +28,7 @@ def _create_video(video_id: str, position: int) -> Video:
         video_id=video_id,
         position=position,
         video_type=VideoType.SONG,
-        current_metadata=metadata,
-        desired_metadata=metadata,
+        metadata=metadata,
     )
 
 
@@ -43,6 +42,7 @@ def _create_album(videos: list[Video]) -> Album:
         videos=videos,
         publication=PublicationSettings(
             first_publish_at=datetime(2026, 10, 1, 18, 0),
+            timezone="Europe/Paris",
             interval_days=1,
         ),
     )

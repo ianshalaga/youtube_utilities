@@ -44,6 +44,7 @@ class YouTubeVideoManagerProcessor:
 
             if action == "retry":
                 job.retry()
+                self._job_repository.save(job)
                 self._updater.update(job)
                 return
 

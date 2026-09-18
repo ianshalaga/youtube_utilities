@@ -1,6 +1,7 @@
 # tests\domain\youtube\test_album_manifest.py
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from domain.youtube.album_manifest import AlbumManifest
 from domain.youtube.publication_settings import PublicationSettings
@@ -24,6 +25,7 @@ def test_album_manifest_creates_expected_values():
         game="Test Game",
         publication=PublicationSettings(
             first_publish_at=datetime(2026, 10, 1, 18, 0),
+            timezone="Europe/Paris",
             interval_days=1,
         ),
     )
@@ -49,7 +51,9 @@ def test_album_manifest_creates_expected_values():
         1,
         18,
         0,
+        tzinfo=ZoneInfo("Europe/Paris"),
     )
+    assert manifest.publication.timezone == ZoneInfo("Europe/Paris")
     assert manifest.publication.interval_days == 1
 
     assert isinstance(manifest, AlbumManifest)

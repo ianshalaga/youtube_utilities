@@ -38,13 +38,13 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/SIGNALIS/02 Piano Collections/images/video.mp4",
-      "default_audios_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/SIGNALIS/02 Piano Collections",
+      "default_video_path": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Street Fighter/2 Street Fighter II/05 Street Fighter II Complete File/images/video.mp4",
+      "default_audios_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Street Fighter/2 Street Fighter II/05 Street Fighter II Complete File",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/SIGNALIS/02 Piano Collections/videos",
+      "default_videos_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Street Fighter/2 Street Fighter II/05 Street Fighter II Complete File/videos",
       "default_output_dir": "compilation",
       "default_video_name": "SIGNALIS - Piano Collections",
       "default_target_duration": null,

@@ -38,6 +38,7 @@ tags:
 game: Signalis
 
 publication:
-  # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS+ZZ:ZZ
-  first_publish_at: "2026-11-03T09:00:00+02:00"
+  # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS
+  first_publish_at: "2026-11-03T09:00:00"
+  timezone: "Europe/Paris"
   interval_days: 1
