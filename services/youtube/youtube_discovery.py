@@ -12,8 +12,11 @@ class YouTubeDiscovery:
     def __init__(self, methods: YouTubeMethods) -> None:
         self._methods = methods
 
-    def discover(self) -> tuple[YouTubeVideo, ...]:
+    def discover(self, expected_video_count: int) -> tuple[YouTubeVideo, ...]:
         """Discover the first continuous sequence of private videos."""
+
+        if expected_video_count <= 0:
+            raise ValueError("expected_video_count must be greater than zero.")
 
         uploads_playlist_id = self._get_uploads_playlist_id()
 
@@ -33,6 +36,8 @@ class YouTubeDiscovery:
                 if video.privacy_status is PrivacyStatus.PRIVATE:
                     found_private_block = True
                     videos.append(video)
+                    if len(videos) == expected_video_count:
+                        return tuple(videos)
                     continue
 
                 if found_private_block:

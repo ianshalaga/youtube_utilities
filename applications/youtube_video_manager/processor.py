@@ -62,7 +62,19 @@ class YouTubeVideoManagerProcessor:
 
     def _create_job(self, manifest_path: Path) -> Job:
         manifest = self._manifest_reader.read(manifest_path)
-        youtube_videos = self._youtube_discovery.discover()
+        youtube_videos = self._youtube_discovery.discover(len(manifest.videos))
+
+        # DEPURATION
+        # print("\n=== YOUTUBE DISCOVERY ===")
+
+        # for video in youtube_videos:
+        #     print(
+        #         f"{video.video_id} | "
+        #         f"{video.privacy_status.value} | "
+        #         f"{video.title!r}"
+        #     )
+
+        # print("=========================\n")
 
         album = self._album_builder.build(
             manifest,
