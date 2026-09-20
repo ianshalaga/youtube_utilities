@@ -11,6 +11,7 @@ from domain.youtube.operation import (
     OperationType,
 )
 
+from services.youtube.console import YouTubeConsole
 from services.youtube.api.methods import (
     YouTubeMethods,
     YouTubeQuotaExceededError,
@@ -30,6 +31,7 @@ class Updater:
         self,
         youtube_methods: YouTubeMethods,
         job_repository: JobRepository,
+        console: YouTubeConsole,
         max_attempts: int = 3,
     ) -> None:
         if max_attempts < 1:
@@ -37,6 +39,7 @@ class Updater:
 
         self._youtube_methods = youtube_methods
         self._job_repository = job_repository
+        self._console = console
         self._max_attempts = max_attempts
 
     def update(self, job: Job) -> None:
@@ -54,9 +57,27 @@ class Updater:
                 "Only pending or running jobs can be updated."
             )
 
+        video_order: dict[str, int] = {}
+
+        for operation in job.operations:
+            video_id = operation.video.video_id
+            if video_id not in video_order:
+                video_order[video_id] = len(video_order) + 1
+
+        total_videos = len(video_order)
+        current_video_id: str | None = None
+
         for operation in job.operations:
             if operation.status is OperationStatus.COMPLETED:
                 continue
+
+            if operation.video.video_id != current_video_id:
+                current_video_id = operation.video.video_id
+                self._console.video_started(
+                    operation.video,
+                    video_order[current_video_id],
+                    total_videos,
+                )
 
             if operation.status is not OperationStatus.PENDING:
                 raise ValueError(
@@ -71,6 +92,7 @@ class Updater:
 
         job.complete()
         self._job_repository.save(job)
+        self._console.job_completed()
 
     def _execute_operation(self, job: Job, operation: Operation) -> bool:
         """Execute one pending operation and return whether it completed."""
@@ -83,6 +105,7 @@ class Updater:
                 operation.reset()
                 job.reset()
                 self._job_repository.save(job)
+                self._console.job_quota_exceeded()
                 return False
             except Exception as error:
                 self._report_operation_failure(operation, attempt, error)
@@ -92,6 +115,7 @@ class Updater:
                     job.fail()
                     self._job_repository.save(job)
                     self._report_job_failure(operation, error)
+                    self._console.job_failed()
                     return False
 
                 # The operation remains RUNNING between normal retry attempts.

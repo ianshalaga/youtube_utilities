@@ -38,15 +38,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_video_path": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Legacy of Kain/01 Blood Omen - Legacy of Kain - 1996/01 Playmag OST/images/video.mp4",
-      "default_audios_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Legacy of Kain/01 Blood Omen - Legacy of Kain - 1996/01 Playmag OST",
+      "default_audios_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Subnautica/02 Subnautica - Below Zero/01 OST",
+      "default_video_path": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Subnautica/02 Subnautica - Below Zero/01 OST/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Legacy of Kain/01 Blood Omen - Legacy of Kain - 1996/01 Playmag OST/videos",
+      "default_videos_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Subnautica/02 Subnautica - Below Zero/01 OST/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Blood Omen - Legacy of Kain - Playmag OST",
+      "default_video_name": "Subnautica - Below Zero OST",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,

@@ -2,12 +2,13 @@ from pathlib import Path
 from typing import Callable
 
 from domain.youtube.job import Job
+from domain.youtube.job_repository import JobRepository
 from services.youtube.album_builder import AlbumBuilder
 from services.youtube.planner import Planner
 from services.youtube.youtube_discovery import YouTubeDiscovery
-from domain.youtube.job_repository import JobRepository
 from services.youtube.updater import Updater
 from services.youtube.album_manifest.yaml_reader import YamlReader
+from services.youtube.console import YouTubeConsole
 
 
 
@@ -21,6 +22,7 @@ class YouTubeVideoManagerProcessor:
         updater: Updater,
         job_repository: JobRepository,
         failure_action: Callable[[], str],
+        console: YouTubeConsole,
     ) -> None:
         self._manifest_reader = manifest_reader
         self._youtube_discovery = youtube_discovery
@@ -29,11 +31,13 @@ class YouTubeVideoManagerProcessor:
         self._updater = updater
         self._job_repository = job_repository
         self._failure_action = failure_action
+        self._console = console
 
     def process(self, manifest_path: Path) -> None:
         job = self._job_repository.find_pending()
 
         if job is not None:
+            self._console.existing_job()
             self._updater.update(job)
             return
 
@@ -43,6 +47,7 @@ class YouTubeVideoManagerProcessor:
             action = self._failure_action()
 
             if action == "retry":
+                self._console.retrying_job()
                 job.retry()
                 self._job_repository.save(job)
                 self._updater.update(job)
@@ -57,6 +62,7 @@ class YouTubeVideoManagerProcessor:
 
         if job is None:
             job = self._create_job(manifest_path)
+            self._console.new_job()
 
         self._updater.update(job)
 

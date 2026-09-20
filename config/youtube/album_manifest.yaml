@@ -1,37 +1,92 @@
-album: Blood Omen - Legacy of Kain | Playmag OST
+album: Subnautica - Below Zero OST
 
-name_prefix: Blood Omen - Legacy of Kain OST
+name_prefix: Subnautica - Below Zero OST
 
 videos:
-  - "01 Approach of the Vampire"
-  - "02 Dark Castle"
-  - "03 Blood is Good"
-  - "04 The Nightmare Begins"
-  - "Blood Omen - Legacy of Kain | Playmag OST"
+  - "01 Below Zero"
+  - "02 I'll Find My Way Back"
+  - "03 Welcome to 4546b"
+  - "04 Twisty Bridges"
+  - "05 Arctic Peeper"
+  - "06 Ice Floes"
+  - "07 Light Rays"
+  - "08 Kelp Caves"
+  - "09 Far Less Alone"
+  - "10 A Larger Consciousness"
+  - "11 A Continuous Thrum"
+  - "12 The Obelisk"
+  - "13 A Thousand Strings"
+  - "14 Mirage Machine"
+  - "15 Lithium"
+  - "16 Magnetite"
+  - "17 Cryptosuchus"
+  - "18 Titan Holefish"
+  - "19 Stay off My Land"
+  - "20 Glacial Basin"
+  - "21 Molten Silver"
+  - "22 A Cold Wet Planet"
+  - "23 Phi Robotics"
+  - "24 I Am Relieved It Is Still Frozen"
+  - "25 Part Organic Part Digital"
+  - "26 Leaves of Quartz"
+  - "27 We Exist as Data"
+  - "28 Mercury II"
+  - "29 Spinefish"
+  - "30 Koppa Mining Site"
+  - "31 Cathedral"
+  - "32 Lily Pads"
+  - "33 A Study in Parhelion Red"
+  - "34 Glowlights"
+  - "35 Iceberg"
+  - "36 Glow Whale"
+  - "37 Medusa Planetarium"
+  - "38 Limestone"
+  - "39 Slow Burn"
+  - "40 This Planet Is Cursed"
+  - "41 The Glacial Forest"
+  - "42 The Ice Worm"
+  - "43 Sam's Discoveries"
+  - "44 The Void"
+  - "45 Crystal Caves"
+  - "46 Crystal Castle"
+  - "47 Fabricator Caverns"
+  - "48 Shadow Leviathan"
+  - "49 Ten Thousand Souls"
+  - "50 In Search of Familiar Harmonies"
+  - "51 Twilit Waters | Bonus Track"
+  - "52 Glacial Basin Extended | Bonus Track"
+  - "53 The Dark | Bonus Track"
+  - "54 Spy Penguin Theme | Bonus Track"
+  - "Subnautica: Below Zero OST"
 
 description: |
-  🎮 BLOOD OMEN - LEGACY OF KAIN | 1996
+  🎮 SUBNAUTICA | 2018
 
-  📀 Blood Omen: Legacy of Kain - Playmag OST | https://www.youtube.com/playlist?list=PLNxufJ9rt_jM
-  📀 Blood Omen: Legacy of Kain - Complete OST | https://www.youtube.com/playlist?list=PLFwUmhPM0880
+  📀 Subnautica OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t7y6Pc0mN_vdNkL917i9dDQ
+  📀 Subnautica - Re-Engineered Soundtrack | https://www.youtube.com/playlist?list=PLc9FkE177k6g
+  📀 Subnautica Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t7p2TFTIwwFnF6Dip8m_gOX
 
-thumbnail: "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Legacy of Kain/01 Blood Omen - Legacy of Kain - 1996/01 Playmag OST/images/miniatura1.png"
+  🎮 SUBNAUTICA: BELOW ZERO | 2021
+
+  📀 Subnautica - Below Zero OST | https://www.youtube.com/playlist?list=PLMbz2srcuKZI
+  📀 Subnautica - Below Zero Complete OST | https://www.youtube.com/playlist?list=PLfMwCHRG1GUk
+
+thumbnail: "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Subnautica/02 Subnautica - Below Zero/01 OST/images/miniatura1.png"
 
 playlists:
-  - PLNxufJ9rt_jM # Blood Omen: Legacy of Kain - Playmag OST
-  - PLFwUmhPM0880 # Blood Omen: Legacy of Kain - Complete OST
+  - PLMbz2srcuKZI # Subnautica - Below Zero OST
+  - PLfMwCHRG1GUk # Subnautica - Below Zero Complete OST
 
 made_for_kids: false
 contains_synthetic_media: false
 
 tags:
-  - Blood Omen
-  - Legacy of Kain
+  - tags # Doesn't matter
 
 game: game # not used
 
 publication:
   # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS
-  first_publish_at: "2026-09-20T07:00:00"
+  first_publish_at: "2026-09-21T11:00:00"
   timezone: "Europe/Paris"
   interval_days: 1

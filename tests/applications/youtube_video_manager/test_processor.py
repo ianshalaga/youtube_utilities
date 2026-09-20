@@ -13,6 +13,7 @@ from applications.youtube_video_manager.processor import (
     Updater,
     YouTubeVideoManagerProcessor,
 )
+from services.youtube.console import YouTubeConsole
 
 
 @pytest.fixture
@@ -22,7 +23,9 @@ def manifest_path() -> Path:
 
 @pytest.fixture
 def manifest() -> Mock:
-    return Mock(name="manifest")
+    value = Mock(name="manifest")
+    value.videos = [Mock(name="manifest_video")]
+    return value
 
 
 @pytest.fixture
@@ -92,6 +95,11 @@ def failure_action() -> Mock:
 
 
 @pytest.fixture
+def console() -> Mock:
+    return Mock(spec=YouTubeConsole)
+
+
+@pytest.fixture
 def processor(
     manifest_reader: Mock,
     youtube_discovery: Mock,
@@ -100,6 +108,7 @@ def processor(
     updater: Mock,
     job_repository: Mock,
     failure_action: Mock,
+    console: Mock,
 ) -> YouTubeVideoManagerProcessor:
     return YouTubeVideoManagerProcessor(
         manifest_reader=manifest_reader,
@@ -109,6 +118,7 @@ def processor(
         updater=updater,
         job_repository=job_repository,
         failure_action=failure_action,
+        console=console,
     )
 
 
@@ -183,7 +193,7 @@ def test_failed_job_discard_creates_new_job(
 
     failed_job.retry.assert_not_called()
     manifest_reader.read.assert_called_once_with(manifest_path)
-    youtube_discovery.discover.assert_called_once_with()
+    youtube_discovery.discover.assert_called_once_with(len(manifest.videos))
     album_builder.build.assert_called_once_with(manifest, youtube_videos)
     planner.plan.assert_called_once_with(album)
     updater.update.assert_called_once_with(new_job)
@@ -214,7 +224,7 @@ def test_no_existing_job_creates_new_job_from_manifest(
     processor.process(manifest_path)
 
     manifest_reader.read.assert_called_once_with(manifest_path)
-    youtube_discovery.discover.assert_called_once_with()
+    youtube_discovery.discover.assert_called_once_with(len(manifest.videos))
     album_builder.build.assert_called_once_with(manifest, youtube_videos)
     planner.plan.assert_called_once_with(album)
     updater.update.assert_called_once_with(new_job)

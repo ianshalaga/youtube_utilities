@@ -40,6 +40,7 @@ from services.youtube.album_builder import AlbumBuilder
 from services.youtube.album_manifest.yaml_reader import YamlReader
 from services.youtube.api.client import YouTubeClient
 from services.youtube.api.methods import YouTubeMethods
+from services.youtube.console import YouTubeConsole
 from services.youtube.operations_builder import OperationsBuilder
 from services.youtube.planner import Planner
 from services.youtube.storage.mappers.job_mapper import JobMapper
@@ -247,9 +248,12 @@ def run_youtube_video_manager() -> None:
         # Execution
         # ---------------------------------------------------------------------
 
+        console = YouTubeConsole()
+
         updater = Updater(
             youtube_methods=youtube_methods,
             job_repository=job_repository,
+            console=console,
             max_attempts=config.youtube_video_manager_max_attempts,
         )
 
@@ -265,6 +269,7 @@ def run_youtube_video_manager() -> None:
             updater=updater,
             job_repository=job_repository,
             failure_action=_ask_youtube_failure_action,
+            console=console,
         )
 
         processor.process(

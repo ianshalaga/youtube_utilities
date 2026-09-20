@@ -11,7 +11,12 @@ from domain.youtube.video import Video, VideoType
 from domain.youtube.video_metadata import VideoMetadata
 from services.youtube.api.methods import YouTubeQuotaExceededError
 from services.youtube.updater import JobRepository, Updater
+from services.youtube.console import YouTubeConsole
 
+
+@pytest.fixture
+def console() -> MagicMock:
+    return MagicMock(spec=YouTubeConsole)
 
 @pytest.fixture
 def video_metadata() -> VideoMetadata:
@@ -89,10 +94,12 @@ def job_repository() -> MagicMock:
 def updater(
     youtube_methods: MagicMock,
     job_repository: MagicMock,
+    console: MagicMock,
 ) -> Updater:
     return Updater(
         youtube_methods=youtube_methods,
         job_repository=job_repository,
+        console=console,
     )
 
 
@@ -108,6 +115,7 @@ def test_job_repository_exposes_save() -> None:
 def test_init_rejects_invalid_max_attempts(
     youtube_methods: MagicMock,
     job_repository: MagicMock,
+    console: MagicMock,
     max_attempts: int,
 ) -> None:
     with pytest.raises(
@@ -117,6 +125,7 @@ def test_init_rejects_invalid_max_attempts(
         Updater(
             youtube_methods=youtube_methods,
             job_repository=job_repository,
+            console=console,
             max_attempts=max_attempts,
         )
 
@@ -124,10 +133,12 @@ def test_init_rejects_invalid_max_attempts(
 def test_init_accepts_max_attempts_of_one(
     youtube_methods: MagicMock,
     job_repository: MagicMock,
+    console: MagicMock,
 ) -> None:
     updater = Updater(
         youtube_methods=youtube_methods,
         job_repository=job_repository,
+        console=console,
         max_attempts=1,
     )
 
@@ -551,14 +562,18 @@ def test_final_normal_error_stops_before_subsequent_operations(
 def test_max_attempts_is_respected(
     youtube_methods: MagicMock,
     job_repository: MagicMock,
+    console: MagicMock,
     update_metadata_operation: Operation,
 ) -> None:
     youtube_methods.videos_update.side_effect = RuntimeError("error")
+
     updater = Updater(
         youtube_methods=youtube_methods,
         job_repository=job_repository,
+        console=console,
         max_attempts=1,
     )
+
     job = Job([update_metadata_operation])
 
     updater.update(job)
