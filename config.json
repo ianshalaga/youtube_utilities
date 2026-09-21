@@ -38,15 +38,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Subnautica/02 Subnautica - Below Zero/01 OST",
-      "default_video_path": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Subnautica/02 Subnautica - Below Zero/01 OST/images/video.mp4",
+      "default_audios_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Resident Evil/01 Resident Evil - 1996/03 BIO HAZARD ~Markova Village no Sangeki~ SOUND DRAMA",
+      "default_video_path": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Resident Evil/01 Resident Evil - 1996/03 BIO HAZARD ~Markova Village no Sangeki~ SOUND DRAMA/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Subnautica/02 Subnautica - Below Zero/01 OST/videos",
+      "default_videos_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Resident Evil/01 Resident Evil - 1996/03 BIO HAZARD ~Markova Village no Sangeki~ SOUND DRAMA/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Subnautica - Below Zero OST",
+      "default_video_name": "BIO HAZARD ~Markova Village no Sangeki~ SOUND DRAMA",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
