@@ -50,7 +50,7 @@ def _create_methods() -> MagicMock:
     return methods
 
 
-def test_discover_returns_first_continuous_private_block():
+def test_discover_returns_requested_number_of_private_videos():
     methods = _create_methods()
 
     methods.playlist_items_list.return_value = {
@@ -102,7 +102,7 @@ def test_discover_returns_first_continuous_private_block():
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover()
+    result = discovery.discover(expected_video_count=4)
 
     assert result == (
         YouTubeVideo(
@@ -178,7 +178,7 @@ def test_discover_ignores_public_videos_before_private_block():
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover()
+    result = discovery.discover(expected_video_count=2)
 
     assert [video.video_id for video in result] == [
         "video-private-02",
@@ -186,7 +186,7 @@ def test_discover_ignores_public_videos_before_private_block():
     ]
 
 
-def test_discover_stops_at_public_video_after_private_block():
+def test_discover_ignores_public_video_after_private_block():
     methods = _create_methods()
 
     methods.playlist_items_list.return_value = {
@@ -226,16 +226,16 @@ def test_discover_stops_at_public_video_after_private_block():
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover()
+    result = discovery.discover(expected_video_count=3)
 
-    assert len(result) == 2
     assert [video.video_id for video in result] == [
         "video-02",
         "video-01",
+        "video-older",
     ]
 
 
-def test_discover_stops_at_unlisted_video_after_private_block():
+def test_discover_ignores_unlisted_video_after_private_block():
     methods = _create_methods()
 
     methods.playlist_items_list.return_value = {
@@ -268,23 +268,23 @@ def test_discover_stops_at_unlisted_video_after_private_block():
                 "video-old",
                 "Older Video",
                 None,
-                "public",
+                "private",
             ),
         ]
     }
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover()
+    result = discovery.discover(expected_video_count=3)
 
-    assert len(result) == 2
     assert [video.video_id for video in result] == [
         "video-02",
         "video-01",
+        "video-old",
     ]
 
 
-def test_discover_returns_empty_tuple_when_no_private_block_exists():
+def test_discover_raises_when_not_enough_private_videos_are_found():
     methods = _create_methods()
 
     methods.playlist_items_list.return_value = {
@@ -296,19 +296,21 @@ def test_discover_returns_empty_tuple_when_no_private_block_exists():
                 "public",
             ),
             _create_playlist_item(
-                "video-public-01",
-                "Older Public Video",
+                "video-private-01",
+                "01 Song",
                 None,
-                "public",
+                "private",
             ),
         ]
     }
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover()
-
-    assert result == ()
+    with pytest.raises(
+        RuntimeError,
+        match="Not enough private YouTube videos were discovered",
+    ):
+        discovery.discover(expected_video_count=2)
 
 
 def test_discover_follows_pagination():
@@ -358,7 +360,7 @@ def test_discover_follows_pagination():
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover()
+    result = discovery.discover(expected_video_count=2)
 
     assert [video.video_id for video in result] == [
         "video-02",
@@ -381,7 +383,7 @@ def test_discover_follows_pagination():
     }
 
 
-def test_discover_does_not_request_next_page_after_cutoff():
+def test_discover_requests_next_page_after_public_video():
     methods = _create_methods()
 
     methods.playlist_items_list.side_effect = [
@@ -422,13 +424,16 @@ def test_discover_does_not_request_next_page_after_cutoff():
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover()
+    result = discovery.discover(expected_video_count=2)
 
-    assert [video.video_id for video in result] == ["video-02"]
-    assert methods.playlist_items_list.call_count == 1
+    assert [video.video_id for video in result] == [
+        "video-02",
+        "video-01",
+    ]
+    assert methods.playlist_items_list.call_count == 2
 
 
-def test_discover_returns_empty_tuple_when_playlist_is_empty():
+def test_discover_raises_when_playlist_is_empty():
     methods = _create_methods()
 
     methods.playlist_items_list.return_value = {
@@ -437,9 +442,11 @@ def test_discover_returns_empty_tuple_when_playlist_is_empty():
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover()
-
-    assert result == ()
+    with pytest.raises(
+        RuntimeError,
+        match="Not enough private YouTube videos were discovered",
+    ):
+        discovery.discover(expected_video_count=1)
 
 
 def test_discover_handles_private_videos_without_description():
@@ -470,13 +477,24 @@ def test_discover_handles_private_videos_without_description():
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover()
+    result = discovery.discover(expected_video_count=1)
 
     assert len(result) == 1
     assert result[0].video_id == "video-01"
     assert result[0].title == "01 Opening Theme"
     assert result[0].description is None
     assert result[0].privacy_status is PrivacyStatus.PRIVATE
+
+
+def test_discover_rejects_non_positive_expected_video_count():
+    methods = _create_methods()
+    discovery = YouTubeDiscovery(methods)
+
+    with pytest.raises(
+        ValueError,
+        match="expected_video_count must be greater than zero",
+    ):
+        discovery.discover(expected_video_count=0)
 
 
 def test_discover_raises_when_authenticated_channel_is_not_found():
@@ -489,7 +507,7 @@ def test_discover_raises_when_authenticated_channel_is_not_found():
         RuntimeError,
         match="Authenticated YouTube channel was not found",
     ):
-        discovery.discover()
+        discovery.discover(expected_video_count=1)
 
 
 def test_discover_raises_when_uploads_playlist_is_not_found():
@@ -510,4 +528,4 @@ def test_discover_raises_when_uploads_playlist_is_not_found():
         RuntimeError,
         match="YouTube uploads playlist was not found",
     ):
-        discovery.discover()
+        discovery.discover(expected_video_count=1)

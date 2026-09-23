@@ -1,57 +1,127 @@
-album: Silent Hill 2 OST
+album: Crysis | Re-Engineered Soundtrack
 
-name_prefix: Silent Hill 2 OST
+name_prefix: Crysis OST
 
 videos:
-  - "01 Theme of Laura"
-  - "02 White Noiz"
-  - "03 Forest"
-  - "04 A World Of Madness"
-  - "05 Ordinary Vanity"
-  - "06 Promise | Reprise"
-  - "07 Ashes And Ghost"
-  - "08 Null Moon"
-  - "09 Heaven's Night"
-  - "10 Alone In The Town"
-  - "11 The Darkness That Lurks In Our Mind"
-  - "12 Angel's Thanatos"
-  - "13 The Day Of Night"
-  - "14 Block Mind"
-  - "15 Magdalene"
-  - "16 Fermata in Mistic Air"
-  - "17 Prisonic Fairytale"
-  - "18 Love Psalm"
-  - "19 Silent Heaven"
-  - "20 Noone Love You"
-  - "21 The Reverse Will"
-  - "22 Laura Plays The Piano"
-  - "23 Terror In The Depths Of The Fog"
-  - "24 True"
-  - "25 Betrayal"
-  - "26 Black Fairy"
-  - "27 Theme Of Laura | Reprise"
-  - "28 Overdose Delusion"
-  - "29 Pianissimo Epilogue"
-  - "30 Promise"
-  - "Silent Hill 2 OST"
+  - "001 Crytek"
+  - "002 Welcome To Lingshan Islands"
+  - "003 Skydiving"
+  - "004 Undercover Operation"
+  - "005 Pursuing Aztec"
+  - "006 Did You Hear That"
+  - "007 Lingshan Island Shore"
+  - "008 Resistance For The Raptor Team"
+  - "009 Frozen Boat From Nowhere"
+  - "010 Recovery Mission"
+  - "011 Contact With The Enemy"
+  - "012 We Are Not Alone"
+  - "013 Nanosuit Soldier Meets Tank"
+  - "014 Maximum Armor"
+  - "015 Prophet's Disappearance"
+  - "016 Onslaught"
+  - "017 Rescuing Dr. Rosenthal"
+  - "018 Dr. Rosenthal's Laboratory"
+  - "019 Nightvision Activated"
+  - "020 Night-Time Special Operation"
+  - "021 Assault On The River"
+  - "022 Through The Swamp"
+  - "023 Graveyard Extraction Point"
+  - "024 Relics Of The Island"
+  - "025 To The Harbor"
+  - "026 Reinforcements Arrived"
+  - "027 Unstoppable Unit"
+  - "028 Infiltrating The Base"
+  - "029 Kyong's Operation In The Mines"
+  - "030 Below Ground"
+  - "031 Your Operation Is Over, American"
+  - "032 Collapsing Cave"
+  - "033 There Is Something In The Mines"
+  - "034 Lurking Entities"
+  - "035 Hunted By The Ceph"
+  - "036 Lost In The Ceph Nexus"
+  - "037 Ceph Army Flightdeck"
+  - "038 Collected Oddities"
+  - "039 Escaping The Mothership Complex"
+  - "040 Paradise Lost"
+  - "041 Frozen Movement"
+  - "042 Finding Prophet In The Ice"
+  - "043 Ceph Warrior Reveal"
+  - "044 Resolution"
+  - "045 The Pilot Is Dead!"
+  - "046 Ascension"
+  - "047 Arrival At The USS Constitution"
+  - "048 Nanosuit Checkup"
+  - "049 Can You Live With The Consequences, General"
+  - "050 Inside The Reactor"
+  - "051 Stop By The Armory"
+  - "052 One Man Army"
+  - "053 Reckoning"
+  - "054 Victory Hymn"
+  - "055 Main Menu"
+  - "056 Lingshan Island Shore | Orchestral Mix"
+  - "057 Contact With The Enemy | Orchestral Mix"
+  - "058 Maximum Armor | Orchestral Mix"
+  - "059 Inside The Reactor | Orchestral Mix"
+  - "060 Ascension | Orchestral Mix"
+  - "061 Nanosuit Soldier Meets Tank | Orchestral Mix"
+  - "062 Ceph Army Flightdeck | Orchestral Mix"
+  - "063 Assault On The River | Orchestral Mix"
+  - "064 Resistance For The Raptor Team | Orchestral Mix"
+  - "065 Through The Swamp | Orchestral Mix"
+  - "066 Victory Hymn | Orchestral Mix"
+  - "067 Lingshan Island Shore | Calm Mix"
+  - "068 Relics Of The Island | Fast Mix"
+  - "069 One Man Army | Drum Mix"
+  - "070 Maximum Armor | Extended Mix"
+  - "071 Inside The Reactor | Fast Mix"
+  - "072 Lingshan Island Shore | Beta Mix"
+  - "073 Multiplayer Main Menu"
+  - "074 Crysis Trailer"
+  - "075 Crysis Warhead Suite"
+  - "076 Crysis Warhead Airfield Medley"
+  - "077 Crysis Remastered Credits"
+  - "078 Awakening"
+  - "079 By A Thread"
+  - "080 First Light"
+  - "081 Shotgun"
+  - "082 Only One Way In"
+  - "083 Sometimes You Win"
+  - "084 Covert Ops"
+  - "085 Infiltration"
+  - "086 Scavengers"
+  - "087 Knee Deep"
+  - "088 Strickland's March"
+  - "089 The Nexus"
+  - "090 Trespass"
+  - "091 Reactor"
+  - "092 Sometimes You Lose"
+  - "093 Loss Of Pressure"
+  - "094 Soldiers On The Storm"
+  - "095 Gaining Ground, Losing Time"
+  - "096 Undercurrent"
+  - "097 Legion"
+  - "098 Super Soldier"
+  - "099 Prophet's Bridge"
+  - "100 Grave Danger"
+  - "101 Terminal"
+  - "102 Guardians"
+  - "103 Nanosuit Systems Engaged"
+  - "104 Terminus"
+  - "105 Pyrrhic Victory"
+  - "Crysis | Re-Engineered Soundtrack"
 
 description: |
-  🎮 SILENT HILL | 1999
+  🎮 CRYSIS | 2007
 
-  📀 Silent Hill OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t5YmuWAdBUcxpl2T8dwyZi_
-  📀 Silent Hill - Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t7cBRLuAH_W2F1bGV3QLOo-
-  📀 Silent Hill Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t604PyZvRz4jh0Jqv-vx11n
+  📀 Crysis Special Edition - Disc 2 - Audio | https://www.youtube.com/playlist?list=PLLwqp3EWWLis
+  📀 Crysis - Re-Engineered Soundtrack | https://www.youtube.com/playlist?list=PLDniTy_qGLLo
+  📀 Crysis Complete OST | https://www.youtube.com/playlist?list=PLVYmtKYqtaRM
 
-  🎮 SILENT HILL 2 | 2001
-
-  📀 Silent Hill 2 OST | https://www.youtube.com/playlist?list=PLLQdrtcu1sMA
-  📀 Silent Hill 2 Complete OST | https://www.youtube.com/playlist?list=PLRE9iT1UnAvU
-
-thumbnail: "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Silent Hill/02 Silent Hill 2 - 2001/01 OST/images/miniatura1.png"
+thumbnail: "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Crysis/01 Crysis - 2007/02 Crysis - Re-Engineered Soundtrack/images/video.mp4"
 
 playlists:
-  - PLLQdrtcu1sMA # Silent Hill 2 OST
-  - PLRE9iT1UnAvU # Silent Hill 2 Complete OST
+  - PLDniTy_qGLLo # Crysis - Re-Engineered Soundtrack
+  - PLVYmtKYqtaRM # Crysis Complete OST
 
 made_for_kids: false
 contains_synthetic_media: false
@@ -63,6 +133,6 @@ game: game # not used
 
 publication:
   # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS
-  first_publish_at: "2026-09-23T23:00:00"
+  first_publish_at: "2026-09-25T18:00:00"
   timezone: "Europe/Paris"
   interval_days: 1

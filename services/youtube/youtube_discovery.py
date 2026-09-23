@@ -13,7 +13,7 @@ class YouTubeDiscovery:
         self._methods = methods
 
     def discover(self, expected_video_count: int) -> tuple[YouTubeVideo, ...]:
-        """Discover the first continuous sequence of private videos."""
+        """Discover the most recent private videos up to the expected count."""
 
         if expected_video_count <= 0:
             raise ValueError("expected_video_count must be greater than zero.")
@@ -21,7 +21,6 @@ class YouTubeDiscovery:
         uploads_playlist_id = self._get_uploads_playlist_id()
 
         videos: list[YouTubeVideo] = []
-        found_private_block = False
         page_token: str | None = None
 
         while True:
@@ -33,20 +32,21 @@ class YouTubeDiscovery:
             for item in response.get("items", []):
                 video = self._map_video(item)
 
-                if video.privacy_status is PrivacyStatus.PRIVATE:
-                    found_private_block = True
-                    videos.append(video)
-                    if len(videos) == expected_video_count:
-                        return tuple(videos)
+                if video.privacy_status is not PrivacyStatus.PRIVATE:
                     continue
 
-                if found_private_block:
+                videos.append(video)
+
+                if len(videos) == expected_video_count:
                     return tuple(videos)
 
             page_token = response.get("nextPageToken")
 
             if page_token is None:
-                return tuple(videos)
+                raise RuntimeError(
+                    "Not enough private YouTube videos were discovered. "
+                    f"Expected {expected_video_count}, found {len(videos)}."
+                )
 
     def _get_uploads_playlist_id(self) -> str:
         """Return the authenticated user's uploads playlist ID."""
