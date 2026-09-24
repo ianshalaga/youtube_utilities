@@ -31,6 +31,7 @@ from services.media.discovery.media_discovery import MediaDiscoveryService
 from services.media.video.mkvmerge_runner import MKVMergeRunner
 from services.media.audio.converter import AudioConverter
 from services.media.ffprobe_provider import FFProbeProvider
+from .console import VideoMusicConsole
 
 
 class VideoMusicProcessor:
@@ -57,11 +58,13 @@ class VideoMusicProcessor:
         audio_converter: AudioConverter,
         ffprobe_provider: FFProbeProvider,
         max_items_per_dir: int | None = None,
+        console: VideoMusicConsole | None = None,
     ):
         self._config = ConfigManager()
         self._mkvmerge_runner = mkvmerge_runner
         self._audio_converter = audio_converter
         self._ffprobe_provider = ffprobe_provider
+        self._console = console or VideoMusicConsole()
         self._output_partitioner: OutputDirectoryPartitioner | None
 
         self._max_items_per_dir = (
@@ -125,6 +128,14 @@ class VideoMusicProcessor:
 
         total_songs = len(audio_files)
 
+        self._console.job_started(
+            video_path=video_path,
+            audios_dir=audios_dir,
+            output_dir=output_dir,
+            total_tracks=total_songs,
+            max_items_per_dir=self._max_items_per_dir,
+        )
+
         # ───────────────────────────────
         # MODO SIN SUBDIRECTORIOS
         # ───────────────────────────────
@@ -132,27 +143,43 @@ class VideoMusicProcessor:
             self._max_items_per_dir is None
             or total_songs <= self._max_items_per_dir
         ):
+            self._console.processing_started()
+
             with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
                 futures = []
 
-                for audio_path in audio_files:
+                for index, audio_path in enumerate(audio_files, start=1):
                     futures.append(
                         executor.submit(
                             self._process_single,
                             video_path,
                             audio_path,
-                            output_dir
+                            output_dir,
+                            index,
+                            total_songs,
                         )
                     )
 
                 for future in as_completed(futures):
                     future.result()
 
+            self._console.job_completed(total_songs, output_dir)
             return
 
         # ───────────────────────────────
         # MODO CON SUBDIRECTORIOS
         # ───────────────────────────────
+        total_directories = (
+            (total_songs + self._max_items_per_dir - 1)
+            // self._max_items_per_dir
+        )
+        self._console.partition_started(
+            total_tracks=total_songs,
+            max_items_per_dir=self._max_items_per_dir,
+            total_directories=total_directories,
+        )
+        self._console.processing_started()
+
         with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
             futures = []
 
@@ -171,18 +198,24 @@ class VideoMusicProcessor:
                         self._process_single,
                         video_path,
                         audio_path,
-                        subdir
+                        subdir,
+                        index + 1,
+                        total_songs,
                     )
                 )
 
             for future in as_completed(futures):
                 future.result()
 
+        self._console.job_completed(total_songs, output_dir)
+
     def _process_single(
         self,
         video_path: Path,
         audio_path: Path,
-        output_dir: Path
+        output_dir: Path,
+        index: int,
+        total: int,
     ) -> None:
         """
         Procesa una única pista de audio contra el video base.
@@ -202,14 +235,23 @@ class VideoMusicProcessor:
             output_dir:
                 Directorio de salida.
         """
-        tmp_audio_path = self._audio_converter.convert(
-            src=audio_path,
-            dst_dir=output_dir
+        self._console.track_started(
+            index=index,
+            total=total,
+            audio_path=audio_path,
+            output_dir=output_dir,
         )
 
         try:
+            tmp_audio_path = self._audio_converter.convert(
+                src=audio_path,
+                dst_dir=output_dir
+            )
+            self._console.audio_converted(audio_path, tmp_audio_path)
+
             duration_seconds = self._ffprobe_provider.duration(tmp_audio_path)
             duration = seconds_to_hhmmss_ms(duration_seconds)
+            self._console.duration_detected(audio_path, duration)
 
             output_path = output_dir / f"{audio_path.stem}.mkv"
 
@@ -227,10 +269,18 @@ class VideoMusicProcessor:
             self._mkvmerge_runner.run(cmd)
 
             self._cleanup_segments(output_dir, audio_path.stem)
+            self._console.video_created(audio_path, output_path)
+
+        except Exception as error:
+            self._console.track_failed(index, total, audio_path, error)
+            raise
 
         finally:
-            if tmp_audio_path.exists():
+            if "tmp_audio_path" in locals() and tmp_audio_path.exists():
                 tmp_audio_path.unlink()
+                self._console.temporary_files_cleaned(audio_path)
+
+        self._console.track_completed(index, total, audio_path)
 
     def _cleanup_segments(self, output_dir: Path, base_name: str) -> None:
         """

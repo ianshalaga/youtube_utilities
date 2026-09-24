@@ -12,6 +12,26 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 
 # -----------------------------------------------------------
 
+# VIDEO MUSIC
+
+VIDEO_MUSIC_CONTEXT = (
+    BASE_DIR / "app.py",
+    BASE_DIR / "config.json",
+    BASE_DIR / "core/config_manager.py",
+    BASE_DIR / "core/time_utils.py",
+    BASE_DIR / "interfaces/cli/app_cli.py",
+    BASE_DIR / "interfaces/web/apps/video_music_web",
+    BASE_DIR / "applications/video_music",
+    BASE_DIR / "domain/media",
+    BASE_DIR / "services/media",
+    BASE_DIR / "services/filesystem",
+    BASE_DIR / "services/system",
+)
+
+# -----------------------------------------------------------
+
+# VIDEO JOINER
+
 VIDEO_JOINER_CONTEXT = (
     BASE_DIR / "app.py",
     BASE_DIR / "config.json",
@@ -136,9 +156,9 @@ YOUTUBE_VIDEO_MANAGER_CONTEXT = (
 
 # -----------------------------------------------------------
 
-INPUT_PATHS = YOUTUBE_VIDEO_MANAGER_CONTEXT
+INPUT_PATHS = VIDEO_MUSIC_CONTEXT
 
-FILE_NAME = "youtube_video_manager_context"
+FILE_NAME = "video_music_context"
 
 # -----------------------------------------------------------
 
