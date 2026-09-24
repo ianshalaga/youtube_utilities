@@ -44,7 +44,7 @@
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Crysis/01 Crysis - 2007/02 Crysis - Re-Engineered Soundtrack/videos",
+      "default_videos_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Crysis/01 Crysis - 2007/02 Crysis - Re-Engineered Soundtrack/videos/@",
       "default_output_dir": "compilation",
       "default_video_name": "Crysis - Re-Engineered Soundtrack",
       "default_target_duration": null,

@@ -1,4 +1,4 @@
-# tests\services\youtube\test_youtube_discovery.py
+# tests\\services\\youtube\\test_youtube_discovery.py
 
 from unittest.mock import MagicMock
 
@@ -50,32 +50,20 @@ def _create_methods() -> MagicMock:
     return methods
 
 
-def test_discover_returns_requested_number_of_private_videos():
+def test_discover_returns_expected_videos():
     methods = _create_methods()
 
     methods.playlist_items_list.return_value = {
         "items": [
             _create_playlist_item(
-                "video-public-02",
-                "Recent Public Video",
-                None,
-                "public",
-            ),
-            _create_playlist_item(
-                "video-public-01",
-                "Another Public Video",
-                None,
-                "public",
-            ),
-            _create_playlist_item(
-                "video-04",
-                "Compilation",
-                "Compilation description",
+                "video-unrelated",
+                "Unrelated Private Video",
+                "Unrelated description",
                 "private",
             ),
             _create_playlist_item(
                 "video-03",
-                "03 Battle Theme",
+                "03 Battle Theme Orchestral Mix",
                 "Battle description",
                 "private",
             ),
@@ -86,34 +74,34 @@ def test_discover_returns_requested_number_of_private_videos():
                 "private",
             ),
             _create_playlist_item(
+                "video-unrelated-public",
+                "Unrelated Public Video",
+                None,
+                "public",
+            ),
+            _create_playlist_item(
                 "video-01",
                 "01 Opening Theme",
                 "Opening description",
                 "private",
-            ),
-            _create_playlist_item(
-                "video-old",
-                "Older Video",
-                "Older description",
-                "public",
             ),
         ]
     }
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover(expected_video_count=4)
+    result = discovery.discover(
+        expected_video_titles=(
+            "03 Battle Theme",
+            "02 Exploration Theme",
+            "01 Opening Theme",
+        )
+    )
 
     assert result == (
         YouTubeVideo(
-            video_id="video-04",
-            title="Compilation",
-            description="Compilation description",
-            privacy_status=PrivacyStatus.PRIVATE,
-        ),
-        YouTubeVideo(
             video_id="video-03",
-            title="03 Battle Theme",
+            title="03 Battle Theme Orchestral Mix",
             description="Battle description",
             privacy_status=PrivacyStatus.PRIVATE,
         ),
@@ -132,74 +120,32 @@ def test_discover_returns_requested_number_of_private_videos():
     )
 
 
-def test_discover_ignores_public_videos_before_private_block():
+def test_discover_skips_unrelated_private_videos_between_expected_videos():
     methods = _create_methods()
 
     methods.playlist_items_list.return_value = {
         "items": [
             _create_playlist_item(
-                "video-public-03",
-                "Public Video 3",
-                None,
-                "public",
-            ),
-            _create_playlist_item(
-                "video-public-02",
-                "Public Video 2",
-                None,
-                "public",
-            ),
-            _create_playlist_item(
-                "video-public-01",
-                "Public Video 1",
-                None,
-                "public",
-            ),
-            _create_playlist_item(
-                "video-private-02",
-                "02 Song",
+                "video-03",
+                "03 Battle Theme",
                 None,
                 "private",
             ),
             _create_playlist_item(
-                "video-private-01",
-                "01 Song",
+                "video-unrelated-01",
+                "Other Album - 05 Track",
                 None,
                 "private",
-            ),
-            _create_playlist_item(
-                "video-old",
-                "Older Video",
-                None,
-                "public",
-            ),
-        ]
-    }
-
-    discovery = YouTubeDiscovery(methods)
-
-    result = discovery.discover(expected_video_count=2)
-
-    assert [video.video_id for video in result] == [
-        "video-private-02",
-        "video-private-01",
-    ]
-
-
-def test_discover_ignores_public_video_after_private_block():
-    methods = _create_methods()
-
-    methods.playlist_items_list.return_value = {
-        "items": [
-            _create_playlist_item(
-                "video-public-02",
-                "Recent Public Video",
-                None,
-                "public",
             ),
             _create_playlist_item(
                 "video-02",
-                "02 Battle Theme",
+                "02 Exploration Theme",
+                None,
+                "private",
+            ),
+            _create_playlist_item(
+                "video-unrelated-02",
+                "Silent Hill 2 OST",
                 None,
                 "private",
             ),
@@ -209,52 +155,40 @@ def test_discover_ignores_public_video_after_private_block():
                 None,
                 "private",
             ),
-            _create_playlist_item(
-                "video-old",
-                "Older Video",
-                None,
-                "public",
-            ),
-            _create_playlist_item(
-                "video-older",
-                "Even Older Video",
-                None,
-                "private",
-            ),
         ]
     }
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover(expected_video_count=3)
+    result = discovery.discover(
+        expected_video_titles=(
+            "03 Battle Theme",
+            "02 Exploration Theme",
+            "01 Opening Theme",
+        )
+    )
 
     assert [video.video_id for video in result] == [
+        "video-03",
         "video-02",
         "video-01",
-        "video-older",
     ]
 
 
-def test_discover_ignores_unlisted_video_after_private_block():
+def test_discover_ignores_public_and_unlisted_videos():
     methods = _create_methods()
 
     methods.playlist_items_list.return_value = {
         "items": [
             _create_playlist_item(
                 "video-public",
-                "Recent Public Video",
+                "Public Video",
                 None,
                 "public",
             ),
             _create_playlist_item(
                 "video-02",
                 "02 Battle Theme",
-                None,
-                "private",
-            ),
-            _create_playlist_item(
-                "video-01",
-                "01 Opening Theme",
                 None,
                 "private",
             ),
@@ -265,8 +199,8 @@ def test_discover_ignores_unlisted_video_after_private_block():
                 "unlisted",
             ),
             _create_playlist_item(
-                "video-old",
-                "Older Video",
+                "video-01",
+                "01 Opening Theme",
                 None,
                 "private",
             ),
@@ -275,29 +209,33 @@ def test_discover_ignores_unlisted_video_after_private_block():
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover(expected_video_count=3)
+    result = discovery.discover(
+        expected_video_titles=(
+            "02 Battle Theme",
+            "01 Opening Theme",
+        )
+    )
 
     assert [video.video_id for video in result] == [
         "video-02",
         "video-01",
-        "video-old",
     ]
 
 
-def test_discover_raises_when_not_enough_private_videos_are_found():
+def test_discover_raises_when_expected_video_is_missing():
     methods = _create_methods()
 
     methods.playlist_items_list.return_value = {
         "items": [
             _create_playlist_item(
-                "video-public-02",
-                "Recent Public Video",
+                "video-01",
+                "01 Opening Theme",
                 None,
-                "public",
+                "private",
             ),
             _create_playlist_item(
-                "video-private-01",
-                "01 Song",
+                "video-unrelated",
+                "Unrelated Private Video",
                 None,
                 "private",
             ),
@@ -308,129 +246,14 @@ def test_discover_raises_when_not_enough_private_videos_are_found():
 
     with pytest.raises(
         RuntimeError,
-        match="Not enough private YouTube videos were discovered",
+        match="Not all expected YouTube videos were discovered",
     ):
-        discovery.discover(expected_video_count=2)
-
-
-def test_discover_follows_pagination():
-    methods = _create_methods()
-
-    methods.playlist_items_list.side_effect = [
-        {
-            "items": [
-                _create_playlist_item(
-                    "video-public-02",
-                    "Recent Public Video",
-                    None,
-                    "public",
-                ),
-                _create_playlist_item(
-                    "video-public-01",
-                    "Another Public Video",
-                    None,
-                    "public",
-                ),
-                _create_playlist_item(
-                    "video-02",
-                    "02 Battle Theme",
-                    None,
-                    "private",
-                ),
-            ],
-            "nextPageToken": "PAGE_2",
-        },
-        {
-            "items": [
-                _create_playlist_item(
-                    "video-01",
-                    "01 Opening Theme",
-                    None,
-                    "private",
-                ),
-                _create_playlist_item(
-                    "video-old",
-                    "Older Video",
-                    None,
-                    "public",
-                ),
-            ],
-        },
-    ]
-
-    discovery = YouTubeDiscovery(methods)
-
-    result = discovery.discover(expected_video_count=2)
-
-    assert [video.video_id for video in result] == [
-        "video-02",
-        "video-01",
-    ]
-
-    assert methods.playlist_items_list.call_count == 2
-
-    first_call = methods.playlist_items_list.call_args_list[0]
-    second_call = methods.playlist_items_list.call_args_list[1]
-
-    assert first_call.kwargs == {
-        "playlist_id": UPLOADS_PLAYLIST_ID,
-        "page_token": None,
-    }
-
-    assert second_call.kwargs == {
-        "playlist_id": UPLOADS_PLAYLIST_ID,
-        "page_token": "PAGE_2",
-    }
-
-
-def test_discover_requests_next_page_after_public_video():
-    methods = _create_methods()
-
-    methods.playlist_items_list.side_effect = [
-        {
-            "items": [
-                _create_playlist_item(
-                    "video-public",
-                    "Recent Public Video",
-                    None,
-                    "public",
-                ),
-                _create_playlist_item(
-                    "video-02",
-                    "02 Battle Theme",
-                    None,
-                    "private",
-                ),
-                _create_playlist_item(
-                    "video-old",
-                    "Older Video",
-                    None,
-                    "public",
-                ),
-            ],
-            "nextPageToken": "PAGE_2",
-        },
-        {
-            "items": [
-                _create_playlist_item(
-                    "video-01",
-                    "01 Opening Theme",
-                    None,
-                    "private",
-                ),
-            ],
-        },
-    ]
-
-    discovery = YouTubeDiscovery(methods)
-
-    result = discovery.discover(expected_video_count=2)
-
-    assert [video.video_id for video in result] == [
-        "video-02",
-        "video-01",
-    ]
-    assert methods.playlist_items_list.call_count == 2
+        discovery.discover(
+            expected_video_titles=(
+                "01 Opening Theme",
+                "02 Missing Theme",
+            )
+        )
 
 
 def test_discover_raises_when_playlist_is_empty():
@@ -444,9 +267,11 @@ def test_discover_raises_when_playlist_is_empty():
 
     with pytest.raises(
         RuntimeError,
-        match="Not enough private YouTube videos were discovered",
+        match="Not all expected YouTube videos were discovered",
     ):
-        discovery.discover(expected_video_count=1)
+        discovery.discover(
+            expected_video_titles=("01 Opening Theme",)
+        )
 
 
 def test_discover_handles_private_videos_without_description():
@@ -455,29 +280,19 @@ def test_discover_handles_private_videos_without_description():
     methods.playlist_items_list.return_value = {
         "items": [
             _create_playlist_item(
-                "video-public",
-                "Recent Public Video",
-                None,
-                "public",
-            ),
-            _create_playlist_item(
                 "video-01",
                 "01 Opening Theme",
                 None,
                 "private",
-            ),
-            _create_playlist_item(
-                "video-old",
-                "Older Video",
-                None,
-                "public",
             ),
         ]
     }
 
     discovery = YouTubeDiscovery(methods)
 
-    result = discovery.discover(expected_video_count=1)
+    result = discovery.discover(
+        expected_video_titles=("01 Opening Theme",)
+    )
 
     assert len(result) == 1
     assert result[0].video_id == "video-01"
@@ -486,15 +301,98 @@ def test_discover_handles_private_videos_without_description():
     assert result[0].privacy_status is PrivacyStatus.PRIVATE
 
 
-def test_discover_rejects_non_positive_expected_video_count():
+def test_discover_matches_numbered_videos_by_numeric_prefix():
+    methods = _create_methods()
+
+    methods.playlist_items_list.return_value = {
+        "items": [
+            _create_playlist_item(
+                "video-02",
+                "02 Exploration Theme Orchestral Mix",
+                None,
+                "private",
+            ),
+            _create_playlist_item(
+                "video-01",
+                "01 Opening Theme - Remastered",
+                None,
+                "private",
+            ),
+        ]
+    }
+
+    discovery = YouTubeDiscovery(methods)
+
+    result = discovery.discover(
+        expected_video_titles=(
+            "02 Exploration Theme",
+            "01 Opening Theme",
+        )
+    )
+
+    assert [video.video_id for video in result] == [
+        "video-02",
+        "video-01",
+    ]
+
+
+def test_discover_matches_compilation_by_exact_title():
+    methods = _create_methods()
+
+    methods.playlist_items_list.return_value = {
+        "items": [
+            _create_playlist_item(
+                "video-compilation",
+                "Crysis | Re-Engineered Soundtrack",
+                None,
+                "private",
+            ),
+        ]
+    }
+
+    discovery = YouTubeDiscovery(methods)
+
+    result = discovery.discover(
+        expected_video_titles=("Crysis | Re-Engineered Soundtrack",)
+    )
+
+    assert [video.video_id for video in result] == ["video-compilation"]
+
+
+def test_discover_does_not_match_compilation_by_partial_title():
+    methods = _create_methods()
+
+    methods.playlist_items_list.return_value = {
+        "items": [
+            _create_playlist_item(
+                "video-compilation",
+                "Crysis | Re-Engineered Soundtrack Extended",
+                None,
+                "private",
+            ),
+        ]
+    }
+
+    discovery = YouTubeDiscovery(methods)
+
+    with pytest.raises(
+        RuntimeError,
+        match="Not all expected YouTube videos were discovered",
+    ):
+        discovery.discover(
+            expected_video_titles=("Crysis | Re-Engineered Soundtrack",)
+        )
+
+
+def test_discover_rejects_empty_expected_video_titles():
     methods = _create_methods()
     discovery = YouTubeDiscovery(methods)
 
     with pytest.raises(
         ValueError,
-        match="expected_video_count must be greater than zero",
+        match="expected_video_titles must not be empty",
     ):
-        discovery.discover(expected_video_count=0)
+        discovery.discover(expected_video_titles=())
 
 
 def test_discover_raises_when_authenticated_channel_is_not_found():
@@ -507,7 +405,9 @@ def test_discover_raises_when_authenticated_channel_is_not_found():
         RuntimeError,
         match="Authenticated YouTube channel was not found",
     ):
-        discovery.discover(expected_video_count=1)
+        discovery.discover(
+            expected_video_titles=("01 Opening Theme",)
+        )
 
 
 def test_discover_raises_when_uploads_playlist_is_not_found():
@@ -528,4 +428,104 @@ def test_discover_raises_when_uploads_playlist_is_not_found():
         RuntimeError,
         match="YouTube uploads playlist was not found",
     ):
-        discovery.discover(expected_video_count=1)
+        discovery.discover(
+            expected_video_titles=("01 Opening Theme",)
+        )
+
+def test_discover_uses_multiple_pagination_strategies_until_all_expected_videos_are_found():
+    methods = _create_methods()
+
+    methods.playlist_items_list.side_effect = [
+        {
+            "items": [
+                _create_playlist_item(
+                    "video-unrelated-01",
+                    "Unrelated Private Video",
+                    None,
+                    "private",
+                ),
+                _create_playlist_item(
+                    "video-03",
+                    "03 Battle Theme",
+                    None,
+                    "private",
+                ),
+            ],
+        },
+        {
+            "items": [
+                _create_playlist_item(
+                    "video-unrelated-02",
+                    "Silent Hill 2 OST",
+                    None,
+                    "private",
+                ),
+                _create_playlist_item(
+                    "video-02",
+                    "02 Exploration Theme",
+                    None,
+                    "private",
+                ),
+            ],
+        },
+        {
+            "items": [
+                _create_playlist_item(
+                    "video-public",
+                    "Public Video",
+                    None,
+                    "public",
+                ),
+                _create_playlist_item(
+                    "video-01",
+                    "01 Opening Theme",
+                    None,
+                    "private",
+                ),
+            ],
+        },
+    ]
+
+    discovery = YouTubeDiscovery(methods)
+
+    result = discovery.discover(
+        expected_video_titles=(
+            "03 Battle Theme",
+            "02 Exploration Theme",
+            "01 Opening Theme",
+        )
+    )
+
+    assert [video.video_id for video in result] == [
+        "video-03",
+        "video-02",
+        "video-01",
+    ]
+
+    assert methods.playlist_items_list.call_count == 3
+
+    first_call = methods.playlist_items_list.call_args_list[0]
+    second_call = methods.playlist_items_list.call_args_list[1]
+    third_call = methods.playlist_items_list.call_args_list[2]
+
+    assert first_call.kwargs == {
+        "playlist_id": UPLOADS_PLAYLIST_ID,
+        "max_results": 50,
+        "page_token": None,
+    }
+
+    assert second_call.kwargs == {
+        "playlist_id": UPLOADS_PLAYLIST_ID,
+        "max_results": 34,
+        "page_token": None,
+    }
+
+    assert third_call.kwargs == {
+        "playlist_id": UPLOADS_PLAYLIST_ID,
+        "max_results": 23,
+        "page_token": None,
+    }
+
+
+def test_build_max_results_strategy():
+    assert YouTubeDiscovery._build_max_results_strategy() == (50, 34, 23)

@@ -68,8 +68,11 @@ class YouTubeVideoManagerProcessor:
 
     def _create_job(self, manifest_path: Path) -> Job:
         manifest = self._manifest_reader.read(manifest_path)
-        youtube_videos = self._youtube_discovery.discover(len(manifest.videos))
 
+        youtube_videos = self._youtube_discovery.discover(
+            expected_video_titles=manifest.videos,
+        )
+        
         # DEPURATION
         # print("\n=== YOUTUBE DISCOVERY ===")
 

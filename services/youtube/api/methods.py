@@ -45,8 +45,9 @@ class YouTubeMethods:
         *,
         playlist_id: str,
         part: str = "snippet,contentDetails,status",
-        max_results: int = 50,
+        max_results: int = 1,
         page_token: str | None = None,
+        video_id: str | None = None,
     ) -> dict[str, Any]:
         """Retrieve a page of items from a YouTube playlist."""
         request_kwargs: dict[str, Any] = {
@@ -57,6 +58,9 @@ class YouTubeMethods:
 
         if page_token is not None:
             request_kwargs["pageToken"] = page_token
+
+        if video_id is not None:
+            request_kwargs["videoId"] = video_id
 
         return self._execute(
             "playlistItems.list",
