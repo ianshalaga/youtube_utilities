@@ -55,10 +55,10 @@
       "default_extra_description": ""
     },
     "youtube_video_manager": {
-      "album_manifest_path": "F:/@Seyfer/Proyectos/youtube_utilities/config/youtube/album_manifest.yaml",
+      "album_manifest_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/album_manifest.yaml",
       "max_attempts": 3,
-      "client_secrets_path": "F:/@Seyfer/Proyectos/youtube_utilities/config/youtube/client_secret.json",
-      "token_path": "F:/@Seyfer/Proyectos/youtube_utilities/config/youtube/token.json"
+      "client_secrets_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/client_secret.json",
+      "token_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/token.json"
     },
     "video_converter": {
       "video_formats": {
