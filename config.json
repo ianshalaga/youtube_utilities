@@ -1,7 +1,7 @@
 {
   "paths": {
-    "ffmpeg": "C:/ffmpeg/bin/ffmpeg.exe",
-    "probe": "C:/ffmpeg/bin/ffprobe.exe",
+    "ffmpeg": "C:/Program Files/ffmpeg/bin/ffmpeg.exe",
+    "probe": "C:/Program Files/ffmpeg/bin/ffprobe.exe",
     "mkvmerge": "C:/Program Files/MKVToolNix/mkvmerge.exe"
   },
   "audio": {
@@ -38,15 +38,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Crysis/01 Crysis - 2007/02 Crysis - Re-Engineered Soundtrack",
-      "default_video_path": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Crysis/01 Crysis - 2007/02 Crysis - Re-Engineered Soundtrack/images/video.mp4",
+      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Fire Emblem/01 Fire Emblem - Shadow Dragon and the Blade of Light (1990)/02 Fire Emblem ~Character Theme Collection~",
+      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Fire Emblem/01 Fire Emblem - Shadow Dragon and the Blade of Light (1990)/02 Fire Emblem ~Character Theme Collection~/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Crysis/01 Crysis - 2007/02 Crysis - Re-Engineered Soundtrack/videos/@",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Fire Emblem/01 Fire Emblem - Shadow Dragon and the Blade of Light (1990)/02 Fire Emblem ~Character Theme Collection~/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Crysis - Re-Engineered Soundtrack",
+      "default_video_name": "Fire Emblem ~Character Theme Collection~",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,

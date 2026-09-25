@@ -132,7 +132,7 @@ class VideoJoinerProcessor:
         if not videos:
             raise ValueError("No videos provided for mkvmerge.")
 
-        cmd = ["mkvmerge", "-o", str(output_path)]
+        cmd = [self._config.paths_mkvmerge, "-o", str(output_path)]
         cmd.append(str(videos[0]))
 
         for video in videos[1:]:
