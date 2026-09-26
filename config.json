@@ -38,15 +38,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Fire Emblem/01 Fire Emblem - Shadow Dragon and the Blade of Light (1990)/02 Fire Emblem ~Character Theme Collection~",
-      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Fire Emblem/01 Fire Emblem - Shadow Dragon and the Blade of Light (1990)/02 Fire Emblem ~Character Theme Collection~/images/video.mp4",
+      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Metal Slug/02 Metal Slug 2 - Super Vehicle-001 - II - 1998/02 Neo Geo MVS - Gamerip Tracks",
+      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Metal Slug/02 Metal Slug 2 - Super Vehicle-001 - II - 1998/02 Neo Geo MVS - Gamerip Tracks/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Fire Emblem/01 Fire Emblem - Shadow Dragon and the Blade of Light (1990)/02 Fire Emblem ~Character Theme Collection~/videos",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/The Witcher/02 The Witcher 2 - Assassins of Kings - 2011 - 2012/01 Official Game Soundtrack/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Fire Emblem ~Character Theme Collection~",
+      "default_video_name": "The Witcher 2 - Assassins of Kings - Official Game Soundtrack",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
