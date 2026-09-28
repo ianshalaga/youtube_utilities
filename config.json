@@ -38,15 +38,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Soulcalibur™/04 Soulcalibur II - 2002/03 PROJECT SOUL the PRIMARY SOUND BOX -SOUL EDGE ~ SOULCALIBUR I & II-/Disc 1 - Soul Edge - Blade",
-      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Soulcalibur™/04 Soulcalibur II - 2002/03 PROJECT SOUL the PRIMARY SOUND BOX -SOUL EDGE ~ SOULCALIBUR I & II-/images/video1.mp4",
+      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Soulcalibur/04 Soulcalibur II - 2002/03 PROJECT SOUL the PRIMARY SOUND BOX -SOUL EDGE ~ SOULCALIBUR I & II-/Disc 4 - Soulcalibur II - Disc 1",
+      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Soulcalibur/04 Soulcalibur II - 2002/03 PROJECT SOUL the PRIMARY SOUND BOX -SOUL EDGE ~ SOULCALIBUR I & II-/images/video4.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Soulcalibur™/04 Soulcalibur II - 2002/03 PROJECT SOUL the PRIMARY SOUND BOX -SOUL EDGE ~ SOULCALIBUR I & II-/Disc 1 - Soul Edge - Blade/videos",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Soulcalibur/04 Soulcalibur II - 2002/03 PROJECT SOUL the PRIMARY SOUND BOX -SOUL EDGE ~ SOULCALIBUR I & II-/Disc 4 - Soulcalibur II - Disc 1/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "PROJECT SOUL the PRIMARY SOUND BOX -SOUL EDGE ~ SOULCALIBUR I & II- - Disc 1 - Soul Edge - Blade",
+      "default_video_name": "PROJECT SOUL the PRIMARY SOUND BOX -SOUL EDGE ~ SOULCALIBUR I & II- - Disc 4 - Soulcalibur II - Disc 1",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
