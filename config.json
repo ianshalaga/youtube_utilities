@@ -44,9 +44,9 @@
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Bloody Roar/03 Bloody Roar 3 - 2000/01 BLOODY ROAR 3 SOUND TRACK/videos",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/The Legend of Zelda/03 The Legend of Zelda - A Link to the Past - 1991/02 GBA - Gamerip Tracks/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "BLOODY ROAR 3 SOUND TRACK",
+      "default_video_name": "The Legend of Zelda - A Link to the Past - GBA - Gamerip Tracks",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
