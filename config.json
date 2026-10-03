@@ -38,15 +38,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/Disc 1",
-      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/images/video1.mp4",
+      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/Disc 2",
+      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/images/video2.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/Disc 1/videos",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/Disc 2/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Devil May Cry OST - Disc 1",
+      "default_video_name": "Devil May Cry OST - Disc 2",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
