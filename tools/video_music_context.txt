@@ -1,6 +1,6 @@
 # GENERATED PROJECT CONTEXT
-# base_dir: F:\@Seyfer\Proyectos\youtube_utilities
-# total_files: 41
+# base_dir: D:\@Seyfer\Proyectos\youtube_utilities
+# total_files: 42
 
 # PROJECT STRUCTURE
 
@@ -8,6 +8,7 @@ app.py
 applications
   video_music
     __init__.py
+    console.py
     processor.py
     routes.py
     templates
@@ -107,6 +108,357 @@ __all__ = [
 
 
 ================================================================================
+FILE: applications\video_music\console.py
+================================================================================
+from __future__ import annotations
+
+from pathlib import Path
+from threading import Lock
+
+from rich.console import Console, Group
+from rich.live import Live
+from rich.panel import Panel
+from rich.progress import BarColumn, Progress, TextColumn
+from rich.table import Table
+
+
+class VideoMusicConsole:
+    """Console presentation for the Video Music workflow.
+
+    The console keeps mutable job state and renders it through Rich Live,
+    preventing concurrent worker threads from interleaving terminal output.
+    """
+
+    def __init__(self, console: Console | None = None) -> None:
+        self._console = console or Console()
+        self._lock = Lock()
+        self._live: Live | None = None
+
+        self._video_path: Path | None = None
+        self._audios_dir: Path | None = None
+        self._output_dir: Path | None = None
+        self._total_tracks = 0
+        self._max_items_per_dir: int | None = None
+        self._total_directories = 1
+
+        self._statuses: dict[int, str] = {}
+        self._track_names: dict[int, str] = {}
+        self._durations: dict[int, str] = {}
+        self._errors: dict[int, str] = {}
+
+        self._completed = 0
+        self._failed = 0
+        self._running = 0
+        self._current_directory = 1
+
+    def job_started(
+        self,
+        video_path: Path,
+        audios_dir: Path,
+        output_dir: Path,
+        total_tracks: int,
+        max_items_per_dir: int | None,
+    ) -> None:
+        """Initialize the job state and display its context."""
+        with self._lock:
+            self._video_path = video_path
+            self._audios_dir = audios_dir
+            self._output_dir = output_dir
+            self._total_tracks = total_tracks
+            self._max_items_per_dir = max_items_per_dir
+
+            if max_items_per_dir:
+                self._total_directories = max(
+                    1,
+                    (total_tracks + max_items_per_dir - 1)
+                    // max_items_per_dir,
+                )
+            else:
+                self._total_directories = 1
+
+            self._statuses.clear()
+            self._track_names.clear()
+            self._durations.clear()
+            self._errors.clear()
+
+            self._completed = 0
+            self._failed = 0
+            self._running = 0
+            self._current_directory = 1
+
+            self._render_static_header()
+
+    def partition_started(
+        self,
+        total_tracks: int,
+        max_items_per_dir: int,
+        total_directories: int,
+    ) -> None:
+        """Update the partitioning information."""
+        with self._lock:
+            self._total_tracks = total_tracks
+            self._max_items_per_dir = max_items_per_dir
+            self._total_directories = total_directories
+
+    def processing_started(self) -> None:
+        """Start the live processing display."""
+        with self._lock:
+            if self._live is None:
+                self._live = Live(
+                    self._render(),
+                    console=self._console,
+                    refresh_per_second=8,
+                    transient=False,
+                )
+                self._live.start(refresh=True)
+
+    def track_started(
+        self,
+        index: int,
+        total: int,
+        audio_path: Path,
+        output_dir: Path,
+    ) -> None:
+        """Mark a track as running."""
+        with self._lock:
+            self._total_tracks = total
+            self._track_names[index] = audio_path.stem
+            self._statuses[index] = "running"
+            self._running += 1
+
+            if self._max_items_per_dir:
+                self._current_directory = (
+                    (index - 1) // self._max_items_per_dir
+                ) + 1
+
+            self._refresh()
+
+    def audio_converted(
+        self,
+        audio_path: Path,
+        output_path: Path,
+    ) -> None:
+        """Record successful temporary audio conversion."""
+        # Conversion is an internal processing step. Keep the public display
+        # compact and update the live state only.
+        return
+
+    def duration_detected(
+        self,
+        audio_path: Path,
+        duration: str,
+    ) -> None:
+        """Record the detected duration for the corresponding track."""
+        with self._lock:
+            for index, name in self._track_names.items():
+                if name == audio_path.stem:
+                    self._durations[index] = duration
+                    break
+            self._refresh()
+
+    def video_created(
+        self,
+        audio_path: Path,
+        output_path: Path,
+    ) -> None:
+        """Record successful video generation."""
+        return
+
+    def temporary_files_cleaned(
+        self,
+        audio_path: Path,
+    ) -> None:
+        """Record cleanup of temporary files."""
+        return
+
+    def track_completed(
+        self,
+        index: int,
+        total: int,
+        audio_path: Path,
+    ) -> None:
+        """Mark a track as successfully completed."""
+        with self._lock:
+            self._total_tracks = total
+            self._track_names[index] = audio_path.stem
+            self._statuses[index] = "completed"
+            self._completed += 1
+            self._running = max(0, self._running - 1)
+            self._refresh()
+
+    def track_failed(
+        self,
+        index: int,
+        total: int,
+        audio_path: Path,
+        error: Exception,
+    ) -> None:
+        """Mark a track as failed."""
+        with self._lock:
+            self._total_tracks = total
+            self._track_names[index] = audio_path.stem
+            self._statuses[index] = "failed"
+            self._errors[index] = str(error)
+            self._failed += 1
+            self._running = max(0, self._running - 1)
+            self._refresh()
+
+    def job_completed(
+        self,
+        total_tracks: int,
+        output_dir: Path,
+    ) -> None:
+        """Stop live rendering and display the final summary."""
+        with self._lock:
+            self._total_tracks = total_tracks
+            self._output_dir = output_dir
+            self._completed = max(self._completed, total_tracks - self._failed)
+            self._stop_live()
+            self._console.print()
+            self._console.print(
+                Panel(
+                    self._summary_table(),
+                    title="[bold green]✓ JOB COMPLETED[/bold green]",
+                    border_style="green",
+                    expand=False,
+                )
+            )
+
+    def job_failed(self, error: Exception) -> None:
+        """Stop live rendering and display the job-level failure."""
+        with self._lock:
+            self._stop_live()
+            self._console.print()
+            self._console.print(
+                Panel(
+                    f"[red]{error}[/red]",
+                    title="[bold red]✗ JOB FAILED[/bold red]",
+                    border_style="red",
+                    expand=False,
+                )
+            )
+
+    def _render_static_header(self) -> None:
+        """Render the non-live job context."""
+        self._console.print()
+        self._console.print(
+            Panel(
+                self._job_context_table(),
+                title="[bold white]VIDEO MUSIC[/bold white]",
+                border_style="blue",
+                expand=False,
+            )
+        )
+        self._console.print()
+
+    def _job_context_table(self) -> Table:
+        table = Table.grid(padding=(0, 2))
+        table.add_column(style="bold")
+        table.add_column()
+
+        table.add_row("Video", str(self._video_path))
+        table.add_row("Audio source", str(self._audios_dir))
+        table.add_row("Output", str(self._output_dir))
+        table.add_row("Tracks", str(self._total_tracks))
+
+        partition = (
+            "Disabled"
+            if self._max_items_per_dir is None
+            else f"{self._max_items_per_dir} tracks / directory"
+        )
+        table.add_row("Partition", partition)
+
+        return table
+
+    def _render(self) -> Group:
+        progress = Progress(
+            TextColumn("[bold]Progress[/bold]"),
+            BarColumn(),
+            TextColumn("{task.completed}/{task.total}"),
+            TextColumn("·"),
+            TextColumn("{task.percentage:>5.1f}%"),
+            expand=True,
+        )
+        progress.add_task(
+            "tracks",
+            total=self._total_tracks,
+            completed=self._completed,
+        )
+
+        table = Table.grid(padding=(0, 1))
+        table.add_column(width=4)
+        table.add_column(width=8)
+        table.add_column(ratio=1)
+        table.add_column(width=12)
+
+        visible = sorted(self._statuses.items())[-12:]
+
+        for index, status in visible:
+            name = self._track_names.get(index, "")
+            duration = self._durations.get(index, "")
+
+            if status == "completed":
+                icon = "[green]✓[/green]"
+                state = "[green]DONE[/green]"
+            elif status == "failed":
+                icon = "[red]✗[/red]"
+                state = "[red]FAILED[/red]"
+            else:
+                icon = "[yellow]◐[/yellow]"
+                state = "[yellow]RUNNING[/yellow]"
+
+            table.add_row(
+                icon,
+                f"{index:03d}/{self._total_tracks:03d}",
+                f"{name}",
+                duration or state,
+            )
+
+        if not visible:
+            table.add_row("", "", "[dim]Waiting for tracks...[/dim]", "")
+
+        stats = (
+            f"[bold]Running:[/bold] {self._running}    "
+            f"[bold green]Completed:[/bold green] {self._completed}    "
+            f"[bold red]Failed:[/bold red] {self._failed}"
+        )
+
+        directory = (
+            f"Directory {self._current_directory}/{self._total_directories}"
+        )
+
+        return Group(
+            f"[bold cyan]▶ PROCESSING TRACKS[/bold cyan]  [dim]{directory}[/dim]",
+            progress,
+            table,
+            stats,
+        )
+
+    def _summary_table(self) -> Table:
+        table = Table.grid(padding=(0, 2))
+        table.add_column(style="bold")
+        table.add_column()
+
+        table.add_row("Tracks", str(self._total_tracks))
+        table.add_row("Completed", str(self._completed))
+        table.add_row("Failed", str(self._failed))
+        table.add_row("Directories", str(self._total_directories))
+        table.add_row("Output", str(self._output_dir))
+
+        return table
+
+    def _refresh(self) -> None:
+        if self._live is not None:
+            self._live.update(self._render(), refresh=True)
+
+    def _stop_live(self) -> None:
+        if self._live is not None:
+            self._live.update(self._render(), refresh=True)
+            self._live.stop()
+            self._live = None
+
+
+================================================================================
 FILE: applications\video_music\processor.py
 ================================================================================
 """
@@ -142,6 +494,7 @@ from services.media.discovery.media_discovery import MediaDiscoveryService
 from services.media.video.mkvmerge_runner import MKVMergeRunner
 from services.media.audio.converter import AudioConverter
 from services.media.ffprobe_provider import FFProbeProvider
+from .console import VideoMusicConsole
 
 
 class VideoMusicProcessor:
@@ -168,11 +521,13 @@ class VideoMusicProcessor:
         audio_converter: AudioConverter,
         ffprobe_provider: FFProbeProvider,
         max_items_per_dir: int | None = None,
+        console: VideoMusicConsole | None = None,
     ):
         self._config = ConfigManager()
         self._mkvmerge_runner = mkvmerge_runner
         self._audio_converter = audio_converter
         self._ffprobe_provider = ffprobe_provider
+        self._console = console or VideoMusicConsole()
         self._output_partitioner: OutputDirectoryPartitioner | None
 
         self._max_items_per_dir = (
@@ -236,6 +591,14 @@ class VideoMusicProcessor:
 
         total_songs = len(audio_files)
 
+        self._console.job_started(
+            video_path=video_path,
+            audios_dir=audios_dir,
+            output_dir=output_dir,
+            total_tracks=total_songs,
+            max_items_per_dir=self._max_items_per_dir,
+        )
+
         # ───────────────────────────────
         # MODO SIN SUBDIRECTORIOS
         # ───────────────────────────────
@@ -243,27 +606,43 @@ class VideoMusicProcessor:
             self._max_items_per_dir is None
             or total_songs <= self._max_items_per_dir
         ):
+            self._console.processing_started()
+
             with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
                 futures = []
 
-                for audio_path in audio_files:
+                for index, audio_path in enumerate(audio_files, start=1):
                     futures.append(
                         executor.submit(
                             self._process_single,
                             video_path,
                             audio_path,
-                            output_dir
+                            output_dir,
+                            index,
+                            total_songs,
                         )
                     )
 
                 for future in as_completed(futures):
                     future.result()
 
+            self._console.job_completed(total_songs, output_dir)
             return
 
         # ───────────────────────────────
         # MODO CON SUBDIRECTORIOS
         # ───────────────────────────────
+        total_directories = (
+            (total_songs + self._max_items_per_dir - 1)
+            // self._max_items_per_dir
+        )
+        self._console.partition_started(
+            total_tracks=total_songs,
+            max_items_per_dir=self._max_items_per_dir,
+            total_directories=total_directories,
+        )
+        self._console.processing_started()
+
         with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
             futures = []
 
@@ -282,18 +661,24 @@ class VideoMusicProcessor:
                         self._process_single,
                         video_path,
                         audio_path,
-                        subdir
+                        subdir,
+                        index + 1,
+                        total_songs,
                     )
                 )
 
             for future in as_completed(futures):
                 future.result()
 
+        self._console.job_completed(total_songs, output_dir)
+
     def _process_single(
         self,
         video_path: Path,
         audio_path: Path,
-        output_dir: Path
+        output_dir: Path,
+        index: int,
+        total: int,
     ) -> None:
         """
         Procesa una única pista de audio contra el video base.
@@ -313,14 +698,23 @@ class VideoMusicProcessor:
             output_dir:
                 Directorio de salida.
         """
-        tmp_audio_path = self._audio_converter.convert(
-            src=audio_path,
-            dst_dir=output_dir
+        self._console.track_started(
+            index=index,
+            total=total,
+            audio_path=audio_path,
+            output_dir=output_dir,
         )
 
         try:
+            tmp_audio_path = self._audio_converter.convert(
+                src=audio_path,
+                dst_dir=output_dir
+            )
+            self._console.audio_converted(audio_path, tmp_audio_path)
+
             duration_seconds = self._ffprobe_provider.duration(tmp_audio_path)
             duration = seconds_to_hhmmss_ms(duration_seconds)
+            self._console.duration_detected(audio_path, duration)
 
             output_path = output_dir / f"{audio_path.stem}.mkv"
 
@@ -338,10 +732,18 @@ class VideoMusicProcessor:
             self._mkvmerge_runner.run(cmd)
 
             self._cleanup_segments(output_dir, audio_path.stem)
+            self._console.video_created(audio_path, output_path)
+
+        except Exception as error:
+            self._console.track_failed(index, total, audio_path, error)
+            raise
 
         finally:
-            if tmp_audio_path.exists():
+            if "tmp_audio_path" in locals() and tmp_audio_path.exists():
                 tmp_audio_path.unlink()
+                self._console.temporary_files_cleaned(audio_path)
+
+        self._console.track_completed(index, total, audio_path)
 
     def _cleanup_segments(self, output_dir: Path, base_name: str) -> None:
         """
@@ -382,8 +784,8 @@ FILE: config.json
 ================================================================================
 {
   "paths": {
-    "ffmpeg": "C:/ffmpeg/bin/ffmpeg.exe",
-    "probe": "C:/ffmpeg/bin/ffprobe.exe",
+    "ffmpeg": "C:/Program Files/ffmpeg/bin/ffmpeg.exe",
+    "probe": "C:/Program Files/ffmpeg/bin/ffprobe.exe",
     "mkvmerge": "C:/Program Files/MKVToolNix/mkvmerge.exe"
   },
   "audio": {
@@ -420,15 +822,15 @@ FILE: config.json
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Crysis/01 Crysis - 2007/02 Crysis - Re-Engineered Soundtrack",
-      "default_video_path": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Crysis/01 Crysis - 2007/02 Crysis - Re-Engineered Soundtrack/images/video.mp4",
+      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/Disc 2",
+      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/images/video2.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Crysis/01 Crysis - 2007/02 Crysis - Re-Engineered Soundtrack/videos/@",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/Disc 2/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Crysis - Re-Engineered Soundtrack",
+      "default_video_name": "Devil May Cry OST - Disc 2",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
@@ -437,10 +839,10 @@ FILE: config.json
       "default_extra_description": ""
     },
     "youtube_video_manager": {
-      "album_manifest_path": "F:/@Seyfer/Proyectos/youtube_utilities/config/youtube/album_manifest.yaml",
+      "album_manifest_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/album_manifest.yaml",
       "max_attempts": 3,
-      "client_secrets_path": "F:/@Seyfer/Proyectos/youtube_utilities/config/youtube/client_secret.json",
-      "token_path": "F:/@Seyfer/Proyectos/youtube_utilities/config/youtube/token.json"
+      "client_secrets_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/client_secret.json",
+      "token_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/token.json"
     },
     "video_converter": {
       "video_formats": {
