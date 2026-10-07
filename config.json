@@ -38,8 +38,8 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Metal Gear/03 Metal Gear 2 - Solid Snake/03 METAL GEAR - METAL GEAR 2 SOLID SNAKE Music Collection",
-      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Metal Gear/03 Metal Gear 2 - Solid Snake/03 METAL GEAR - METAL GEAR 2 SOLID SNAKE Music Collection/images/video.mp4",
+      "default_audios_dir": "F:/Vacaciones/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST",
+      "default_video_path": "F:/Vacaciones/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
@@ -55,10 +55,10 @@
       "default_extra_description": ""
     },
     "youtube_video_manager": {
-      "album_manifest_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/album_manifest.yaml",
+      "album_manifest_path": "H:/@Seyfer/@Projects/youtube_utilities/config/youtube/album_manifest.yaml",
       "max_attempts": 3,
-      "client_secrets_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/client_secret.json",
-      "token_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/token.json"
+      "client_secrets_path": "H:/@Seyfer/@Projects/youtube_utilities/config/youtube/client_secret.json",
+      "token_path": "H:/@Seyfer/@Projects/youtube_utilities/config/youtube/token.json"
     },
     "video_converter": {
       "video_formats": {

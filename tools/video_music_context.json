@@ -1,5 +1,5 @@
 {
-  "base_dir": "D:\\@Seyfer\\Proyectos\\youtube_utilities",
+  "base_dir": "H:\\@Seyfer\\@Projects\\youtube_utilities",
   "extensions": [
     ".css",
     ".html",
@@ -40,7 +40,7 @@
     "*~",
     "test_*.py"
   ],
-  "total_files": 42,
+  "total_files": 64,
   "files": [
     {
       "path": "app.py",
@@ -93,10 +93,10 @@
     {
       "path": "config.json",
       "extension": ".json",
-      "size_bytes": 3602,
+      "size_bytes": 3641,
       "lines": 116,
-      "sha256": "2560551529a6ea71faaba405daa6fbf3b893bcf3cc52897c8f8e60303fdb62f3",
-      "content": "{\n  \"paths\": {\n    \"ffmpeg\": \"C:/Program Files/ffmpeg/bin/ffmpeg.exe\",\n    \"probe\": \"C:/Program Files/ffmpeg/bin/ffprobe.exe\",\n    \"mkvmerge\": \"C:/Program Files/MKVToolNix/mkvmerge.exe\"\n  },\n  \"audio\": {\n    \"target_codec\": \"aac\",\n    \"target_container\": \"m4a\",\n    \"target_bitrate\": \"320k\",\n    \"target_samplerate\": 48000,\n    \"lufs_target\": -14,\n    \"true_peak\": -1.0,\n    \"lra\": 11,\n    \"supported_extensions\": [\n      \"mp3\",\n      \"wav\",\n      \"flac\",\n      \"aac\",\n      \"m4a\",\n      \"ogg\",\n      \"opus\",\n      \"wma\"\n    ]\n  },\n  \"video\": {\n    \"supported_extensions\": [\n      \"mkv\",\n      \"mp4\",\n      \"mov\",\n      \"webm\",\n      \"avi\",\n      \"m4v\"\n    ]\n  },\n  \"dry_run\": false,\n  \"max_workers\": 4,\n  \"apps\": {\n    \"video_music\": {\n      \"max_items_per_dir\": 15,\n      \"default_audios_dir\": \"D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/Disc 2\",\n      \"default_video_path\": \"D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/images/video2.mp4\",\n      \"default_output_dir\": \"videos\"\n    },\n    \"video_joiner\": {\n      \"max_items_per_dir\": 15,\n      \"default_videos_dir\": \"D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/Disc 2/videos\",\n      \"default_output_dir\": \"compilation\",\n      \"default_video_name\": \"Devil May Cry OST - Disc 2\",\n      \"default_target_duration\": null,\n      \"default_end_screens_dir\": null,\n      \"default_random_end_screen\": true,\n      \"default_timestamps_prefix\": \"\",\n      \"default_timestamps_secuence\": false,\n      \"default_extra_description\": \"\"\n    },\n    \"youtube_video_manager\": {\n      \"album_manifest_path\": \"D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/album_manifest.yaml\",\n      \"max_attempts\": 3,\n      \"client_secrets_path\": \"D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/client_secret.json\",\n      \"token_path\": \"D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/token.json\"\n    },\n    \"video_converter\": {\n      \"video_formats\": {\n        \"youtube_1080p60\": {\n          \"video_codec\": \"libx264\",\n          \"video_bitrate\": \"16000k\",\n          \"framerate\": 60,\n          \"resolution\": \"1920x1080\",\n          \"audio_codec\": \"aac\",\n          \"audio_bitrate\": \"320k\",\n          \"audio_samplerate\": 48000\n        }\n      },\n      \"src\": \"F:/@Seyfer/GRABACIONES/SOULCALIBURVI/PANTALLAS DEL FINAL/PC2/pantalla_final_1_PC.mkv\",\n      \"dst_dir\": \"F:/DESCARGAS\",\n      \"output_format\": null,\n      \"reference_video\": \"F:/@Seyfer/GRABACIONES/SOULCALIBURVI/PANTALLAS DEL FINAL/PS4/pantalla_final_6_PS4.mkv\"\n    },\n    \"ranking_system\": {\n      \"entity\": \"player\",\n      \"filters\": {\n        \"scope\": {\n          \"season_name\": null,\n          \"event_name\": \"SSLT 10\",\n          \"event_type_name\": null,\n          \"region_name\": null,\n          \"game_name\": null,\n          \"game_version\": null,\n          \"event_platform\": null,\n          \"game_franchise_name\": null\n        },\n        \"duel\": {\n          \"duel_id\": null,\n          \"duel_type_name\": null\n        },\n        \"participant\": {\n          \"player_name\": null,\n          \"team_name\": null\n        },\n        \"battle\": {\n          \"participant_position\": null,\n          \"stage_name\": null,\n          \"character_identity_name\": null\n        },\n        \"player\": {\n          \"country_iso_code\": null\n        }\n      },\n      \"export\": {\n        \"format\": \"csv\",\n        \"output\": \"rankings/player_season3_pc.csv\"\n      }\n    }\n  }\n}"
+      "sha256": "167f5630be4b8ca58e4bd1f993e8859bc8c96f7af4fca2fc76b18042146886f7",
+      "content": "{\n  \"paths\": {\n    \"ffmpeg\": \"C:/Program Files/ffmpeg/bin/ffmpeg.exe\",\n    \"probe\": \"C:/Program Files/ffmpeg/bin/ffprobe.exe\",\n    \"mkvmerge\": \"C:/Program Files/MKVToolNix/mkvmerge.exe\"\n  },\n  \"audio\": {\n    \"target_codec\": \"aac\",\n    \"target_container\": \"m4a\",\n    \"target_bitrate\": \"320k\",\n    \"target_samplerate\": 48000,\n    \"lufs_target\": -14,\n    \"true_peak\": -1.0,\n    \"lra\": 11,\n    \"supported_extensions\": [\n      \"mp3\",\n      \"wav\",\n      \"flac\",\n      \"aac\",\n      \"m4a\",\n      \"ogg\",\n      \"opus\",\n      \"wma\"\n    ]\n  },\n  \"video\": {\n    \"supported_extensions\": [\n      \"mkv\",\n      \"mp4\",\n      \"mov\",\n      \"webm\",\n      \"avi\",\n      \"m4v\"\n    ]\n  },\n  \"dry_run\": false,\n  \"max_workers\": 4,\n  \"apps\": {\n    \"video_music\": {\n      \"max_items_per_dir\": 15,\n      \"default_audios_dir\": \"F:/Vacaciones/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST\",\n      \"default_video_path\": \"F:/Vacaciones/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/images/video.mp4\",\n      \"default_output_dir\": \"videos\"\n    },\n    \"video_joiner\": {\n      \"max_items_per_dir\": 15,\n      \"default_videos_dir\": \"D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Metal Gear/03 Metal Gear 2 - Solid Snake/03 METAL GEAR - METAL GEAR 2 SOLID SNAKE Music Collection/videos\",\n      \"default_output_dir\": \"compilation\",\n      \"default_video_name\": \"METAL GEAR - METAL GEAR 2 SOLID SNAKE - Music Collection\",\n      \"default_target_duration\": null,\n      \"default_end_screens_dir\": null,\n      \"default_random_end_screen\": true,\n      \"default_timestamps_prefix\": \"\",\n      \"default_timestamps_secuence\": false,\n      \"default_extra_description\": \"\"\n    },\n    \"youtube_video_manager\": {\n      \"album_manifest_path\": \"H:/@Seyfer/@Projects/youtube_utilities/config/youtube/album_manifest.yaml\",\n      \"max_attempts\": 3,\n      \"client_secrets_path\": \"H:/@Seyfer/@Projects/youtube_utilities/config/youtube/client_secret.json\",\n      \"token_path\": \"H:/@Seyfer/@Projects/youtube_utilities/config/youtube/token.json\"\n    },\n    \"video_converter\": {\n      \"video_formats\": {\n        \"youtube_1080p60\": {\n          \"video_codec\": \"libx264\",\n          \"video_bitrate\": \"16000k\",\n          \"framerate\": 60,\n          \"resolution\": \"1920x1080\",\n          \"audio_codec\": \"aac\",\n          \"audio_bitrate\": \"320k\",\n          \"audio_samplerate\": 48000\n        }\n      },\n      \"src\": \"F:/@Seyfer/GRABACIONES/SOULCALIBURVI/PANTALLAS DEL FINAL/PC2/pantalla_final_1_PC.mkv\",\n      \"dst_dir\": \"F:/DESCARGAS\",\n      \"output_format\": null,\n      \"reference_video\": \"F:/@Seyfer/GRABACIONES/SOULCALIBURVI/PANTALLAS DEL FINAL/PS4/pantalla_final_6_PS4.mkv\"\n    },\n    \"ranking_system\": {\n      \"entity\": \"player\",\n      \"filters\": {\n        \"scope\": {\n          \"season_name\": null,\n          \"event_name\": \"SSLT 10\",\n          \"event_type_name\": null,\n          \"region_name\": null,\n          \"game_name\": null,\n          \"game_version\": null,\n          \"event_platform\": null,\n          \"game_franchise_name\": null\n        },\n        \"duel\": {\n          \"duel_id\": null,\n          \"duel_type_name\": null\n        },\n        \"participant\": {\n          \"player_name\": null,\n          \"team_name\": null\n        },\n        \"battle\": {\n          \"participant_position\": null,\n          \"stage_name\": null,\n          \"character_identity_name\": null\n        },\n        \"player\": {\n          \"country_iso_code\": null\n        }\n      },\n      \"export\": {\n        \"format\": \"csv\",\n        \"output\": \"rankings/player_season3_pc.csv\"\n      }\n    }\n  }\n}"
     },
     {
       "path": "core\\config_manager.py",
@@ -163,12 +163,140 @@
       "content": "from dataclasses import dataclass\n\n\n@dataclass(frozen=True)\nclass VideoSignature:\n    \"\"\"\n    Value Object que representa la firma técnica de un archivo de video.\n\n    La firma encapsula todas las características relevantes para\n    determinar compatibilidad entre videos sin exponer detalles\n    de bajo nivel ni estructuras externas (ffprobe, JSON, etc.).\n\n    Es un objeto:\n    - Inmutable (frozen=True)\n    - Comparable por igualdad estructural\n    - Seguro para uso como clave o referencia estable\n\n    Usos principales:\n    - Validación de compatibilidad entre videos.\n    - Verificación de end screens.\n    - Agrupación de archivos con características homogéneas.\n    \"\"\"\n\n    codec: str\n    \"\"\"\n    Codec de video principal (por ejemplo: 'h264', 'hevc').\n    \"\"\"\n\n    width: int\n    \"\"\"\n    Ancho del video en píxeles.\n    \"\"\"\n\n    height: int\n    \"\"\"\n    Alto del video en píxeles.\n    \"\"\"\n\n    frame_rate: float\n    \"\"\"\n    Framerate del video expresado como valor decimal.\n    \"\"\"\n\n    audio_codecs: tuple[str, ...]\n    \"\"\"\n    Tupla ordenada con los codecs de audio presentes en el archivo.\n\n    Se utiliza una tupla en lugar de una lista para garantizar\n    inmutabilidad y permitir comparaciones directas.\n    \"\"\"\n\n    audio_stream_count: int\n    \"\"\"\n    Cantidad total de streams de audio presentes en el archivo.\n    \"\"\"\n    audio_sample_rates: tuple[int, ...]\n    \"\"\"\n    Tupla ordenada con las frecuencias de audio presentes en el archivo.\n\n    Se utiliza una tupla en lugar de una lista para garantizar\n    inmutabilidad y permitir comparaciones directas.\n    \"\"\"\n\n    audio_channels: tuple[int, ...]\n    \"\"\"\n    Tupla ordenada con la cantidad de canales de audio presentes en el archivo.\n\n    Se utiliza una tupla en lugar de una lista para garantizar\n    inmutabilidad y permitir comparaciones directas.\n    \"\"\"\n"
     },
     {
+      "path": "gui\\__init__.py",
+      "extension": ".py",
+      "size_bytes": 74,
+      "lines": 6,
+      "sha256": "19196c43ba87b46fdf540a0469d8f24c2d970fe543e12ded56799f0cd23dbbe5",
+      "content": "from .file_dialog import FileDialog\n\n__all__ = [\n    \"FileDialog\",\n]\n"
+    },
+    {
+      "path": "gui\\file_dialog.py",
+      "extension": ".py",
+      "size_bytes": 12,
+      "lines": 2,
+      "sha256": "38002f3b4e1484f940b924b62997aaa11c2c142845eec34125e6143ae2f2d421",
+      "content": "# A futuro\n"
+    },
+    {
       "path": "interfaces\\cli\\app_cli.py",
       "extension": ".py",
       "size_bytes": 9537,
       "lines": 334,
       "sha256": "9cbdb8f5893ee53fb65e9a6cd2ac40ccffff4e9b854bac4405d66b9f1871336c",
       "content": "\"\"\"\nCLI principal del proyecto YouTube Utilities.\n\nEste módulo expone los distintos casos de uso del sistema\nmediante comandos de consola.\n\nLa lógica de negocio permanece en:\n\n    applications/\n\nEste módulo solamente coordina la ejecución.\n\"\"\"\n\nimport argparse\nfrom pathlib import Path\n\n# CORE\nfrom core.config_manager import ConfigManager\n\n# APPLICATIONS\nfrom applications.video_music.processor import VideoMusicProcessor\nfrom applications.video_joiner.processor import VideoJoinerProcessor\nfrom applications.ranking_system.create_db import create_db\nfrom applications.ranking_system.loaders.load_legacy import (\n    run as load_legacy,\n)\nfrom applications.ranking_system.queries.builder import RankingQueryBuilder\nfrom applications.youtube_video_manager.processor import (\n    YouTubeVideoManagerProcessor,\n)\n\n# SERVICES\nfrom services.media.audio.converter import AudioConverter\nfrom services.media.ffprobe_provider import FFProbeProvider\nfrom services.media.video.converter import VideoConverter\nfrom services.media.video.mkvmerge_runner import MKVMergeRunner\nfrom services.ranking.storage.session import SessionLocal\nfrom services.system.process_runner import ProcessRunner\nfrom services.youtube.album_builder import AlbumBuilder\nfrom services.youtube.album_manifest.yaml_reader import YamlReader\nfrom services.youtube.api.client import YouTubeClient\nfrom services.youtube.api.methods import YouTubeMethods\nfrom services.youtube.console import YouTubeConsole\nfrom services.youtube.operations_builder import OperationsBuilder\nfrom services.youtube.planner import Planner\nfrom services.youtube.storage.mappers.job_mapper import JobMapper\nfrom services.youtube.storage.repository import YouTubeJobRepository\nfrom services.youtube.storage.session import SessionLocal as YouTubeSessionLocal\nfrom services.youtube.updater import Updater\nfrom services.youtube.youtube_discovery import YouTubeDiscovery\n\n\nconfig = ConfigManager()\n\n\ndef run_video_music() -> None:\n    \"\"\"\n    Genera vídeos musicales utilizando una plantilla de vídeo\n    y múltiples pistas de audio.\n    \"\"\"\n\n    process_runner = ProcessRunner()\n\n    mkvmerge_runner = MKVMergeRunner(process_runner)\n    audio_converter = AudioConverter(process_runner)\n    ffprobe_provider = FFProbeProvider(process_runner)\n\n    processor = VideoMusicProcessor(\n        mkvmerge_runner=mkvmerge_runner,\n        audio_converter=audio_converter,\n        ffprobe_provider=ffprobe_provider,\n    )\n\n    audios_dir = config.video_music_default_audios_dir\n\n    processor.process(\n        video_path=Path(config.video_music_default_video_path),\n        audios_dir=Path(audios_dir),\n        output_dir=Path(audios_dir)\n        / Path(config.video_music_default_output_dir),\n    )\n\n\ndef run_video_joiner() -> None:\n    \"\"\"\n    Une múltiples vídeos en una compilación única.\n    \"\"\"\n\n    process_runner = ProcessRunner()\n\n    mkvmerge_runner = MKVMergeRunner(process_runner)\n    ffprobe_provider = FFProbeProvider(process_runner)\n\n    processor = VideoJoinerProcessor(\n        mkvmerge_runner=mkvmerge_runner,\n        ffprobe_provider=ffprobe_provider,\n    )\n\n    videos_dir = Path(config.video_joiner_default_videos_dir)\n\n    output_dir = (\n        videos_dir\n        / Path(config.video_joiner_default_output_dir)\n    )\n\n    end_screens_dir = (\n        Path(config.video_joiner_default_end_screens_dir)\n        if config.video_joiner_default_end_screens_dir\n        else None\n    )\n\n    processor.process(\n        videos_dir=videos_dir,\n        output_dir=output_dir,\n        base_name=config.video_joiner_default_video_name,\n        target_duration=config.video_joiner_default_target_duration,\n        end_screens_dir=end_screens_dir,\n        random_end_screen=config.video_joiner_default_random_end_screen,\n        timestamps_prefix=config.video_joiner_default_timestamps_prefix,\n        timestamps_secuence=config.video_joiner_default_timestamps_secuence,\n        extra_description=config.video_joiner_default_extra_description,\n    )\n\n\ndef run_video_converter() -> None:\n    \"\"\"\n    Convierte vídeos utilizando una referencia de codificación.\n    \"\"\"\n\n    probe_provider = FFProbeProvider()\n\n    converter = VideoConverter(\n        probe_provider=probe_provider,\n    )\n\n    converter.convert(\n        src=Path(config.video_converter_src),\n        dst_dir=Path(config.video_converter_dst_dir),\n        output_format=config.video_converter_output_format,\n        reference_video=Path(\n            config.video_converter_reference_video,\n        ),\n    )\n\n\ndef run_create_db() -> None:\n    \"\"\"\n    Crea la estructura de base de datos del sistema ranking.\n    \"\"\"\n\n    create_db()\n\n\ndef run_load_legacy() -> None:\n    \"\"\"\n    Importa datos históricos desde el CSV legado.\n    \"\"\"\n\n    csv_path = Path(\n        \"F:/DESCARGAS/SSLEdb - SSLT.csv\",\n    )\n\n    load_legacy(csv_path=csv_path)\n\n\ndef run_ranking() -> None:\n    \"\"\"\n    Ejecuta consultas del sistema de ranking.\n    \"\"\"\n\n    session = SessionLocal()\n\n    query = RankingQueryBuilder(\n        session=session,\n    ).build(\n        filters=config.ranking_filters,\n    )\n\n    print(query)\n\n\ndef _ask_youtube_failure_action() -> str:\n    while True:\n        action = input(\n            \"The previous YouTube job failed. \"\n            \"Choose [retry/discard]: \"\n        ).strip().lower()\n\n        if action in {\"retry\", \"discard\"}:\n            return action\n\n        print(\"Invalid action. Please enter 'retry' or 'discard'.\")\n\n\ndef run_youtube_video_manager() -> None:\n    \"\"\"\n    Ejecuta el caso de uso de gestión de vídeos de YouTube.\n    \"\"\"\n\n    # -------------------------------------------------------------------------\n    # YouTube API\n    # -------------------------------------------------------------------------\n\n    youtube_client = YouTubeClient(\n        client_secrets_path=Path(\n            config.youtube_video_manager_client_secrets_path,\n        ),\n        token_path=Path(\n            config.youtube_video_manager_token_path,\n        ),\n    )\n\n    youtube_methods = YouTubeMethods(\n        youtube_client,\n    )\n\n    youtube_discovery = YouTubeDiscovery(\n        methods=youtube_methods,\n    )\n\n    # -------------------------------------------------------------------------\n    # Persistence\n    # -------------------------------------------------------------------------\n\n    youtube_session = YouTubeSessionLocal()\n\n    try:\n        job_mapper = JobMapper()\n\n        job_repository = YouTubeJobRepository(\n            session=youtube_session,\n            mapper=job_mapper,\n        )\n\n        # ---------------------------------------------------------------------\n        # Album / planning\n        # ---------------------------------------------------------------------\n\n        manifest_reader = YamlReader()\n        album_builder = AlbumBuilder()\n\n        operations_builder = OperationsBuilder()\n        planner = Planner(\n            operations_builder=operations_builder,\n        )\n\n        # ---------------------------------------------------------------------\n        # Execution\n        # ---------------------------------------------------------------------\n\n        console = YouTubeConsole()\n\n        updater = Updater(\n            youtube_methods=youtube_methods,\n            job_repository=job_repository,\n            console=console,\n            max_attempts=config.youtube_video_manager_max_attempts,\n        )\n\n        # ---------------------------------------------------------------------\n        # Application\n        # ---------------------------------------------------------------------\n\n        processor = YouTubeVideoManagerProcessor(\n            manifest_reader=manifest_reader,\n            youtube_discovery=youtube_discovery,\n            album_builder=album_builder,\n            planner=planner,\n            updater=updater,\n            job_repository=job_repository,\n            failure_action=_ask_youtube_failure_action,\n            console=console,\n        )\n\n        processor.process(\n            Path(\n                config.youtube_video_manager_album_manifest_path,\n            ),\n        )\n    finally:\n        youtube_session.close()\n\n\ndef build_parser() -> argparse.ArgumentParser:\n    \"\"\"\n    Construye el parser principal del CLI.\n    \"\"\"\n\n    parser = argparse.ArgumentParser(\n        prog=\"youtube_utilities\",\n        description=\"Herramientas multimedia y ranking.\",\n    )\n\n    parser.add_argument(\n        \"command\",\n        choices=[\n            \"video_music\",\n            \"video_joiner\",\n            \"video_converter\",\n            \"create_db\",\n            \"load_legacy\",\n            \"ranking\",\n            \"midi_mapper\",\n            \"youtube_video_manager\",\n        ],\n    )\n\n    return parser\n\n\ndef main() -> None:\n    \"\"\"\n    Punto de entrada principal del CLI.\n    \"\"\"\n\n    parser = build_parser()\n\n    args = parser.parse_args()\n\n    commands = {\n        \"video_music\": run_video_music,\n        \"video_joiner\": run_video_joiner,\n        \"video_converter\": run_video_converter,\n        \"create_db\": run_create_db,\n        \"load_legacy\": run_load_legacy,\n        \"ranking\": run_ranking,\n        \"youtube_video_manager\": run_youtube_video_manager,\n    }\n\n    commands[args.command]()\n\n\nif __name__ == \"__main__\":\n    main()"
+    },
+    {
+      "path": "interfaces\\web\\apps\\audio_converter_web\\__init__.py",
+      "extension": ".py",
+      "size_bytes": 0,
+      "lines": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "content": ""
+    },
+    {
+      "path": "interfaces\\web\\apps\\audio_converter_web\\admin.py",
+      "extension": ".py",
+      "size_bytes": 66,
+      "lines": 4,
+      "sha256": "a7ac68a753eeb831b6530bf71bf6917e577139f0734d17cc6a8666391564ab25",
+      "content": "from django.contrib import admin\n\n# Register your models here.\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\audio_converter_web\\apps.py",
+      "extension": ".py",
+      "size_bytes": 116,
+      "lines": 6,
+      "sha256": "1351b0809ad331c5e02a77a5d736b1d099ee96b5153e27d2c24736e46ce25e08",
+      "content": "from django.apps import AppConfig\n\n\nclass AudioConverterWebConfig(AppConfig):\n    name = 'audio_converter_web'\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\audio_converter_web\\migrations\\__init__.py",
+      "extension": ".py",
+      "size_bytes": 0,
+      "lines": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "content": ""
+    },
+    {
+      "path": "interfaces\\web\\apps\\audio_converter_web\\models.py",
+      "extension": ".py",
+      "size_bytes": 60,
+      "lines": 4,
+      "sha256": "e0e54c7030f1f5f56004427dd41edd7cc106d8d8b52d148b24e2b322454fb0aa",
+      "content": "from django.db import models\n\n# Create your models here.\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\audio_converter_web\\tests.py",
+      "extension": ".py",
+      "size_bytes": 63,
+      "lines": 4,
+      "sha256": "dae0da7efdcdb3a7fb572d5e914b60631099122d4a4727ac6434c016161c5fe1",
+      "content": "from django.test import TestCase\n\n# Create your tests here.\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\audio_converter_web\\views.py",
+      "extension": ".py",
+      "size_bytes": 66,
+      "lines": 4,
+      "sha256": "bb41612fb453e5bc9fe4895c9d910cadc1f64ce9d091d7d1414d928ed036ea6d",
+      "content": "from django.shortcuts import render\n\n# Create your views here.\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\video_joiner_web\\__init__.py",
+      "extension": ".py",
+      "size_bytes": 0,
+      "lines": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "content": ""
+    },
+    {
+      "path": "interfaces\\web\\apps\\video_joiner_web\\admin.py",
+      "extension": ".py",
+      "size_bytes": 66,
+      "lines": 4,
+      "sha256": "a7ac68a753eeb831b6530bf71bf6917e577139f0734d17cc6a8666391564ab25",
+      "content": "from django.contrib import admin\n\n# Register your models here.\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\video_joiner_web\\apps.py",
+      "extension": ".py",
+      "size_bytes": 110,
+      "lines": 6,
+      "sha256": "7030f18b50d08897a1d7f4d66481775df8b459f9a26595232830caae94942d47",
+      "content": "from django.apps import AppConfig\n\n\nclass VideoJoinerWebConfig(AppConfig):\n    name = 'video_joiner_web'\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\video_joiner_web\\migrations\\__init__.py",
+      "extension": ".py",
+      "size_bytes": 0,
+      "lines": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "content": ""
+    },
+    {
+      "path": "interfaces\\web\\apps\\video_joiner_web\\models.py",
+      "extension": ".py",
+      "size_bytes": 60,
+      "lines": 4,
+      "sha256": "e0e54c7030f1f5f56004427dd41edd7cc106d8d8b52d148b24e2b322454fb0aa",
+      "content": "from django.db import models\n\n# Create your models here.\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\video_joiner_web\\tests.py",
+      "extension": ".py",
+      "size_bytes": 63,
+      "lines": 4,
+      "sha256": "dae0da7efdcdb3a7fb572d5e914b60631099122d4a4727ac6434c016161c5fe1",
+      "content": "from django.test import TestCase\n\n# Create your tests here.\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\video_joiner_web\\views.py",
+      "extension": ".py",
+      "size_bytes": 66,
+      "lines": 4,
+      "sha256": "bb41612fb453e5bc9fe4895c9d910cadc1f64ce9d091d7d1414d928ed036ea6d",
+      "content": "from django.shortcuts import render\n\n# Create your views here.\n"
     },
     {
       "path": "interfaces\\web\\apps\\video_music_web\\__init__.py",
@@ -225,6 +353,54 @@
       "lines": 4,
       "sha256": "bb41612fb453e5bc9fe4895c9d910cadc1f64ce9d091d7d1414d928ed036ea6d",
       "content": "from django.shortcuts import render\n\n# Create your views here.\n"
+    },
+    {
+      "path": "interfaces\\web\\config\\__init__.py",
+      "extension": ".py",
+      "size_bytes": 0,
+      "lines": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "content": ""
+    },
+    {
+      "path": "interfaces\\web\\config\\asgi.py",
+      "extension": ".py",
+      "size_bytes": 405,
+      "lines": 17,
+      "sha256": "f23d09f7cded8ce1239e5fbb32961ea409103501b9958934dbd77e92d4a8db21",
+      "content": "\"\"\"\nASGI config for config project.\n\nIt exposes the ASGI callable as a module-level variable named ``application``.\n\nFor more information on this file, see\nhttps://docs.djangoproject.com/en/6.0/howto/deployment/asgi/\n\"\"\"\n\nimport os\n\nfrom django.core.asgi import get_asgi_application\n\nos.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')\n\napplication = get_asgi_application()\n"
+    },
+    {
+      "path": "interfaces\\web\\config\\settings.py",
+      "extension": ".py",
+      "size_bytes": 3209,
+      "lines": 121,
+      "sha256": "11d0f0f828c8f42c176ea729744b0209885b780901475308a230ce86f2dc53a2",
+      "content": "\"\"\"\nDjango settings for config project.\n\nGenerated by 'django-admin startproject' using Django 6.0.6.\n\nFor more information on this file, see\nhttps://docs.djangoproject.com/en/6.0/topics/settings/\n\nFor the full list of settings and their values, see\nhttps://docs.djangoproject.com/en/6.0/ref/settings/\n\"\"\"\n\nfrom pathlib import Path\n\n# Build paths inside the project like this: BASE_DIR / 'subdir'.\nBASE_DIR = Path(__file__).resolve().parent.parent\n\n\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/\n\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-5#_9&-t_92_axv!8qk4ljza1ghv2kaydj5cia!7jxvb=tqlj^j'\n\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\n\nALLOWED_HOSTS = []\n\n\n# Application definition\n\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',\n    \"apps.video_music_web\",\n    \"apps.video_joiner_web\",\n    \"apps.video_converter_web\",\n]\n\nMIDDLEWARE = [\n    'django.middleware.security.SecurityMiddleware',\n    'django.contrib.sessions.middleware.SessionMiddleware',\n    'django.middleware.common.CommonMiddleware',\n    'django.middleware.csrf.CsrfViewMiddleware',\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\n    'django.contrib.messages.middleware.MessageMiddleware',\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\n]\n\nROOT_URLCONF = 'config.urls'\n\nTEMPLATES = [\n    {\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\n        'DIRS': [],\n        'APP_DIRS': True,\n        'OPTIONS': {\n            'context_processors': [\n                'django.template.context_processors.request',\n                'django.contrib.auth.context_processors.auth',\n                'django.contrib.messages.context_processors.messages',\n            ],\n        },\n    },\n]\n\nWSGI_APPLICATION = 'config.wsgi.application'\n\n\n# Database\n# https://docs.djangoproject.com/en/6.0/ref/settings/#databases\n\nDATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.sqlite3',\n        'NAME': BASE_DIR / 'db.sqlite3',\n    }\n}\n\n\n# Password validation\n# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators\n\nAUTH_PASSWORD_VALIDATORS = [\n    {\n        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',\n    },\n]\n\n\n# Internationalization\n# https://docs.djangoproject.com/en/6.0/topics/i18n/\n\nLANGUAGE_CODE = 'en-us'\n\nTIME_ZONE = 'UTC'\n\nUSE_I18N = True\n\nUSE_TZ = True\n\n\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/6.0/howto/static-files/\n\nSTATIC_URL = 'static/'\n"
+    },
+    {
+      "path": "interfaces\\web\\config\\urls.py",
+      "extension": ".py",
+      "size_bytes": 784,
+      "lines": 23,
+      "sha256": "8f27d13a1df0ddf42a8efbed6374f849e7941d052855fc781145b3d2c9354cd0",
+      "content": "\"\"\"\nURL configuration for config project.\n\nThe `urlpatterns` list routes URLs to views. For more information please see:\n    https://docs.djangoproject.com/en/6.0/topics/http/urls/\nExamples:\nFunction views\n    1. Add an import:  from my_app import views\n    2. Add a URL to urlpatterns:  path('', views.home, name='home')\nClass-based views\n    1. Add an import:  from other_app.views import Home\n    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')\nIncluding another URLconf\n    1. Import the include() function: from django.urls import include, path\n    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))\n\"\"\"\nfrom django.contrib import admin\nfrom django.urls import path\n\nurlpatterns = [\n    path('admin/', admin.site.urls),\n]\n"
+    },
+    {
+      "path": "interfaces\\web\\config\\wsgi.py",
+      "extension": ".py",
+      "size_bytes": 405,
+      "lines": 17,
+      "sha256": "a7b47958708160e7ebcb377d677f5f2081640fb5dc4478bb486743055a85e192",
+      "content": "\"\"\"\nWSGI config for config project.\n\nIt exposes the WSGI callable as a module-level variable named ``application``.\n\nFor more information on this file, see\nhttps://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/\n\"\"\"\n\nimport os\n\nfrom django.core.wsgi import get_wsgi_application\n\nos.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')\n\napplication = get_wsgi_application()\n"
+    },
+    {
+      "path": "interfaces\\web\\manage.py",
+      "extension": ".py",
+      "size_bytes": 684,
+      "lines": 23,
+      "sha256": "b30eeb4890cb6f315cc238313808f636db29e9906b61cc6f6051567156a0097b",
+      "content": "#!/usr/bin/env python\n\"\"\"Django's command-line utility for administrative tasks.\"\"\"\nimport os\nimport sys\n\n\ndef main():\n    \"\"\"Run administrative tasks.\"\"\"\n    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')\n    try:\n        from django.core.management import execute_from_command_line\n    except ImportError as exc:\n        raise ImportError(\n            \"Couldn't import Django. Are you sure it's installed and \"\n            \"available on your PYTHONPATH environment variable? Did you \"\n            \"forget to activate a virtual environment?\"\n        ) from exc\n    execute_from_command_line(sys.argv)\n\n\nif __name__ == '__main__':\n    main()\n"
     },
     {
       "path": "services\\filesystem\\__init__.py",

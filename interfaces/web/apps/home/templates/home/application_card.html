@@ -1,0 +1,15 @@
+<article class="application-card">
+
+    <h2>
+        {{ application.name }}
+    </h2>
+
+    <p>
+        {{ application.description }}
+    </p>
+
+    <a href="{% url application.url_name %}">
+        Open
+    </a>
+
+</article>

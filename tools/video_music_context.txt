@@ -1,6 +1,6 @@
 # GENERATED PROJECT CONTEXT
-# base_dir: D:\@Seyfer\Proyectos\youtube_utilities
-# total_files: 42
+# base_dir: H:\@Seyfer\@Projects\youtube_utilities
+# total_files: 64
 
 # PROJECT STRUCTURE
 
@@ -26,11 +26,32 @@ domain
       video.py
       video_encoding.py
       video_signature.py
+gui
+  __init__.py
+  file_dialog.py
 interfaces
   cli
     app_cli.py
   web
     apps
+      audio_converter_web
+        __init__.py
+        admin.py
+        apps.py
+        migrations
+          __init__.py
+        models.py
+        tests.py
+        views.py
+      video_joiner_web
+        __init__.py
+        admin.py
+        apps.py
+        migrations
+          __init__.py
+        models.py
+        tests.py
+        views.py
       video_music_web
         __init__.py
         admin.py
@@ -40,6 +61,13 @@ interfaces
         models.py
         tests.py
         views.py
+    config
+      __init__.py
+      asgi.py
+      settings.py
+      urls.py
+      wsgi.py
+    manage.py
 services
   filesystem
     __init__.py
@@ -822,15 +850,15 @@ FILE: config.json
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/Disc 2",
-      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/images/video2.mp4",
+      "default_audios_dir": "F:/Vacaciones/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST",
+      "default_video_path": "F:/Vacaciones/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Devil May Cry/01 Devil May Cry - 2001/03 OST/Disc 2/videos",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Metal Gear/03 Metal Gear 2 - Solid Snake/03 METAL GEAR - METAL GEAR 2 SOLID SNAKE Music Collection/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Devil May Cry OST - Disc 2",
+      "default_video_name": "METAL GEAR - METAL GEAR 2 SOLID SNAKE - Music Collection",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
@@ -839,10 +867,10 @@ FILE: config.json
       "default_extra_description": ""
     },
     "youtube_video_manager": {
-      "album_manifest_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/album_manifest.yaml",
+      "album_manifest_path": "H:/@Seyfer/@Projects/youtube_utilities/config/youtube/album_manifest.yaml",
       "max_attempts": 3,
-      "client_secrets_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/client_secret.json",
-      "token_path": "D:/@Seyfer/Proyectos/youtube_utilities/config/youtube/token.json"
+      "client_secrets_path": "H:/@Seyfer/@Projects/youtube_utilities/config/youtube/client_secret.json",
+      "token_path": "H:/@Seyfer/@Projects/youtube_utilities/config/youtube/token.json"
     },
     "video_converter": {
       "video_formats": {
@@ -1355,6 +1383,22 @@ class VideoSignature:
 
 
 ================================================================================
+FILE: gui\__init__.py
+================================================================================
+from .file_dialog import FileDialog
+
+__all__ = [
+    "FileDialog",
+]
+
+
+================================================================================
+FILE: gui\file_dialog.py
+================================================================================
+# A futuro
+
+
+================================================================================
 FILE: interfaces\cli\app_cli.py
 ================================================================================
 """
@@ -1693,6 +1737,110 @@ if __name__ == "__main__":
     main()
 
 ================================================================================
+FILE: interfaces\web\apps\audio_converter_web\__init__.py
+================================================================================
+
+
+================================================================================
+FILE: interfaces\web\apps\audio_converter_web\admin.py
+================================================================================
+from django.contrib import admin
+
+# Register your models here.
+
+
+================================================================================
+FILE: interfaces\web\apps\audio_converter_web\apps.py
+================================================================================
+from django.apps import AppConfig
+
+
+class AudioConverterWebConfig(AppConfig):
+    name = 'audio_converter_web'
+
+
+================================================================================
+FILE: interfaces\web\apps\audio_converter_web\migrations\__init__.py
+================================================================================
+
+
+================================================================================
+FILE: interfaces\web\apps\audio_converter_web\models.py
+================================================================================
+from django.db import models
+
+# Create your models here.
+
+
+================================================================================
+FILE: interfaces\web\apps\audio_converter_web\tests.py
+================================================================================
+from django.test import TestCase
+
+# Create your tests here.
+
+
+================================================================================
+FILE: interfaces\web\apps\audio_converter_web\views.py
+================================================================================
+from django.shortcuts import render
+
+# Create your views here.
+
+
+================================================================================
+FILE: interfaces\web\apps\video_joiner_web\__init__.py
+================================================================================
+
+
+================================================================================
+FILE: interfaces\web\apps\video_joiner_web\admin.py
+================================================================================
+from django.contrib import admin
+
+# Register your models here.
+
+
+================================================================================
+FILE: interfaces\web\apps\video_joiner_web\apps.py
+================================================================================
+from django.apps import AppConfig
+
+
+class VideoJoinerWebConfig(AppConfig):
+    name = 'video_joiner_web'
+
+
+================================================================================
+FILE: interfaces\web\apps\video_joiner_web\migrations\__init__.py
+================================================================================
+
+
+================================================================================
+FILE: interfaces\web\apps\video_joiner_web\models.py
+================================================================================
+from django.db import models
+
+# Create your models here.
+
+
+================================================================================
+FILE: interfaces\web\apps\video_joiner_web\tests.py
+================================================================================
+from django.test import TestCase
+
+# Create your tests here.
+
+
+================================================================================
+FILE: interfaces\web\apps\video_joiner_web\views.py
+================================================================================
+from django.shortcuts import render
+
+# Create your views here.
+
+
+================================================================================
 FILE: interfaces\web\apps\video_music_web\__init__.py
 ================================================================================
 
@@ -1742,6 +1890,232 @@ FILE: interfaces\web\apps\video_music_web\views.py
 from django.shortcuts import render
 
 # Create your views here.
+
+
+================================================================================
+FILE: interfaces\web\config\__init__.py
+================================================================================
+
+
+================================================================================
+FILE: interfaces\web\config\asgi.py
+================================================================================
+"""
+ASGI config for config project.
+
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
+"""
+
+import os
+
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+
+application = get_asgi_application()
+
+
+================================================================================
+FILE: interfaces\web\config\settings.py
+================================================================================
+"""
+Django settings for config project.
+
+Generated by 'django-admin startproject' using Django 6.0.6.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/6.0/topics/settings/
+
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/6.0/ref/settings/
+"""
+
+from pathlib import Path
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-5#_9&-t_92_axv!8qk4ljza1ghv2kaydj5cia!7jxvb=tqlj^j'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = []
+
+
+# Application definition
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    "apps.video_music_web",
+    "apps.video_joiner_web",
+    "apps.video_converter_web",
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'config.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'config.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+
+# Password validation
+# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/6.0/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/6.0/howto/static-files/
+
+STATIC_URL = 'static/'
+
+
+================================================================================
+FILE: interfaces\web\config\urls.py
+================================================================================
+"""
+URL configuration for config project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/6.0/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+]
+
+
+================================================================================
+FILE: interfaces\web\config\wsgi.py
+================================================================================
+"""
+WSGI config for config project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
+"""
+
+import os
+
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+
+application = get_wsgi_application()
+
+
+================================================================================
+FILE: interfaces\web\manage.py
+================================================================================
+#!/usr/bin/env python
+"""Django's command-line utility for administrative tasks."""
+import os
+import sys
+
+
+def main():
+    """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
+if __name__ == '__main__':
+    main()
 
 
 ================================================================================

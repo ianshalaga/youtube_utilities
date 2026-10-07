@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}
+    YouTube Utilities
+{% endblock %}
+
+{% block content %}
+
+<h1>YouTube Utilities</h1>
+
+<section>
+
+    {% for application in applications %}
+
+        {% include "home/application_card.html" %}
+
+    {% endfor %}
+
+</section>
+
+{% endblock %}
