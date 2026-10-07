@@ -1,6 +1,6 @@
 # GENERATED PROJECT CONTEXT
 # base_dir: H:\@Seyfer\@Projects\youtube_utilities
-# total_files: 64
+# total_files: 80
 
 # PROJECT STRUCTURE
 
@@ -9,10 +9,8 @@ applications
   video_music
     __init__.py
     console.py
+    contracts.py
     processor.py
-    routes.py
-    templates
-      video_music.html
 config.json
 core
   config_manager.py
@@ -33,6 +31,7 @@ interfaces
   cli
     app_cli.py
   web
+    __init__.py
     apps
       audio_converter_web
         __init__.py
@@ -42,6 +41,22 @@ interfaces
           __init__.py
         models.py
         tests.py
+        urls.py
+        views.py
+      home
+        __init__.py
+        admin.py
+        apps.py
+        catalog.py
+        migrations
+          __init__.py
+        models.py
+        templates
+          home
+            application_card.html
+            index.html
+        tests.py
+        urls.py
         views.py
       video_joiner_web
         __init__.py
@@ -51,6 +66,7 @@ interfaces
           __init__.py
         models.py
         tests.py
+        urls.py
         views.py
       video_music_web
         __init__.py
@@ -60,6 +76,7 @@ interfaces
           __init__.py
         models.py
         tests.py
+        urls.py
         views.py
     config
       __init__.py
@@ -68,6 +85,11 @@ interfaces
       urls.py
       wsgi.py
     manage.py
+    static
+      css
+        main.css
+    templates
+      base.html
 services
   filesystem
     __init__.py
@@ -487,6 +509,31 @@ class VideoMusicConsole:
 
 
 ================================================================================
+FILE: applications\video_music\contracts.py
+================================================================================
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass(frozen=True)
+class VideoMusicInput:
+    """Input required to execute the Video Music application."""
+
+    max_items_per_dir: int
+    audios_dir: Path
+    video_path: Path
+    output_dir: Path
+
+
+@dataclass(frozen=True)
+class VideoMusicResult:
+    """Result returned after executing the Video Music application."""
+
+    output_dir: Path
+    processed_tracks: int
+    failed_tracks: int
+
+================================================================================
 FILE: applications\video_music\processor.py
 ================================================================================
 """
@@ -794,17 +841,6 @@ class VideoMusicProcessor:
 
         for f in files[1:]:
             f.unlink()
-
-
-================================================================================
-FILE: applications\video_music\routes.py
-================================================================================
-# A futuro
-
-
-================================================================================
-FILE: applications\video_music\templates\video_music.html
-================================================================================
 
 
 ================================================================================
@@ -1737,6 +1773,11 @@ if __name__ == "__main__":
     main()
 
 ================================================================================
+FILE: interfaces\web\__init__.py
+================================================================================
+
+
+================================================================================
 FILE: interfaces\web\apps\audio_converter_web\__init__.py
 ================================================================================
 
@@ -1756,7 +1797,7 @@ from django.apps import AppConfig
 
 
 class AudioConverterWebConfig(AppConfig):
-    name = 'audio_converter_web'
+    name = 'apps.audio_converter_web'
 
 
 ================================================================================
@@ -1781,12 +1822,177 @@ from django.test import TestCase
 
 
 ================================================================================
+FILE: interfaces\web\apps\audio_converter_web\urls.py
+================================================================================
+from django.urls import path
+
+from . import views
+
+
+app_name = "audio_converter"
+
+urlpatterns = [
+    path("", views.IndexView.as_view(), name="index"),
+]
+
+================================================================================
 FILE: interfaces\web\apps\audio_converter_web\views.py
 ================================================================================
 from django.shortcuts import render
+from django.views import View
 
-# Create your views here.
 
+class IndexView(View):
+    def get(self, request, *args, **kwargs):
+        return render(
+            request,
+            "audio_converter_web/index.html",
+        )
+
+================================================================================
+FILE: interfaces\web\apps\home\__init__.py
+================================================================================
+
+
+================================================================================
+FILE: interfaces\web\apps\home\admin.py
+================================================================================
+from django.contrib import admin
+
+# Register your models here.
+
+
+================================================================================
+FILE: interfaces\web\apps\home\apps.py
+================================================================================
+from django.apps import AppConfig
+
+
+class HomeConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = 'apps.home'
+
+
+================================================================================
+FILE: interfaces\web\apps\home\catalog.py
+================================================================================
+APPLICATIONS = [
+    {
+        "name": "Video Music",
+        "description": "Create videos from a base video and audio tracks.",
+        "url_name": "video_music:index",
+    },
+    {
+        "name": "Video Joiner",
+        "description": "Join multiple video files into a single video.",
+        "url_name": "video_joiner:index",
+    },
+    {
+        "name": "Audio Converter",
+        "description": "Convert audio files between supported formats.",
+        "url_name": "audio_converter:index",
+    },
+]
+
+================================================================================
+FILE: interfaces\web\apps\home\migrations\__init__.py
+================================================================================
+
+
+================================================================================
+FILE: interfaces\web\apps\home\models.py
+================================================================================
+from django.db import models
+
+# Create your models here.
+
+
+================================================================================
+FILE: interfaces\web\apps\home\templates\home\application_card.html
+================================================================================
+<article class="application-card">
+
+    <h2>
+        {{ application.name }}
+    </h2>
+
+    <p>
+        {{ application.description }}
+    </p>
+
+    <a href="{% url application.url_name %}">
+        Open
+    </a>
+
+</article>
+
+================================================================================
+FILE: interfaces\web\apps\home\templates\home\index.html
+================================================================================
+{% extends "base.html" %}
+
+{% block title %}
+    YouTube Utilities
+{% endblock %}
+
+{% block content %}
+
+<h1>YouTube Utilities</h1>
+
+<section>
+
+    {% for application in applications %}
+
+        {% include "home/application_card.html" %}
+
+    {% endfor %}
+
+</section>
+
+{% endblock %}
+
+================================================================================
+FILE: interfaces\web\apps\home\tests.py
+================================================================================
+from django.test import TestCase
+
+# Create your tests here.
+
+
+================================================================================
+FILE: interfaces\web\apps\home\urls.py
+================================================================================
+from django.urls import path
+
+from . import views
+
+
+app_name = "home"
+
+urlpatterns = [
+    path("", views.IndexView.as_view(), name="index"),
+]
+
+================================================================================
+FILE: interfaces\web\apps\home\views.py
+================================================================================
+from django.shortcuts import render
+from django.views import View
+
+from .catalog import APPLICATIONS
+
+
+class IndexView(View):
+    def get(self, request, *args, **kwargs):
+        context = {
+            "applications": APPLICATIONS,
+        }
+
+        return render(
+            request,
+            "home/index.html",
+            context,
+        )
 
 ================================================================================
 FILE: interfaces\web\apps\video_joiner_web\__init__.py
@@ -1808,7 +2014,7 @@ from django.apps import AppConfig
 
 
 class VideoJoinerWebConfig(AppConfig):
-    name = 'video_joiner_web'
+    name = 'apps.video_joiner_web'
 
 
 ================================================================================
@@ -1833,12 +2039,33 @@ from django.test import TestCase
 
 
 ================================================================================
+FILE: interfaces\web\apps\video_joiner_web\urls.py
+================================================================================
+from django.urls import path
+
+from . import views
+
+
+app_name = "video_joiner"
+
+urlpatterns = [
+    path("", views.IndexView.as_view(), name="index"),
+]
+
+================================================================================
 FILE: interfaces\web\apps\video_joiner_web\views.py
 ================================================================================
 from django.shortcuts import render
+from django.views import View
 
-# Create your views here.
 
+class IndexView(View):
+
+    def get(self, request, *args, **kwargs):
+        return render(
+            request,
+            "video_joiner_web/index.html",
+        )
 
 ================================================================================
 FILE: interfaces\web\apps\video_music_web\__init__.py
@@ -1860,7 +2087,7 @@ from django.apps import AppConfig
 
 
 class VideoMusicWebConfig(AppConfig):
-    name = 'video_music_web'
+    name = 'apps.video_music_web'
 
 
 ================================================================================
@@ -1885,12 +2112,33 @@ from django.test import TestCase
 
 
 ================================================================================
+FILE: interfaces\web\apps\video_music_web\urls.py
+================================================================================
+from django.urls import path
+
+from . import views
+
+
+app_name = "video_music"
+
+urlpatterns = [
+    path("", views.IndexView.as_view(), name="index"),
+]
+
+================================================================================
 FILE: interfaces\web\apps\video_music_web\views.py
 ================================================================================
 from django.shortcuts import render
+from django.views import View
 
-# Create your views here.
 
+class IndexView(View):
+
+    def get(self, request, *args, **kwargs):
+        return render(
+            request,
+            "video_music_web/index.html",
+        )
 
 ================================================================================
 FILE: interfaces\web\config\__init__.py
@@ -1960,9 +2208,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # My Apps
+    "apps.home",
     "apps.video_music_web",
     "apps.video_joiner_web",
-    "apps.video_converter_web",
+    "apps.audio_converter_web",
 ]
 
 MIDDLEWARE = [
@@ -1980,7 +2230,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -2040,7 +2290,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 
 ================================================================================
@@ -2063,10 +2317,28 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # My URLs
+    path("", include("apps.home.urls")),
+
+    path(
+        "video-music/",
+        include("apps.video_music_web.urls"),
+    ),
+
+    path(
+        "video-joiner/",
+        include("apps.video_joiner_web.urls"),
+    ),
+
+    path(
+        "audio-converter/",
+        include("apps.audio_converter_web.urls"),
+    ),
 ]
 
 
@@ -2117,6 +2389,56 @@ def main():
 if __name__ == '__main__':
     main()
 
+
+================================================================================
+FILE: interfaces\web\static\css\main.css
+================================================================================
+.application-card {
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+}
+
+.application-card a {
+    display: inline-block;
+    margin-top: 1rem;
+}
+
+================================================================================
+FILE: interfaces\web\templates\base.html
+================================================================================
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+            YouTube Utilities
+        {% endblock %}
+    </title>
+
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+
+<body>
+
+    <header>
+        <a href="{% url 'home:index' %}">
+            YouTube Utilities
+        </a>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+</body>
+</html>
 
 ================================================================================
 FILE: services\filesystem\__init__.py

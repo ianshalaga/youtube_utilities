@@ -40,7 +40,7 @@
     "*~",
     "test_*.py"
   ],
-  "total_files": 64,
+  "total_files": 80,
   "files": [
     {
       "path": "app.py",
@@ -67,28 +67,20 @@
       "content": "from __future__ import annotations\n\nfrom pathlib import Path\nfrom threading import Lock\n\nfrom rich.console import Console, Group\nfrom rich.live import Live\nfrom rich.panel import Panel\nfrom rich.progress import BarColumn, Progress, TextColumn\nfrom rich.table import Table\n\n\nclass VideoMusicConsole:\n    \"\"\"Console presentation for the Video Music workflow.\n\n    The console keeps mutable job state and renders it through Rich Live,\n    preventing concurrent worker threads from interleaving terminal output.\n    \"\"\"\n\n    def __init__(self, console: Console | None = None) -> None:\n        self._console = console or Console()\n        self._lock = Lock()\n        self._live: Live | None = None\n\n        self._video_path: Path | None = None\n        self._audios_dir: Path | None = None\n        self._output_dir: Path | None = None\n        self._total_tracks = 0\n        self._max_items_per_dir: int | None = None\n        self._total_directories = 1\n\n        self._statuses: dict[int, str] = {}\n        self._track_names: dict[int, str] = {}\n        self._durations: dict[int, str] = {}\n        self._errors: dict[int, str] = {}\n\n        self._completed = 0\n        self._failed = 0\n        self._running = 0\n        self._current_directory = 1\n\n    def job_started(\n        self,\n        video_path: Path,\n        audios_dir: Path,\n        output_dir: Path,\n        total_tracks: int,\n        max_items_per_dir: int | None,\n    ) -> None:\n        \"\"\"Initialize the job state and display its context.\"\"\"\n        with self._lock:\n            self._video_path = video_path\n            self._audios_dir = audios_dir\n            self._output_dir = output_dir\n            self._total_tracks = total_tracks\n            self._max_items_per_dir = max_items_per_dir\n\n            if max_items_per_dir:\n                self._total_directories = max(\n                    1,\n                    (total_tracks + max_items_per_dir - 1)\n                    // max_items_per_dir,\n                )\n            else:\n                self._total_directories = 1\n\n            self._statuses.clear()\n            self._track_names.clear()\n            self._durations.clear()\n            self._errors.clear()\n\n            self._completed = 0\n            self._failed = 0\n            self._running = 0\n            self._current_directory = 1\n\n            self._render_static_header()\n\n    def partition_started(\n        self,\n        total_tracks: int,\n        max_items_per_dir: int,\n        total_directories: int,\n    ) -> None:\n        \"\"\"Update the partitioning information.\"\"\"\n        with self._lock:\n            self._total_tracks = total_tracks\n            self._max_items_per_dir = max_items_per_dir\n            self._total_directories = total_directories\n\n    def processing_started(self) -> None:\n        \"\"\"Start the live processing display.\"\"\"\n        with self._lock:\n            if self._live is None:\n                self._live = Live(\n                    self._render(),\n                    console=self._console,\n                    refresh_per_second=8,\n                    transient=False,\n                )\n                self._live.start(refresh=True)\n\n    def track_started(\n        self,\n        index: int,\n        total: int,\n        audio_path: Path,\n        output_dir: Path,\n    ) -> None:\n        \"\"\"Mark a track as running.\"\"\"\n        with self._lock:\n            self._total_tracks = total\n            self._track_names[index] = audio_path.stem\n            self._statuses[index] = \"running\"\n            self._running += 1\n\n            if self._max_items_per_dir:\n                self._current_directory = (\n                    (index - 1) // self._max_items_per_dir\n                ) + 1\n\n            self._refresh()\n\n    def audio_converted(\n        self,\n        audio_path: Path,\n        output_path: Path,\n    ) -> None:\n        \"\"\"Record successful temporary audio conversion.\"\"\"\n        # Conversion is an internal processing step. Keep the public display\n        # compact and update the live state only.\n        return\n\n    def duration_detected(\n        self,\n        audio_path: Path,\n        duration: str,\n    ) -> None:\n        \"\"\"Record the detected duration for the corresponding track.\"\"\"\n        with self._lock:\n            for index, name in self._track_names.items():\n                if name == audio_path.stem:\n                    self._durations[index] = duration\n                    break\n            self._refresh()\n\n    def video_created(\n        self,\n        audio_path: Path,\n        output_path: Path,\n    ) -> None:\n        \"\"\"Record successful video generation.\"\"\"\n        return\n\n    def temporary_files_cleaned(\n        self,\n        audio_path: Path,\n    ) -> None:\n        \"\"\"Record cleanup of temporary files.\"\"\"\n        return\n\n    def track_completed(\n        self,\n        index: int,\n        total: int,\n        audio_path: Path,\n    ) -> None:\n        \"\"\"Mark a track as successfully completed.\"\"\"\n        with self._lock:\n            self._total_tracks = total\n            self._track_names[index] = audio_path.stem\n            self._statuses[index] = \"completed\"\n            self._completed += 1\n            self._running = max(0, self._running - 1)\n            self._refresh()\n\n    def track_failed(\n        self,\n        index: int,\n        total: int,\n        audio_path: Path,\n        error: Exception,\n    ) -> None:\n        \"\"\"Mark a track as failed.\"\"\"\n        with self._lock:\n            self._total_tracks = total\n            self._track_names[index] = audio_path.stem\n            self._statuses[index] = \"failed\"\n            self._errors[index] = str(error)\n            self._failed += 1\n            self._running = max(0, self._running - 1)\n            self._refresh()\n\n    def job_completed(\n        self,\n        total_tracks: int,\n        output_dir: Path,\n    ) -> None:\n        \"\"\"Stop live rendering and display the final summary.\"\"\"\n        with self._lock:\n            self._total_tracks = total_tracks\n            self._output_dir = output_dir\n            self._completed = max(self._completed, total_tracks - self._failed)\n            self._stop_live()\n            self._console.print()\n            self._console.print(\n                Panel(\n                    self._summary_table(),\n                    title=\"[bold green]✓ JOB COMPLETED[/bold green]\",\n                    border_style=\"green\",\n                    expand=False,\n                )\n            )\n\n    def job_failed(self, error: Exception) -> None:\n        \"\"\"Stop live rendering and display the job-level failure.\"\"\"\n        with self._lock:\n            self._stop_live()\n            self._console.print()\n            self._console.print(\n                Panel(\n                    f\"[red]{error}[/red]\",\n                    title=\"[bold red]✗ JOB FAILED[/bold red]\",\n                    border_style=\"red\",\n                    expand=False,\n                )\n            )\n\n    def _render_static_header(self) -> None:\n        \"\"\"Render the non-live job context.\"\"\"\n        self._console.print()\n        self._console.print(\n            Panel(\n                self._job_context_table(),\n                title=\"[bold white]VIDEO MUSIC[/bold white]\",\n                border_style=\"blue\",\n                expand=False,\n            )\n        )\n        self._console.print()\n\n    def _job_context_table(self) -> Table:\n        table = Table.grid(padding=(0, 2))\n        table.add_column(style=\"bold\")\n        table.add_column()\n\n        table.add_row(\"Video\", str(self._video_path))\n        table.add_row(\"Audio source\", str(self._audios_dir))\n        table.add_row(\"Output\", str(self._output_dir))\n        table.add_row(\"Tracks\", str(self._total_tracks))\n\n        partition = (\n            \"Disabled\"\n            if self._max_items_per_dir is None\n            else f\"{self._max_items_per_dir} tracks / directory\"\n        )\n        table.add_row(\"Partition\", partition)\n\n        return table\n\n    def _render(self) -> Group:\n        progress = Progress(\n            TextColumn(\"[bold]Progress[/bold]\"),\n            BarColumn(),\n            TextColumn(\"{task.completed}/{task.total}\"),\n            TextColumn(\"·\"),\n            TextColumn(\"{task.percentage:>5.1f}%\"),\n            expand=True,\n        )\n        progress.add_task(\n            \"tracks\",\n            total=self._total_tracks,\n            completed=self._completed,\n        )\n\n        table = Table.grid(padding=(0, 1))\n        table.add_column(width=4)\n        table.add_column(width=8)\n        table.add_column(ratio=1)\n        table.add_column(width=12)\n\n        visible = sorted(self._statuses.items())[-12:]\n\n        for index, status in visible:\n            name = self._track_names.get(index, \"\")\n            duration = self._durations.get(index, \"\")\n\n            if status == \"completed\":\n                icon = \"[green]✓[/green]\"\n                state = \"[green]DONE[/green]\"\n            elif status == \"failed\":\n                icon = \"[red]✗[/red]\"\n                state = \"[red]FAILED[/red]\"\n            else:\n                icon = \"[yellow]◐[/yellow]\"\n                state = \"[yellow]RUNNING[/yellow]\"\n\n            table.add_row(\n                icon,\n                f\"{index:03d}/{self._total_tracks:03d}\",\n                f\"{name}\",\n                duration or state,\n            )\n\n        if not visible:\n            table.add_row(\"\", \"\", \"[dim]Waiting for tracks...[/dim]\", \"\")\n\n        stats = (\n            f\"[bold]Running:[/bold] {self._running}    \"\n            f\"[bold green]Completed:[/bold green] {self._completed}    \"\n            f\"[bold red]Failed:[/bold red] {self._failed}\"\n        )\n\n        directory = (\n            f\"Directory {self._current_directory}/{self._total_directories}\"\n        )\n\n        return Group(\n            f\"[bold cyan]▶ PROCESSING TRACKS[/bold cyan]  [dim]{directory}[/dim]\",\n            progress,\n            table,\n            stats,\n        )\n\n    def _summary_table(self) -> Table:\n        table = Table.grid(padding=(0, 2))\n        table.add_column(style=\"bold\")\n        table.add_column()\n\n        table.add_row(\"Tracks\", str(self._total_tracks))\n        table.add_row(\"Completed\", str(self._completed))\n        table.add_row(\"Failed\", str(self._failed))\n        table.add_row(\"Directories\", str(self._total_directories))\n        table.add_row(\"Output\", str(self._output_dir))\n\n        return table\n\n    def _refresh(self) -> None:\n        if self._live is not None:\n            self._live.update(self._render(), refresh=True)\n\n    def _stop_live(self) -> None:\n        if self._live is not None:\n            self._live.update(self._render(), refresh=True)\n            self._live.stop()\n            self._live = None\n"
     },
     {
+      "path": "applications\\video_music\\contracts.py",
+      "extension": ".py",
+      "size_bytes": 475,
+      "lines": 21,
+      "sha256": "66ec88c308312ef99391b225b865b6625158e31e868b82b586fcac77231660a7",
+      "content": "from dataclasses import dataclass\nfrom pathlib import Path\n\n\n@dataclass(frozen=True)\nclass VideoMusicInput:\n    \"\"\"Input required to execute the Video Music application.\"\"\"\n\n    max_items_per_dir: int\n    audios_dir: Path\n    video_path: Path\n    output_dir: Path\n\n\n@dataclass(frozen=True)\nclass VideoMusicResult:\n    \"\"\"Result returned after executing the Video Music application.\"\"\"\n\n    output_dir: Path\n    processed_tracks: int\n    failed_tracks: int"
+    },
+    {
       "path": "applications\\video_music\\processor.py",
       "extension": ".py",
       "size_bytes": 10787,
       "lines": 306,
       "sha256": "ff6f8c1e521993aae55bfed8a6378089e723067527246e758a94356a4f3f2697",
       "content": "\"\"\"\nNOTAS DE IMPLEMENTACIÓN (uso personal)\n\n- Path.iterdir(): devuelve un iterador de Path, no una lista.\n- sorted(Path): ordena lexicográficamente; funciona correctamente\n  cuando los nombres de archivo comienzan con 01, 02, 03, etc.\n- // (floor division): división entera, devuelve el cociente truncado.\n  Se usa para agrupar elementos en bloques de tamaño fijo.\n- enumerate(iterable): devuelve pares (índice, elemento).\n- f\"{value:0Nd}\": formateo con padding de ceros a la izquierda.\n- raise ValueError: excepción adecuada para errores de uso/entrada.\n- ThreadPoolExecutor:\n    - Ejecuta tareas I/O-bound en paralelo.\n    - Adecuado para subprocess.run (ffmpeg / mkvmerge).\n- executor.submit():\n    - Envía una tarea al pool y devuelve un Future.\n- as_completed():\n    - Permite manejar errores tan pronto como ocurren.\n- future.result():\n    - Re-lanza la excepción si la tarea falló.\n\"\"\"\n\nfrom pathlib import Path\nfrom concurrent.futures import ThreadPoolExecutor, as_completed\nimport os\n\nfrom core.config_manager import ConfigManager\nfrom core.time_utils import seconds_to_hhmmss_ms\nfrom services.filesystem.output_partitioner import OutputDirectoryPartitioner\nfrom services.media.discovery.media_discovery import MediaDiscoveryService\nfrom services.media.video.mkvmerge_runner import MKVMergeRunner\nfrom services.media.audio.converter import AudioConverter\nfrom services.media.ffprobe_provider import FFProbeProvider\nfrom .console import VideoMusicConsole\n\n\nclass VideoMusicProcessor:\n    \"\"\"\n    Orquesta la generación de videos musicales a partir de un video base\n    y un conjunto de archivos de audio.\n\n    Responsabilidades:\n    - Mantener el orden original de las pistas\n    - Limitar la cantidad de videos por directorio de salida\n    - Decidir si existe particionado\n    - Crear subdirectorios numerados cuando sea necesario\n    - Convertir audio cuando sea necesario\n    - Construir comandos mkvmerge específicos del caso de uso\n    - Delegar la ejecución a MKVMergeRunner\n\n    Esta clase contiene la lógica de dominio del caso de uso\n    \"video + canciones\".\n    \"\"\"\n\n    def __init__(\n        self,\n        mkvmerge_runner: MKVMergeRunner,\n        audio_converter: AudioConverter,\n        ffprobe_provider: FFProbeProvider,\n        max_items_per_dir: int | None = None,\n        console: VideoMusicConsole | None = None,\n    ):\n        self._config = ConfigManager()\n        self._mkvmerge_runner = mkvmerge_runner\n        self._audio_converter = audio_converter\n        self._ffprobe_provider = ffprobe_provider\n        self._console = console or VideoMusicConsole()\n        self._output_partitioner: OutputDirectoryPartitioner | None\n\n        self._max_items_per_dir = (\n            max_items_per_dir\n            if max_items_per_dir is not None\n            else self._config.video_music_max_items_per_dir\n        )\n\n        self._output_partitioner = (\n            OutputDirectoryPartitioner(self._max_items_per_dir)\n            if self._max_items_per_dir is not None\n            else None\n        )\n\n        # Evita crear más threads que trabajo real\n        cpu_workers = max(1, os.cpu_count() - 1)\n        if self._max_items_per_dir is None:\n            self._max_workers = cpu_workers\n        else:\n            self._max_workers = min(cpu_workers, self._max_items_per_dir)\n\n    def process(\n        self,\n        video_path: Path,\n        audios_dir: Path,\n        output_dir: Path\n    ) -> None:\n        \"\"\"\n        Procesa un directorio de canciones y genera un video por cada pista.\n\n        Dependiendo de la cantidad de canciones y del límite configurado,\n        los resultados se escribirán directamente en el directorio de salida\n        o bien se dividirán en subdirectorios numerados.\n\n        Args:\n            video_path:\n                Ruta al archivo de video base.\n            audios_dir:\n                Directorio que contiene los archivos de audio.\n            output_dir:\n                Directorio donde se escribirán los videos resultantes.\n\n        Raises:\n            ValueError:\n                Si no se encuentran archivos de audio.\n            FileNotFoundError:\n                Si el video base no existe.\n        \"\"\"\n        if not video_path.exists():\n            raise FileNotFoundError(video_path)\n\n        audio_files = MediaDiscoveryService.discover(\n            audios_dir,\n            self._config.audio_supported_extensions\n        )\n\n        if not audio_files:\n            raise ValueError(\"No se encontraron archivos de audio.\")\n\n        output_dir.mkdir(parents=True, exist_ok=True)\n\n        total_songs = len(audio_files)\n\n        self._console.job_started(\n            video_path=video_path,\n            audios_dir=audios_dir,\n            output_dir=output_dir,\n            total_tracks=total_songs,\n            max_items_per_dir=self._max_items_per_dir,\n        )\n\n        # ───────────────────────────────\n        # MODO SIN SUBDIRECTORIOS\n        # ───────────────────────────────\n        if (\n            self._max_items_per_dir is None\n            or total_songs <= self._max_items_per_dir\n        ):\n            self._console.processing_started()\n\n            with ThreadPoolExecutor(max_workers=self._max_workers) as executor:\n                futures = []\n\n                for index, audio_path in enumerate(audio_files, start=1):\n                    futures.append(\n                        executor.submit(\n                            self._process_single,\n                            video_path,\n                            audio_path,\n                            output_dir,\n                            index,\n                            total_songs,\n                        )\n                    )\n\n                for future in as_completed(futures):\n                    future.result()\n\n            self._console.job_completed(total_songs, output_dir)\n            return\n\n        # ───────────────────────────────\n        # MODO CON SUBDIRECTORIOS\n        # ───────────────────────────────\n        total_directories = (\n            (total_songs + self._max_items_per_dir - 1)\n            // self._max_items_per_dir\n        )\n        self._console.partition_started(\n            total_tracks=total_songs,\n            max_items_per_dir=self._max_items_per_dir,\n            total_directories=total_directories,\n        )\n        self._console.processing_started()\n\n        with ThreadPoolExecutor(max_workers=self._max_workers) as executor:\n            futures = []\n\n            for index, audio_path in enumerate(audio_files):\n                assert self._output_partitioner is not None\n                subdir = self._output_partitioner.get_output_dir(\n                    index=index,\n                    total_items=total_songs,\n                    root_dir=output_dir\n                )\n\n                subdir.mkdir(exist_ok=True)\n\n                futures.append(\n                    executor.submit(\n                        self._process_single,\n                        video_path,\n                        audio_path,\n                        subdir,\n                        index + 1,\n                        total_songs,\n                    )\n                )\n\n            for future in as_completed(futures):\n                future.result()\n\n        self._console.job_completed(total_songs, output_dir)\n\n    def _process_single(\n        self,\n        video_path: Path,\n        audio_path: Path,\n        output_dir: Path,\n        index: int,\n        total: int,\n    ) -> None:\n        \"\"\"\n        Procesa una única pista de audio contra el video base.\n\n        Flujo:\n        1. Convierte el audio a un formato temporal\n        2. Obtiene la duración exacta del audio convertido\n        3. Construye el comando mkvmerge\n        4. Ejecuta mkvmerge\n        5. Limpia el archivo temporal\n\n        Args:\n            video_path:\n                Ruta al video base.\n            audio_path:\n                Ruta a la pista de audio.\n            output_dir:\n                Directorio de salida.\n        \"\"\"\n        self._console.track_started(\n            index=index,\n            total=total,\n            audio_path=audio_path,\n            output_dir=output_dir,\n        )\n\n        try:\n            tmp_audio_path = self._audio_converter.convert(\n                src=audio_path,\n                dst_dir=output_dir\n            )\n            self._console.audio_converted(audio_path, tmp_audio_path)\n\n            duration_seconds = self._ffprobe_provider.duration(tmp_audio_path)\n            duration = seconds_to_hhmmss_ms(duration_seconds)\n            self._console.duration_detected(audio_path, duration)\n\n            output_path = output_dir / f\"{audio_path.stem}.mkv\"\n\n            cmd = [\n                self._config.paths_mkvmerge,\n                \"-o\", str(output_path),\n                \"--split\", f\"parts:00:00:00-{duration}\",\n                \"--no-audio\",\n                \"--no-subtitles\",\n                str(video_path),\n                \"--audio-tracks\", \"0\",\n                str(tmp_audio_path),\n            ]\n\n            self._mkvmerge_runner.run(cmd)\n\n            self._cleanup_segments(output_dir, audio_path.stem)\n            self._console.video_created(audio_path, output_path)\n\n        except Exception as error:\n            self._console.track_failed(index, total, audio_path, error)\n            raise\n\n        finally:\n            if \"tmp_audio_path\" in locals() and tmp_audio_path.exists():\n                tmp_audio_path.unlink()\n                self._console.temporary_files_cleaned(audio_path)\n\n        self._console.track_completed(index, total, audio_path)\n\n    def _cleanup_segments(self, output_dir: Path, base_name: str) -> None:\n        \"\"\"\n        Elimina segmentos sobrantes generados por mkvmerge y\n        conserva únicamente el archivo principal.\n\n        Args:\n            output_dir:\n                Directorio donde se encuentran los segmentos.\n            base_name:\n                Nombre base del archivo.\n        \"\"\"\n        files = sorted(output_dir.glob(f\"{base_name}-*.mkv\"))\n        if not files:\n            return\n\n        main_file = files[0]\n        final_path = output_dir / f\"{base_name}.mkv\"\n        main_file.rename(final_path)\n\n        for f in files[1:]:\n            f.unlink()\n"
-    },
-    {
-      "path": "applications\\video_music\\routes.py",
-      "extension": ".py",
-      "size_bytes": 12,
-      "lines": 2,
-      "sha256": "38002f3b4e1484f940b924b62997aaa11c2c142845eec34125e6143ae2f2d421",
-      "content": "# A futuro\n"
-    },
-    {
-      "path": "applications\\video_music\\templates\\video_music.html",
-      "extension": ".html",
-      "size_bytes": 0,
-      "lines": null,
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "content": ""
     },
     {
       "path": "config.json",
@@ -187,6 +179,14 @@
       "content": "\"\"\"\nCLI principal del proyecto YouTube Utilities.\n\nEste módulo expone los distintos casos de uso del sistema\nmediante comandos de consola.\n\nLa lógica de negocio permanece en:\n\n    applications/\n\nEste módulo solamente coordina la ejecución.\n\"\"\"\n\nimport argparse\nfrom pathlib import Path\n\n# CORE\nfrom core.config_manager import ConfigManager\n\n# APPLICATIONS\nfrom applications.video_music.processor import VideoMusicProcessor\nfrom applications.video_joiner.processor import VideoJoinerProcessor\nfrom applications.ranking_system.create_db import create_db\nfrom applications.ranking_system.loaders.load_legacy import (\n    run as load_legacy,\n)\nfrom applications.ranking_system.queries.builder import RankingQueryBuilder\nfrom applications.youtube_video_manager.processor import (\n    YouTubeVideoManagerProcessor,\n)\n\n# SERVICES\nfrom services.media.audio.converter import AudioConverter\nfrom services.media.ffprobe_provider import FFProbeProvider\nfrom services.media.video.converter import VideoConverter\nfrom services.media.video.mkvmerge_runner import MKVMergeRunner\nfrom services.ranking.storage.session import SessionLocal\nfrom services.system.process_runner import ProcessRunner\nfrom services.youtube.album_builder import AlbumBuilder\nfrom services.youtube.album_manifest.yaml_reader import YamlReader\nfrom services.youtube.api.client import YouTubeClient\nfrom services.youtube.api.methods import YouTubeMethods\nfrom services.youtube.console import YouTubeConsole\nfrom services.youtube.operations_builder import OperationsBuilder\nfrom services.youtube.planner import Planner\nfrom services.youtube.storage.mappers.job_mapper import JobMapper\nfrom services.youtube.storage.repository import YouTubeJobRepository\nfrom services.youtube.storage.session import SessionLocal as YouTubeSessionLocal\nfrom services.youtube.updater import Updater\nfrom services.youtube.youtube_discovery import YouTubeDiscovery\n\n\nconfig = ConfigManager()\n\n\ndef run_video_music() -> None:\n    \"\"\"\n    Genera vídeos musicales utilizando una plantilla de vídeo\n    y múltiples pistas de audio.\n    \"\"\"\n\n    process_runner = ProcessRunner()\n\n    mkvmerge_runner = MKVMergeRunner(process_runner)\n    audio_converter = AudioConverter(process_runner)\n    ffprobe_provider = FFProbeProvider(process_runner)\n\n    processor = VideoMusicProcessor(\n        mkvmerge_runner=mkvmerge_runner,\n        audio_converter=audio_converter,\n        ffprobe_provider=ffprobe_provider,\n    )\n\n    audios_dir = config.video_music_default_audios_dir\n\n    processor.process(\n        video_path=Path(config.video_music_default_video_path),\n        audios_dir=Path(audios_dir),\n        output_dir=Path(audios_dir)\n        / Path(config.video_music_default_output_dir),\n    )\n\n\ndef run_video_joiner() -> None:\n    \"\"\"\n    Une múltiples vídeos en una compilación única.\n    \"\"\"\n\n    process_runner = ProcessRunner()\n\n    mkvmerge_runner = MKVMergeRunner(process_runner)\n    ffprobe_provider = FFProbeProvider(process_runner)\n\n    processor = VideoJoinerProcessor(\n        mkvmerge_runner=mkvmerge_runner,\n        ffprobe_provider=ffprobe_provider,\n    )\n\n    videos_dir = Path(config.video_joiner_default_videos_dir)\n\n    output_dir = (\n        videos_dir\n        / Path(config.video_joiner_default_output_dir)\n    )\n\n    end_screens_dir = (\n        Path(config.video_joiner_default_end_screens_dir)\n        if config.video_joiner_default_end_screens_dir\n        else None\n    )\n\n    processor.process(\n        videos_dir=videos_dir,\n        output_dir=output_dir,\n        base_name=config.video_joiner_default_video_name,\n        target_duration=config.video_joiner_default_target_duration,\n        end_screens_dir=end_screens_dir,\n        random_end_screen=config.video_joiner_default_random_end_screen,\n        timestamps_prefix=config.video_joiner_default_timestamps_prefix,\n        timestamps_secuence=config.video_joiner_default_timestamps_secuence,\n        extra_description=config.video_joiner_default_extra_description,\n    )\n\n\ndef run_video_converter() -> None:\n    \"\"\"\n    Convierte vídeos utilizando una referencia de codificación.\n    \"\"\"\n\n    probe_provider = FFProbeProvider()\n\n    converter = VideoConverter(\n        probe_provider=probe_provider,\n    )\n\n    converter.convert(\n        src=Path(config.video_converter_src),\n        dst_dir=Path(config.video_converter_dst_dir),\n        output_format=config.video_converter_output_format,\n        reference_video=Path(\n            config.video_converter_reference_video,\n        ),\n    )\n\n\ndef run_create_db() -> None:\n    \"\"\"\n    Crea la estructura de base de datos del sistema ranking.\n    \"\"\"\n\n    create_db()\n\n\ndef run_load_legacy() -> None:\n    \"\"\"\n    Importa datos históricos desde el CSV legado.\n    \"\"\"\n\n    csv_path = Path(\n        \"F:/DESCARGAS/SSLEdb - SSLT.csv\",\n    )\n\n    load_legacy(csv_path=csv_path)\n\n\ndef run_ranking() -> None:\n    \"\"\"\n    Ejecuta consultas del sistema de ranking.\n    \"\"\"\n\n    session = SessionLocal()\n\n    query = RankingQueryBuilder(\n        session=session,\n    ).build(\n        filters=config.ranking_filters,\n    )\n\n    print(query)\n\n\ndef _ask_youtube_failure_action() -> str:\n    while True:\n        action = input(\n            \"The previous YouTube job failed. \"\n            \"Choose [retry/discard]: \"\n        ).strip().lower()\n\n        if action in {\"retry\", \"discard\"}:\n            return action\n\n        print(\"Invalid action. Please enter 'retry' or 'discard'.\")\n\n\ndef run_youtube_video_manager() -> None:\n    \"\"\"\n    Ejecuta el caso de uso de gestión de vídeos de YouTube.\n    \"\"\"\n\n    # -------------------------------------------------------------------------\n    # YouTube API\n    # -------------------------------------------------------------------------\n\n    youtube_client = YouTubeClient(\n        client_secrets_path=Path(\n            config.youtube_video_manager_client_secrets_path,\n        ),\n        token_path=Path(\n            config.youtube_video_manager_token_path,\n        ),\n    )\n\n    youtube_methods = YouTubeMethods(\n        youtube_client,\n    )\n\n    youtube_discovery = YouTubeDiscovery(\n        methods=youtube_methods,\n    )\n\n    # -------------------------------------------------------------------------\n    # Persistence\n    # -------------------------------------------------------------------------\n\n    youtube_session = YouTubeSessionLocal()\n\n    try:\n        job_mapper = JobMapper()\n\n        job_repository = YouTubeJobRepository(\n            session=youtube_session,\n            mapper=job_mapper,\n        )\n\n        # ---------------------------------------------------------------------\n        # Album / planning\n        # ---------------------------------------------------------------------\n\n        manifest_reader = YamlReader()\n        album_builder = AlbumBuilder()\n\n        operations_builder = OperationsBuilder()\n        planner = Planner(\n            operations_builder=operations_builder,\n        )\n\n        # ---------------------------------------------------------------------\n        # Execution\n        # ---------------------------------------------------------------------\n\n        console = YouTubeConsole()\n\n        updater = Updater(\n            youtube_methods=youtube_methods,\n            job_repository=job_repository,\n            console=console,\n            max_attempts=config.youtube_video_manager_max_attempts,\n        )\n\n        # ---------------------------------------------------------------------\n        # Application\n        # ---------------------------------------------------------------------\n\n        processor = YouTubeVideoManagerProcessor(\n            manifest_reader=manifest_reader,\n            youtube_discovery=youtube_discovery,\n            album_builder=album_builder,\n            planner=planner,\n            updater=updater,\n            job_repository=job_repository,\n            failure_action=_ask_youtube_failure_action,\n            console=console,\n        )\n\n        processor.process(\n            Path(\n                config.youtube_video_manager_album_manifest_path,\n            ),\n        )\n    finally:\n        youtube_session.close()\n\n\ndef build_parser() -> argparse.ArgumentParser:\n    \"\"\"\n    Construye el parser principal del CLI.\n    \"\"\"\n\n    parser = argparse.ArgumentParser(\n        prog=\"youtube_utilities\",\n        description=\"Herramientas multimedia y ranking.\",\n    )\n\n    parser.add_argument(\n        \"command\",\n        choices=[\n            \"video_music\",\n            \"video_joiner\",\n            \"video_converter\",\n            \"create_db\",\n            \"load_legacy\",\n            \"ranking\",\n            \"midi_mapper\",\n            \"youtube_video_manager\",\n        ],\n    )\n\n    return parser\n\n\ndef main() -> None:\n    \"\"\"\n    Punto de entrada principal del CLI.\n    \"\"\"\n\n    parser = build_parser()\n\n    args = parser.parse_args()\n\n    commands = {\n        \"video_music\": run_video_music,\n        \"video_joiner\": run_video_joiner,\n        \"video_converter\": run_video_converter,\n        \"create_db\": run_create_db,\n        \"load_legacy\": run_load_legacy,\n        \"ranking\": run_ranking,\n        \"youtube_video_manager\": run_youtube_video_manager,\n    }\n\n    commands[args.command]()\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
+      "path": "interfaces\\web\\__init__.py",
+      "extension": ".py",
+      "size_bytes": 0,
+      "lines": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "content": ""
+    },
+    {
       "path": "interfaces\\web\\apps\\audio_converter_web\\__init__.py",
       "extension": ".py",
       "size_bytes": 0,
@@ -205,10 +205,10 @@
     {
       "path": "interfaces\\web\\apps\\audio_converter_web\\apps.py",
       "extension": ".py",
-      "size_bytes": 116,
+      "size_bytes": 121,
       "lines": 6,
-      "sha256": "1351b0809ad331c5e02a77a5d736b1d099ee96b5153e27d2c24736e46ce25e08",
-      "content": "from django.apps import AppConfig\n\n\nclass AudioConverterWebConfig(AppConfig):\n    name = 'audio_converter_web'\n"
+      "sha256": "30a91b543e146448f4df20cea36d92e5621033d36727acf1b42e9b6a665af52d",
+      "content": "from django.apps import AppConfig\n\n\nclass AudioConverterWebConfig(AppConfig):\n    name = 'apps.audio_converter_web'\n"
     },
     {
       "path": "interfaces\\web\\apps\\audio_converter_web\\migrations\\__init__.py",
@@ -235,12 +235,108 @@
       "content": "from django.test import TestCase\n\n# Create your tests here.\n"
     },
     {
+      "path": "interfaces\\web\\apps\\audio_converter_web\\urls.py",
+      "extension": ".py",
+      "size_bytes": 163,
+      "lines": 10,
+      "sha256": "72b2096850ba53c370feb580e4d1e040c1edbfba53f2ae0a7e7f2e55455c936f",
+      "content": "from django.urls import path\n\nfrom . import views\n\n\napp_name = \"audio_converter\"\n\nurlpatterns = [\n    path(\"\", views.IndexView.as_view(), name=\"index\"),\n]"
+    },
+    {
       "path": "interfaces\\web\\apps\\audio_converter_web\\views.py",
+      "extension": ".py",
+      "size_bytes": 244,
+      "lines": 10,
+      "sha256": "6a0091e2c614299e05ba938a39eaf86f6effff41f3c768abb030511941174e48",
+      "content": "from django.shortcuts import render\nfrom django.views import View\n\n\nclass IndexView(View):\n    def get(self, request, *args, **kwargs):\n        return render(\n            request,\n            \"audio_converter_web/index.html\",\n        )"
+    },
+    {
+      "path": "interfaces\\web\\apps\\home\\__init__.py",
+      "extension": ".py",
+      "size_bytes": 0,
+      "lines": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "content": ""
+    },
+    {
+      "path": "interfaces\\web\\apps\\home\\admin.py",
       "extension": ".py",
       "size_bytes": 66,
       "lines": 4,
-      "sha256": "bb41612fb453e5bc9fe4895c9d910cadc1f64ce9d091d7d1414d928ed036ea6d",
-      "content": "from django.shortcuts import render\n\n# Create your views here.\n"
+      "sha256": "a7ac68a753eeb831b6530bf71bf6917e577139f0734d17cc6a8666391564ab25",
+      "content": "from django.contrib import admin\n\n# Register your models here.\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\home\\apps.py",
+      "extension": ".py",
+      "size_bytes": 151,
+      "lines": 7,
+      "sha256": "d5ee0eef33af2d6be8b57cc374b5acf1cb843be59d0833d3caeb7b1a7107cc34",
+      "content": "from django.apps import AppConfig\n\n\nclass HomeConfig(AppConfig):\n    default_auto_field = \"django.db.models.BigAutoField\"\n    name = 'apps.home'\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\home\\catalog.py",
+      "extension": ".py",
+      "size_bytes": 521,
+      "lines": 17,
+      "sha256": "26fdb092a0633aed7d04ef0fed59d47325ce371d0408cb89840ddbfe1033b8c1",
+      "content": "APPLICATIONS = [\n    {\n        \"name\": \"Video Music\",\n        \"description\": \"Create videos from a base video and audio tracks.\",\n        \"url_name\": \"video_music:index\",\n    },\n    {\n        \"name\": \"Video Joiner\",\n        \"description\": \"Join multiple video files into a single video.\",\n        \"url_name\": \"video_joiner:index\",\n    },\n    {\n        \"name\": \"Audio Converter\",\n        \"description\": \"Convert audio files between supported formats.\",\n        \"url_name\": \"audio_converter:index\",\n    },\n]"
+    },
+    {
+      "path": "interfaces\\web\\apps\\home\\migrations\\__init__.py",
+      "extension": ".py",
+      "size_bytes": 0,
+      "lines": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "content": ""
+    },
+    {
+      "path": "interfaces\\web\\apps\\home\\models.py",
+      "extension": ".py",
+      "size_bytes": 60,
+      "lines": 4,
+      "sha256": "e0e54c7030f1f5f56004427dd41edd7cc106d8d8b52d148b24e2b322454fb0aa",
+      "content": "from django.db import models\n\n# Create your models here.\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\home\\templates\\home\\application_card.html",
+      "extension": ".html",
+      "size_bytes": 236,
+      "lines": 15,
+      "sha256": "e61ebee770b53c215b41566115e2ee86f11ee487f76b4fff4b01feb089390b48",
+      "content": "<article class=\"application-card\">\n\n    <h2>\n        {{ application.name }}\n    </h2>\n\n    <p>\n        {{ application.description }}\n    </p>\n\n    <a href=\"{% url application.url_name %}\">\n        Open\n    </a>\n\n</article>"
+    },
+    {
+      "path": "interfaces\\web\\apps\\home\\templates\\home\\index.html",
+      "extension": ".html",
+      "size_bytes": 302,
+      "lines": 21,
+      "sha256": "d504183529f1fbd47d146db6d9276ac86cc1131da26b6f677fba62b5ee732b3d",
+      "content": "{% extends \"base.html\" %}\n\n{% block title %}\n    YouTube Utilities\n{% endblock %}\n\n{% block content %}\n\n<h1>YouTube Utilities</h1>\n\n<section>\n\n    {% for application in applications %}\n\n        {% include \"home/application_card.html\" %}\n\n    {% endfor %}\n\n</section>\n\n{% endblock %}"
+    },
+    {
+      "path": "interfaces\\web\\apps\\home\\tests.py",
+      "extension": ".py",
+      "size_bytes": 63,
+      "lines": 4,
+      "sha256": "dae0da7efdcdb3a7fb572d5e914b60631099122d4a4727ac6434c016161c5fe1",
+      "content": "from django.test import TestCase\n\n# Create your tests here.\n"
+    },
+    {
+      "path": "interfaces\\web\\apps\\home\\urls.py",
+      "extension": ".py",
+      "size_bytes": 152,
+      "lines": 10,
+      "sha256": "d064b084cc5b095e8b4c13b5fc045043c4b77b2855b74be4ca937daedfe8df1b",
+      "content": "from django.urls import path\n\nfrom . import views\n\n\napp_name = \"home\"\n\nurlpatterns = [\n    path(\"\", views.IndexView.as_view(), name=\"index\"),\n]"
+    },
+    {
+      "path": "interfaces\\web\\apps\\home\\views.py",
+      "extension": ".py",
+      "size_bytes": 365,
+      "lines": 17,
+      "sha256": "341b27a33ad338e9a5652b154895c7c6c3cabff563252f24c8a95029a9fb7706",
+      "content": "from django.shortcuts import render\nfrom django.views import View\n\nfrom .catalog import APPLICATIONS\n\n\nclass IndexView(View):\n    def get(self, request, *args, **kwargs):\n        context = {\n            \"applications\": APPLICATIONS,\n        }\n\n        return render(\n            request,\n            \"home/index.html\",\n            context,\n        )"
     },
     {
       "path": "interfaces\\web\\apps\\video_joiner_web\\__init__.py",
@@ -261,10 +357,10 @@
     {
       "path": "interfaces\\web\\apps\\video_joiner_web\\apps.py",
       "extension": ".py",
-      "size_bytes": 110,
+      "size_bytes": 115,
       "lines": 6,
-      "sha256": "7030f18b50d08897a1d7f4d66481775df8b459f9a26595232830caae94942d47",
-      "content": "from django.apps import AppConfig\n\n\nclass VideoJoinerWebConfig(AppConfig):\n    name = 'video_joiner_web'\n"
+      "sha256": "a073d1b4e011a1bdf840d172b7d2f8dae8bb806e096cbf7baf40b667f26fc6ac",
+      "content": "from django.apps import AppConfig\n\n\nclass VideoJoinerWebConfig(AppConfig):\n    name = 'apps.video_joiner_web'\n"
     },
     {
       "path": "interfaces\\web\\apps\\video_joiner_web\\migrations\\__init__.py",
@@ -291,12 +387,20 @@
       "content": "from django.test import TestCase\n\n# Create your tests here.\n"
     },
     {
+      "path": "interfaces\\web\\apps\\video_joiner_web\\urls.py",
+      "extension": ".py",
+      "size_bytes": 160,
+      "lines": 10,
+      "sha256": "89a0370296cc0427c7ff22adba4ad2f6d089c6c181fd3b6a6bdfca1a406b2493",
+      "content": "from django.urls import path\n\nfrom . import views\n\n\napp_name = \"video_joiner\"\n\nurlpatterns = [\n    path(\"\", views.IndexView.as_view(), name=\"index\"),\n]"
+    },
+    {
       "path": "interfaces\\web\\apps\\video_joiner_web\\views.py",
       "extension": ".py",
-      "size_bytes": 66,
-      "lines": 4,
-      "sha256": "bb41612fb453e5bc9fe4895c9d910cadc1f64ce9d091d7d1414d928ed036ea6d",
-      "content": "from django.shortcuts import render\n\n# Create your views here.\n"
+      "size_bytes": 243,
+      "lines": 11,
+      "sha256": "4a8f07b52d8c21fd54e18902e92eb40eb163e560bea075445223f7194f4fc1dd",
+      "content": "from django.shortcuts import render\nfrom django.views import View\n\n\nclass IndexView(View):\n\n    def get(self, request, *args, **kwargs):\n        return render(\n            request,\n            \"video_joiner_web/index.html\",\n        )"
     },
     {
       "path": "interfaces\\web\\apps\\video_music_web\\__init__.py",
@@ -317,10 +421,10 @@
     {
       "path": "interfaces\\web\\apps\\video_music_web\\apps.py",
       "extension": ".py",
-      "size_bytes": 108,
+      "size_bytes": 113,
       "lines": 6,
-      "sha256": "a6ec5bb7dca3cb0d94267d0a932a9deda1fb625876b77de60e2d54146f98d188",
-      "content": "from django.apps import AppConfig\n\n\nclass VideoMusicWebConfig(AppConfig):\n    name = 'video_music_web'\n"
+      "sha256": "182a205de4923372f7ab2ec6d841de7b9ba669ec3b007f8baad007cf9f5db419",
+      "content": "from django.apps import AppConfig\n\n\nclass VideoMusicWebConfig(AppConfig):\n    name = 'apps.video_music_web'\n"
     },
     {
       "path": "interfaces\\web\\apps\\video_music_web\\migrations\\__init__.py",
@@ -347,12 +451,20 @@
       "content": "from django.test import TestCase\n\n# Create your tests here.\n"
     },
     {
+      "path": "interfaces\\web\\apps\\video_music_web\\urls.py",
+      "extension": ".py",
+      "size_bytes": 159,
+      "lines": 10,
+      "sha256": "0f9fa87283164e39992a2d3e76ef9b8d815fb50ce16ad7045e053bab04f30887",
+      "content": "from django.urls import path\n\nfrom . import views\n\n\napp_name = \"video_music\"\n\nurlpatterns = [\n    path(\"\", views.IndexView.as_view(), name=\"index\"),\n]"
+    },
+    {
       "path": "interfaces\\web\\apps\\video_music_web\\views.py",
       "extension": ".py",
-      "size_bytes": 66,
-      "lines": 4,
-      "sha256": "bb41612fb453e5bc9fe4895c9d910cadc1f64ce9d091d7d1414d928ed036ea6d",
-      "content": "from django.shortcuts import render\n\n# Create your views here.\n"
+      "size_bytes": 242,
+      "lines": 11,
+      "sha256": "92da597eab43bcfc61f687254d787dce0407fa2447f0cfbb48fec4d79c905a41",
+      "content": "from django.shortcuts import render\nfrom django.views import View\n\n\nclass IndexView(View):\n\n    def get(self, request, *args, **kwargs):\n        return render(\n            request,\n            \"video_music_web/index.html\",\n        )"
     },
     {
       "path": "interfaces\\web\\config\\__init__.py",
@@ -373,18 +485,18 @@
     {
       "path": "interfaces\\web\\config\\settings.py",
       "extension": ".py",
-      "size_bytes": 3209,
-      "lines": 121,
-      "sha256": "11d0f0f828c8f42c176ea729744b0209885b780901475308a230ce86f2dc53a2",
-      "content": "\"\"\"\nDjango settings for config project.\n\nGenerated by 'django-admin startproject' using Django 6.0.6.\n\nFor more information on this file, see\nhttps://docs.djangoproject.com/en/6.0/topics/settings/\n\nFor the full list of settings and their values, see\nhttps://docs.djangoproject.com/en/6.0/ref/settings/\n\"\"\"\n\nfrom pathlib import Path\n\n# Build paths inside the project like this: BASE_DIR / 'subdir'.\nBASE_DIR = Path(__file__).resolve().parent.parent\n\n\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/\n\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-5#_9&-t_92_axv!8qk4ljza1ghv2kaydj5cia!7jxvb=tqlj^j'\n\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\n\nALLOWED_HOSTS = []\n\n\n# Application definition\n\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',\n    \"apps.video_music_web\",\n    \"apps.video_joiner_web\",\n    \"apps.video_converter_web\",\n]\n\nMIDDLEWARE = [\n    'django.middleware.security.SecurityMiddleware',\n    'django.contrib.sessions.middleware.SessionMiddleware',\n    'django.middleware.common.CommonMiddleware',\n    'django.middleware.csrf.CsrfViewMiddleware',\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\n    'django.contrib.messages.middleware.MessageMiddleware',\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\n]\n\nROOT_URLCONF = 'config.urls'\n\nTEMPLATES = [\n    {\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\n        'DIRS': [],\n        'APP_DIRS': True,\n        'OPTIONS': {\n            'context_processors': [\n                'django.template.context_processors.request',\n                'django.contrib.auth.context_processors.auth',\n                'django.contrib.messages.context_processors.messages',\n            ],\n        },\n    },\n]\n\nWSGI_APPLICATION = 'config.wsgi.application'\n\n\n# Database\n# https://docs.djangoproject.com/en/6.0/ref/settings/#databases\n\nDATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.sqlite3',\n        'NAME': BASE_DIR / 'db.sqlite3',\n    }\n}\n\n\n# Password validation\n# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators\n\nAUTH_PASSWORD_VALIDATORS = [\n    {\n        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',\n    },\n]\n\n\n# Internationalization\n# https://docs.djangoproject.com/en/6.0/topics/i18n/\n\nLANGUAGE_CODE = 'en-us'\n\nTIME_ZONE = 'UTC'\n\nUSE_I18N = True\n\nUSE_TZ = True\n\n\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/6.0/howto/static-files/\n\nSTATIC_URL = 'static/'\n"
+      "size_bytes": 3318,
+      "lines": 127,
+      "sha256": "23ba9d24eba874c76634ac9ec1d2067082e691e1f7f2c7688e46ead457c474a5",
+      "content": "\"\"\"\nDjango settings for config project.\n\nGenerated by 'django-admin startproject' using Django 6.0.6.\n\nFor more information on this file, see\nhttps://docs.djangoproject.com/en/6.0/topics/settings/\n\nFor the full list of settings and their values, see\nhttps://docs.djangoproject.com/en/6.0/ref/settings/\n\"\"\"\n\nfrom pathlib import Path\n\n# Build paths inside the project like this: BASE_DIR / 'subdir'.\nBASE_DIR = Path(__file__).resolve().parent.parent\n\n\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/\n\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-5#_9&-t_92_axv!8qk4ljza1ghv2kaydj5cia!7jxvb=tqlj^j'\n\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\n\nALLOWED_HOSTS = []\n\n\n# Application definition\n\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',\n    # My Apps\n    \"apps.home\",\n    \"apps.video_music_web\",\n    \"apps.video_joiner_web\",\n    \"apps.audio_converter_web\",\n]\n\nMIDDLEWARE = [\n    'django.middleware.security.SecurityMiddleware',\n    'django.contrib.sessions.middleware.SessionMiddleware',\n    'django.middleware.common.CommonMiddleware',\n    'django.middleware.csrf.CsrfViewMiddleware',\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\n    'django.contrib.messages.middleware.MessageMiddleware',\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\n]\n\nROOT_URLCONF = 'config.urls'\n\nTEMPLATES = [\n    {\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\n        'DIRS': [BASE_DIR / \"templates\"],\n        'APP_DIRS': True,\n        'OPTIONS': {\n            'context_processors': [\n                'django.template.context_processors.request',\n                'django.contrib.auth.context_processors.auth',\n                'django.contrib.messages.context_processors.messages',\n            ],\n        },\n    },\n]\n\nWSGI_APPLICATION = 'config.wsgi.application'\n\n\n# Database\n# https://docs.djangoproject.com/en/6.0/ref/settings/#databases\n\nDATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.sqlite3',\n        'NAME': BASE_DIR / 'db.sqlite3',\n    }\n}\n\n\n# Password validation\n# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators\n\nAUTH_PASSWORD_VALIDATORS = [\n    {\n        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',\n    },\n]\n\n\n# Internationalization\n# https://docs.djangoproject.com/en/6.0/topics/i18n/\n\nLANGUAGE_CODE = 'en-us'\n\nTIME_ZONE = 'UTC'\n\nUSE_I18N = True\n\nUSE_TZ = True\n\n\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/6.0/howto/static-files/\n\nSTATIC_URL = '/static/'\n\nSTATICFILES_DIRS = [\n    BASE_DIR / \"static\",\n]\n"
     },
     {
       "path": "interfaces\\web\\config\\urls.py",
       "extension": ".py",
-      "size_bytes": 784,
-      "lines": 23,
-      "sha256": "8f27d13a1df0ddf42a8efbed6374f849e7941d052855fc781145b3d2c9354cd0",
-      "content": "\"\"\"\nURL configuration for config project.\n\nThe `urlpatterns` list routes URLs to views. For more information please see:\n    https://docs.djangoproject.com/en/6.0/topics/http/urls/\nExamples:\nFunction views\n    1. Add an import:  from my_app import views\n    2. Add a URL to urlpatterns:  path('', views.home, name='home')\nClass-based views\n    1. Add an import:  from other_app.views import Home\n    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')\nIncluding another URLconf\n    1. Import the include() function: from django.urls import include, path\n    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))\n\"\"\"\nfrom django.contrib import admin\nfrom django.urls import path\n\nurlpatterns = [\n    path('admin/', admin.site.urls),\n]\n"
+      "size_bytes": 1145,
+      "lines": 41,
+      "sha256": "4b7573d15c996eaa4b267fa125a967e206f3da1198966aa9bbda59223a25affb",
+      "content": "\"\"\"\nURL configuration for config project.\n\nThe `urlpatterns` list routes URLs to views. For more information please see:\n    https://docs.djangoproject.com/en/6.0/topics/http/urls/\nExamples:\nFunction views\n    1. Add an import:  from my_app import views\n    2. Add a URL to urlpatterns:  path('', views.home, name='home')\nClass-based views\n    1. Add an import:  from other_app.views import Home\n    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')\nIncluding another URLconf\n    1. Import the include() function: from django.urls import include, path\n    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))\n\"\"\"\nfrom django.contrib import admin\nfrom django.urls import path, include\n\nurlpatterns = [\n    path('admin/', admin.site.urls),\n    \n    # My URLs\n    path(\"\", include(\"apps.home.urls\")),\n\n    path(\n        \"video-music/\",\n        include(\"apps.video_music_web.urls\"),\n    ),\n\n    path(\n        \"video-joiner/\",\n        include(\"apps.video_joiner_web.urls\"),\n    ),\n\n    path(\n        \"audio-converter/\",\n        include(\"apps.audio_converter_web.urls\"),\n    ),\n]\n"
     },
     {
       "path": "interfaces\\web\\config\\wsgi.py",
@@ -401,6 +513,22 @@
       "lines": 23,
       "sha256": "b30eeb4890cb6f315cc238313808f636db29e9906b61cc6f6051567156a0097b",
       "content": "#!/usr/bin/env python\n\"\"\"Django's command-line utility for administrative tasks.\"\"\"\nimport os\nimport sys\n\n\ndef main():\n    \"\"\"Run administrative tasks.\"\"\"\n    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')\n    try:\n        from django.core.management import execute_from_command_line\n    except ImportError as exc:\n        raise ImportError(\n            \"Couldn't import Django. Are you sure it's installed and \"\n            \"available on your PYTHONPATH environment variable? Did you \"\n            \"forget to activate a virtual environment?\"\n        ) from exc\n    execute_from_command_line(sys.argv)\n\n\nif __name__ == '__main__':\n    main()\n"
+    },
+    {
+      "path": "interfaces\\web\\static\\css\\main.css",
+      "extension": ".css",
+      "size_bytes": 178,
+      "lines": 10,
+      "sha256": "ff8bcfdd590904a1778d2acc977f4fc8015391c2a1c36e57774c3179aa715830",
+      "content": ".application-card {\n    padding: 1.5rem;\n    border-radius: 12px;\n    border: 1px solid #ccc;\n}\n\n.application-card a {\n    display: inline-block;\n    margin-top: 1rem;\n}"
+    },
+    {
+      "path": "interfaces\\web\\templates\\base.html",
+      "extension": ".html",
+      "size_bytes": 581,
+      "lines": 32,
+      "sha256": "290e716c10728b15273af89770539ae64d3c6ade783d33d66bb295f8bc75f4bd",
+      "content": "{% load static %}\n\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\n    <title>\n        {% block title %}\n            YouTube Utilities\n        {% endblock %}\n    </title>\n\n    <link rel=\"stylesheet\" href=\"{% static 'css/main.css' %}\">\n</head>\n\n<body>\n\n    <header>\n        <a href=\"{% url 'home:index' %}\">\n            YouTube Utilities\n        </a>\n    </header>\n\n    <main>\n        {% block content %}\n        {% endblock %}\n    </main>\n\n</body>\n</html>"
     },
     {
       "path": "services\\filesystem\\__init__.py",
