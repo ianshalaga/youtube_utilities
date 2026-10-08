@@ -38,15 +38,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "F:/Vacaciones/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST",
-      "default_video_path": "F:/Vacaciones/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/images/video.mp4",
+      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST",
+      "default_video_path": "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Metal Gear/03 Metal Gear 2 - Solid Snake/03 METAL GEAR - METAL GEAR 2 SOLID SNAKE Music Collection/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "METAL GEAR - METAL GEAR 2 SOLID SNAKE - Music Collection",
+      "default_video_name": "Bramble - The Mountain King - OST",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
