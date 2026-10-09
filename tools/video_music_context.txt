@@ -610,20 +610,21 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 
-from core.config_manager import ConfigManager
 from core.time_utils import seconds_to_hhmmss_ms
+
+from applications.video_music.console import VideoMusicConsole
 from applications.video_music.input import VideoMusicInput
 from applications.video_music.output import (
     TrackStatus,
     VideoMusicResult,
     VideoMusicTrackResult,
 )
+
 from services.filesystem.output_partitioner import OutputDirectoryPartitioner
 from services.media.discovery.media_discovery import MediaDiscoveryService
 from services.media.video.mkvmerge_runner import MKVMergeRunner
 from services.media.audio.converter import AudioConverter
 from services.media.ffprobe_provider import FFProbeProvider
-from .console import VideoMusicConsole
 
 
 class VideoMusicProcessor:
@@ -649,12 +650,15 @@ class VideoMusicProcessor:
         mkvmerge_runner: MKVMergeRunner,
         audio_converter: AudioConverter,
         ffprobe_provider: FFProbeProvider,
+        audio_supported_extensions: list[str],
+        paths_mkvmerge: str,
         console: VideoMusicConsole | None = None,
     ):
-        self._config = ConfigManager()
         self._mkvmerge_runner = mkvmerge_runner
         self._audio_converter = audio_converter
         self._ffprobe_provider = ffprobe_provider
+        self._audio_supported_extensions = audio_supported_extensions
+        self._paths_mkvmerge = paths_mkvmerge
         self._console = console or VideoMusicConsole()
 
     def process(self, input_data: VideoMusicInput) -> VideoMusicResult:
@@ -678,7 +682,7 @@ class VideoMusicProcessor:
 
         audio_files = MediaDiscoveryService.discover(
             audios_dir,
-            self._config.audio_supported_extensions,
+            self._audio_supported_extensions,
         )
 
         if not audio_files:
@@ -802,7 +806,7 @@ class VideoMusicProcessor:
             self._console.duration_detected(audio_path, duration)
 
             cmd = [
-                self._config.paths_mkvmerge,
+                self._paths_mkvmerge,
                 "-o", str(output_path),
                 "--split", f"parts:00:00:00-{duration}",
                 "--no-audio",
@@ -1042,15 +1046,15 @@ class ConfigManager:
     # PATHS @@@@
     # ───────────────────────────────
     @property
-    def paths_mkvmerge(self) -> dict:
+    def paths_mkvmerge(self) -> str:
         return self._config["paths"]["mkvmerge"]
 
     @property
-    def paths_ffmpeg(self) -> dict:
+    def paths_ffmpeg(self) -> str:
         return self._config["paths"]["ffmpeg"]
 
     @property
-    def paths_probe(self) -> dict:
+    def paths_probe(self) -> str:
         return self._config["paths"]["probe"]
 
     # ───────────────────────────────
@@ -1552,7 +1556,7 @@ from interfaces.cli.builders.video_music_input_builder import (
 def run_video_music(config: ConfigManager) -> None:
     input_data = build_video_music_input(config)
 
-    processor = VideoMusicProcessorFactory.create_processor()
+    processor = VideoMusicProcessorFactory.create_processor(config)
     result = processor.process(input_data)
 
     presenter = VideoMusicResultPresenter()

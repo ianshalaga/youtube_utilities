@@ -128,6 +128,25 @@ class ConfigManager:
     def video_music_default_output_dir(self) -> str:
         return self._config["apps"]["video_music"]["default_output_dir"]
 
+    def update_video_music_defaults(
+        self,
+        *,
+        max_items_per_dir: int,
+        default_audios_dir: str,
+        default_video_path: str,
+        default_output_dir: str,
+    ) -> None:
+        """Update and persist Video Music default settings."""
+        settings = self._config["apps"]["video_music"]
+
+        settings["max_items_per_dir"] = max_items_per_dir
+        settings["default_audios_dir"] = default_audios_dir
+        settings["default_video_path"] = default_video_path
+        settings["default_output_dir"] = default_output_dir
+
+        self.save()
+
+
     # ───────────────────────────────
     # VIDEO JOINER @@@@
     # ───────────────────────────────
