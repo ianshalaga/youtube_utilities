@@ -19,6 +19,7 @@ from core.config_manager import ConfigManager
 
 # APPLICATIONS
 from applications.video_music.processor import VideoMusicProcessor
+from applications.video_music.input import VideoMusicInput
 from applications.video_joiner.processor import VideoJoinerProcessor
 from applications.ranking_system.create_db import create_db
 from applications.ranking_system.loaders.load_legacy import (
@@ -49,39 +50,29 @@ from services.youtube.storage.session import SessionLocal as YouTubeSessionLocal
 from services.youtube.updater import Updater
 from services.youtube.youtube_discovery import YouTubeDiscovery
 
+# COMPOSITION
+from composition.video_music import VideoMusicProcessorFactory
 
-config = ConfigManager()
-
-
-def run_video_music() -> None:
-    """
-    Genera vídeos musicales utilizando una plantilla de vídeo
-    y múltiples pistas de audio.
-    """
-
-    process_runner = ProcessRunner()
-
-    mkvmerge_runner = MKVMergeRunner(process_runner)
-    audio_converter = AudioConverter(process_runner)
-    ffprobe_provider = FFProbeProvider(process_runner)
-
-    processor = VideoMusicProcessor(
-        mkvmerge_runner=mkvmerge_runner,
-        audio_converter=audio_converter,
-        ffprobe_provider=ffprobe_provider,
-    )
-
-    audios_dir = config.video_music_default_audios_dir
-
-    processor.process(
-        video_path=Path(config.video_music_default_video_path),
-        audios_dir=Path(audios_dir),
-        output_dir=Path(audios_dir)
-        / Path(config.video_music_default_output_dir),
-    )
+# INTERFACES
+from interfaces.cli.presenters.video_music_result_presenter import (
+    VideoMusicResultPresenter,
+)
+from interfaces.cli.builders.video_music_input_builder import (
+    build_video_music_input,
+)
 
 
-def run_video_joiner() -> None:
+def run_video_music(config: ConfigManager) -> None:
+    input_data = build_video_music_input(config)
+
+    processor = VideoMusicProcessorFactory.create_processor()
+    result = processor.process(input_data)
+
+    presenter = VideoMusicResultPresenter()
+    presenter.display(result)
+
+
+def run_video_joiner(config: ConfigManager) -> None:
     """
     Une múltiples vídeos en una compilación única.
     """
@@ -122,7 +113,7 @@ def run_video_joiner() -> None:
     )
 
 
-def run_video_converter() -> None:
+def run_video_converter(config: ConfigManager) -> None:
     """
     Convierte vídeos utilizando una referencia de codificación.
     """
@@ -163,7 +154,7 @@ def run_load_legacy() -> None:
     load_legacy(csv_path=csv_path)
 
 
-def run_ranking() -> None:
+def run_ranking(config: ConfigManager) -> None:
     """
     Ejecuta consultas del sistema de ranking.
     """
@@ -192,7 +183,7 @@ def _ask_youtube_failure_action() -> str:
         print("Invalid action. Please enter 'retry' or 'discard'.")
 
 
-def run_youtube_video_manager() -> None:
+def run_youtube_video_manager(config: ConfigManager) -> None:
     """
     Ejecuta el caso de uso de gestión de vídeos de YouTube.
     """
@@ -312,19 +303,20 @@ def main() -> None:
     """
     Punto de entrada principal del CLI.
     """
+    config = ConfigManager()
 
     parser = build_parser()
 
     args = parser.parse_args()
 
     commands = {
-        "video_music": run_video_music,
-        "video_joiner": run_video_joiner,
-        "video_converter": run_video_converter,
+        "video_music": lambda: run_video_music(config),
+        "video_joiner": lambda: run_video_joiner(config),
+        "video_converter": lambda: run_video_converter(config),
         "create_db": run_create_db,
         "load_legacy": run_load_legacy,
-        "ranking": run_ranking,
-        "youtube_video_manager": run_youtube_video_manager,
+        "ranking": lambda: run_ranking(config),
+        "youtube_video_manager": lambda: run_youtube_video_manager(config),
     }
 
     commands[args.command]()

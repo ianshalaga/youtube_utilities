@@ -26,14 +26,18 @@ import os
 
 from core.config_manager import ConfigManager
 from core.time_utils import seconds_to_hhmmss_ms
-from domain.video_music.input import VideoMusicInput
-from domain.video_music.output import VideoMusicResult
+from applications.video_music.input import VideoMusicInput
+from applications.video_music.output import (
+    TrackStatus,
+    VideoMusicResult,
+    VideoMusicTrackResult,
+)
 from services.filesystem.output_partitioner import OutputDirectoryPartitioner
 from services.media.discovery.media_discovery import MediaDiscoveryService
 from services.media.video.mkvmerge_runner import MKVMergeRunner
 from services.media.audio.converter import AudioConverter
 from services.media.ffprobe_provider import FFProbeProvider
-from applications.video_music.console import VideoMusicConsole
+from .console import VideoMusicConsole
 
 
 class VideoMusicProcessor:
@@ -59,7 +63,6 @@ class VideoMusicProcessor:
         mkvmerge_runner: MKVMergeRunner,
         audio_converter: AudioConverter,
         ffprobe_provider: FFProbeProvider,
-        max_items_per_dir: int | None = None,
         console: VideoMusicConsole | None = None,
     ):
         self._config = ConfigManager()
@@ -67,60 +70,29 @@ class VideoMusicProcessor:
         self._audio_converter = audio_converter
         self._ffprobe_provider = ffprobe_provider
         self._console = console or VideoMusicConsole()
-        self._output_partitioner: OutputDirectoryPartitioner | None
 
-        self._max_items_per_dir = (
-            max_items_per_dir
-            if max_items_per_dir is not None
-            else self._config.video_music_max_items_per_dir
-        )
-
-        self._output_partitioner = (
-            OutputDirectoryPartitioner(self._max_items_per_dir)
-            if self._max_items_per_dir is not None
-            else None
-        )
-
-        # Evita crear más threads que trabajo real
-        cpu_workers = max(1, os.cpu_count() - 1)
-        if self._max_items_per_dir is None:
-            self._max_workers = cpu_workers
-        else:
-            self._max_workers = min(cpu_workers, self._max_items_per_dir)
-
-    def process(
-        self,
-        video_path: Path,
-        audios_dir: Path,
-        output_dir: Path
-    ) -> None:
+    def process(self, input_data: VideoMusicInput) -> VideoMusicResult:
         """
-        Procesa un directorio de canciones y genera un video por cada pista.
-
-        Dependiendo de la cantidad de canciones y del límite configurado,
-        los resultados se escribirán directamente en el directorio de salida
-        o bien se dividirán en subdirectorios numerados.
-
-        Args:
-            video_path:
-                Ruta al archivo de video base.
-            audios_dir:
-                Directorio que contiene los archivos de audio.
-            output_dir:
-                Directorio donde se escribirán los videos resultantes.
+        Procesa un directorio de canciones y devuelve el resultado de cada pista.
 
         Raises:
-            ValueError:
-                Si no se encuentran archivos de audio.
-            FileNotFoundError:
-                Si el video base no existe.
+            ValueError: Si el límite es inválido o no se encuentran audios.
+            FileNotFoundError: Si el video base no existe.
         """
+        video_path = input_data.video_path
+        audios_dir = input_data.audios_dir
+        output_dir = input_data.output_dir
+        max_items_per_dir = input_data.max_items_per_dir
+
+        if max_items_per_dir <= 0:
+            raise ValueError("max_items_per_dir debe ser mayor que cero.")
+
         if not video_path.exists():
             raise FileNotFoundError(video_path)
 
         audio_files = MediaDiscoveryService.discover(
             audios_dir,
-            self._config.audio_supported_extensions
+            self._config.audio_supported_extensions,
         )
 
         if not audio_files:
@@ -128,88 +100,81 @@ class VideoMusicProcessor:
 
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        total_songs = len(audio_files)
+        total_tracks = len(audio_files)
+        total_directories = max(
+            1,
+            (total_tracks + max_items_per_dir - 1) // max_items_per_dir,
+        )
+
+        cpu_workers = max(1, (os.cpu_count() or 1) - 1)
+        max_workers = min(cpu_workers, max_items_per_dir)
+        output_partitioner = OutputDirectoryPartitioner(max_items_per_dir)
 
         self._console.job_started(
             video_path=video_path,
             audios_dir=audios_dir,
             output_dir=output_dir,
-            total_tracks=total_songs,
-            max_items_per_dir=self._max_items_per_dir,
+            total_tracks=total_tracks,
+            max_items_per_dir=max_items_per_dir,
         )
 
-        # ───────────────────────────────
-        # MODO SIN SUBDIRECTORIOS
-        # ───────────────────────────────
-        if (
-            self._max_items_per_dir is None
-            or total_songs <= self._max_items_per_dir
-        ):
-            self._console.processing_started()
+        if total_tracks > max_items_per_dir:
+            self._console.partition_started(
+                total_tracks=total_tracks,
+                max_items_per_dir=max_items_per_dir,
+                total_directories=total_directories,
+            )
 
-            with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
-                futures = []
-
-                for index, audio_path in enumerate(audio_files, start=1):
-                    futures.append(
-                        executor.submit(
-                            self._process_single,
-                            video_path,
-                            audio_path,
-                            output_dir,
-                            index,
-                            total_songs,
-                        )
-                    )
-
-                for future in as_completed(futures):
-                    future.result()
-
-            self._console.job_completed(total_songs, output_dir)
-            return
-
-        # ───────────────────────────────
-        # MODO CON SUBDIRECTORIOS
-        # ───────────────────────────────
-        total_directories = (
-            (total_songs + self._max_items_per_dir - 1)
-            // self._max_items_per_dir
-        )
-        self._console.partition_started(
-            total_tracks=total_songs,
-            max_items_per_dir=self._max_items_per_dir,
-            total_directories=total_directories,
-        )
         self._console.processing_started()
 
-        with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
-            futures = []
+        # Se reserva una posición por pista para conservar el orden original,
+        # aunque los trabajos concurrentes terminen en distinto orden.
+        track_results: list[VideoMusicTrackResult | None] = [
+            None
+        ] * total_tracks
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {}
 
             for index, audio_path in enumerate(audio_files):
-                assert self._output_partitioner is not None
-                subdir = self._output_partitioner.get_output_dir(
-                    index=index,
-                    total_items=total_songs,
-                    root_dir=output_dir
-                )
-
-                subdir.mkdir(exist_ok=True)
-
-                futures.append(
-                    executor.submit(
-                        self._process_single,
-                        video_path,
-                        audio_path,
-                        subdir,
-                        index + 1,
-                        total_songs,
+                if total_tracks > max_items_per_dir:
+                    track_output_dir = output_partitioner.get_output_dir(
+                        index=index,
+                        total_items=total_tracks,
+                        root_dir=output_dir,
                     )
+                    track_output_dir.mkdir(parents=True, exist_ok=True)
+                else:
+                    track_output_dir = output_dir
+
+                future = executor.submit(
+                    self._process_single,
+                    video_path,
+                    audio_path,
+                    track_output_dir,
+                    index + 1,
+                    total_tracks,
                 )
+                futures[future] = index
 
             for future in as_completed(futures):
-                future.result()
+                track_results[futures[future]] = future.result()
 
-        self._console.job_completed(total_songs, output_dir)
+        self._console.job_completed(total_tracks, output_dir)
+
+        # Cada tarea debe producir un resultado. La comprobación evita devolver
+        # silenciosamente un resultado incompleto si cambia el flujo interno.
+        if any(result is None for result in track_results):
+            raise RuntimeError(
+                "La ejecución terminó sin producir un resultado para cada pista."
+            )
+
+        return VideoMusicResult(
+            output_dir=output_dir,
+            total_tracks=total_tracks,
+            tracks=tuple(track_results),
+            total_directories=total_directories,
+        )
 
     def _process_single(
         self,
@@ -218,24 +183,12 @@ class VideoMusicProcessor:
         output_dir: Path,
         index: int,
         total: int,
-    ) -> None:
+    ) -> VideoMusicTrackResult:
         """
-        Procesa una única pista de audio contra el video base.
+        Procesa una pista y devuelve su resultado individual.
 
-        Flujo:
-        1. Convierte el audio a un formato temporal
-        2. Obtiene la duración exacta del audio convertido
-        3. Construye el comando mkvmerge
-        4. Ejecuta mkvmerge
-        5. Limpia el archivo temporal
-
-        Args:
-            video_path:
-                Ruta al video base.
-            audio_path:
-                Ruta a la pista de audio.
-            output_dir:
-                Directorio de salida.
+        Los fallos de una pista se representan en VideoMusicTrackResult para
+        permitir que las demás pistas continúen procesándose.
         """
         self._console.track_started(
             index=index,
@@ -244,18 +197,23 @@ class VideoMusicProcessor:
             output_dir=output_dir,
         )
 
+        tmp_audio_path: Path | None = None
+        duration_seconds: float | None = None
+        output_path = output_dir / f"{audio_path.stem}.mkv"
+        processing_error: Exception | None = None
+
         try:
             tmp_audio_path = self._audio_converter.convert(
                 src=audio_path,
-                dst_dir=output_dir
+                dst_dir=output_dir,
             )
+
             self._console.audio_converted(audio_path, tmp_audio_path)
 
             duration_seconds = self._ffprobe_provider.duration(tmp_audio_path)
             duration = seconds_to_hhmmss_ms(duration_seconds)
-            self._console.duration_detected(audio_path, duration)
 
-            output_path = output_dir / f"{audio_path.stem}.mkv"
+            self._console.duration_detected(audio_path, duration)
 
             cmd = [
                 self._config.paths_mkvmerge,
@@ -271,20 +229,51 @@ class VideoMusicProcessor:
             self._mkvmerge_runner.run(cmd)
 
             self._cleanup_segments(output_dir, audio_path.stem)
+
             self._console.video_created(audio_path, output_path)
 
         except Exception as error:
-            self._console.track_failed(index, total, audio_path, error)
-            raise
+            processing_error = error
 
         finally:
-            if "tmp_audio_path" in locals() and tmp_audio_path.exists():
-                tmp_audio_path.unlink()
-                self._console.temporary_files_cleaned(audio_path)
+            if tmp_audio_path is not None and tmp_audio_path.exists():
+                try:
+                    tmp_audio_path.unlink()
+                    self._console.temporary_files_cleaned(audio_path)
+                except Exception as cleanup_error:
+                    if processing_error is None:
+                        processing_error = cleanup_error
+
+        if processing_error is not None:
+            self._console.track_failed(
+                index,
+                total,
+                audio_path,
+                processing_error,
+            )
+
+            return VideoMusicTrackResult(
+                source_path=audio_path,
+                output_path=output_path if output_path.exists() else None,
+                status=TrackStatus.FAILED,
+                duration_seconds=duration_seconds,
+                error_message=str(processing_error),
+            )
 
         self._console.track_completed(index, total, audio_path)
 
-    def _cleanup_segments(self, output_dir: Path, base_name: str) -> None:
+        return VideoMusicTrackResult(
+            source_path=audio_path,
+            output_path=output_path,
+            status=TrackStatus.COMPLETED,
+            duration_seconds=duration_seconds,
+        )
+
+    def _cleanup_segments(
+        self,
+        output_dir: Path,
+        base_name: str
+    ) -> None:
         """
         Elimina segmentos sobrantes generados por mkvmerge y
         conserva únicamente el archivo principal.
@@ -295,12 +284,17 @@ class VideoMusicProcessor:
             base_name:
                 Nombre base del archivo.
         """
-        files = sorted(output_dir.glob(f"{base_name}-*.mkv"))
+        files = sorted(
+            output_dir.glob(f"{base_name}-*.mkv")
+        )
+
         if not files:
             return
 
         main_file = files[0]
+
         final_path = output_dir / f"{base_name}.mkv"
+
         main_file.rename(final_path)
 
         for f in files[1:]:

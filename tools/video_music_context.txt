@@ -1,6 +1,6 @@
 # GENERATED PROJECT CONTEXT
 # base_dir: H:\@Seyfer\@Projects\youtube_utilities
-# total_files: 80
+# total_files: 86
 
 # PROJECT STRUCTURE
 
@@ -9,7 +9,8 @@ applications
   video_music
     __init__.py
     console.py
-    contracts.py
+    input.py
+    output.py
     processor.py
 config.json
 core
@@ -29,7 +30,14 @@ gui
   file_dialog.py
 interfaces
   cli
+    __init__.py
     app_cli.py
+    builders
+      __init__.py
+      video_music_input_builder.py
+    presenters
+      __init__.py
+      video_music_result_presenter.py
   web
     __init__.py
     apps
@@ -509,7 +517,7 @@ class VideoMusicConsole:
 
 
 ================================================================================
-FILE: applications\video_music\contracts.py
+FILE: applications\video_music\input.py
 ================================================================================
 from dataclasses import dataclass
 from pathlib import Path
@@ -524,14 +532,54 @@ class VideoMusicInput:
     video_path: Path
     output_dir: Path
 
+================================================================================
+FILE: applications\video_music\output.py
+================================================================================
+
+from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+
+
+class TrackStatus(str, Enum):
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+@dataclass(frozen=True)
+class VideoMusicTrackResult:
+    """Result of processing one audio track."""
+
+    source_path: Path
+    output_path: Path | None
+    status: TrackStatus
+    duration_seconds: float | None = None
+    error_message: str | None = None
+
 
 @dataclass(frozen=True)
 class VideoMusicResult:
-    """Result returned after executing the Video Music application."""
+    """Summary of a Video Music execution."""
 
     output_dir: Path
-    processed_tracks: int
-    failed_tracks: int
+    total_tracks: int
+    tracks: tuple[VideoMusicTrackResult, ...]
+    total_directories: int
+
+    @property
+    def processed_tracks(self) -> int:
+        return sum(
+            track.status == TrackStatus.COMPLETED
+            for track in self.tracks
+        )
+
+    @property
+    def failed_tracks(self) -> int:
+        return sum(
+            track.status == TrackStatus.FAILED
+            for track in self.tracks
+        )
+
 
 ================================================================================
 FILE: applications\video_music\processor.py
@@ -564,6 +612,12 @@ import os
 
 from core.config_manager import ConfigManager
 from core.time_utils import seconds_to_hhmmss_ms
+from applications.video_music.input import VideoMusicInput
+from applications.video_music.output import (
+    TrackStatus,
+    VideoMusicResult,
+    VideoMusicTrackResult,
+)
 from services.filesystem.output_partitioner import OutputDirectoryPartitioner
 from services.media.discovery.media_discovery import MediaDiscoveryService
 from services.media.video.mkvmerge_runner import MKVMergeRunner
@@ -595,7 +649,6 @@ class VideoMusicProcessor:
         mkvmerge_runner: MKVMergeRunner,
         audio_converter: AudioConverter,
         ffprobe_provider: FFProbeProvider,
-        max_items_per_dir: int | None = None,
         console: VideoMusicConsole | None = None,
     ):
         self._config = ConfigManager()
@@ -603,60 +656,29 @@ class VideoMusicProcessor:
         self._audio_converter = audio_converter
         self._ffprobe_provider = ffprobe_provider
         self._console = console or VideoMusicConsole()
-        self._output_partitioner: OutputDirectoryPartitioner | None
 
-        self._max_items_per_dir = (
-            max_items_per_dir
-            if max_items_per_dir is not None
-            else self._config.video_music_max_items_per_dir
-        )
-
-        self._output_partitioner = (
-            OutputDirectoryPartitioner(self._max_items_per_dir)
-            if self._max_items_per_dir is not None
-            else None
-        )
-
-        # Evita crear más threads que trabajo real
-        cpu_workers = max(1, os.cpu_count() - 1)
-        if self._max_items_per_dir is None:
-            self._max_workers = cpu_workers
-        else:
-            self._max_workers = min(cpu_workers, self._max_items_per_dir)
-
-    def process(
-        self,
-        video_path: Path,
-        audios_dir: Path,
-        output_dir: Path
-    ) -> None:
+    def process(self, input_data: VideoMusicInput) -> VideoMusicResult:
         """
-        Procesa un directorio de canciones y genera un video por cada pista.
-
-        Dependiendo de la cantidad de canciones y del límite configurado,
-        los resultados se escribirán directamente en el directorio de salida
-        o bien se dividirán en subdirectorios numerados.
-
-        Args:
-            video_path:
-                Ruta al archivo de video base.
-            audios_dir:
-                Directorio que contiene los archivos de audio.
-            output_dir:
-                Directorio donde se escribirán los videos resultantes.
+        Procesa un directorio de canciones y devuelve el resultado de cada pista.
 
         Raises:
-            ValueError:
-                Si no se encuentran archivos de audio.
-            FileNotFoundError:
-                Si el video base no existe.
+            ValueError: Si el límite es inválido o no se encuentran audios.
+            FileNotFoundError: Si el video base no existe.
         """
+        video_path = input_data.video_path
+        audios_dir = input_data.audios_dir
+        output_dir = input_data.output_dir
+        max_items_per_dir = input_data.max_items_per_dir
+
+        if max_items_per_dir <= 0:
+            raise ValueError("max_items_per_dir debe ser mayor que cero.")
+
         if not video_path.exists():
             raise FileNotFoundError(video_path)
 
         audio_files = MediaDiscoveryService.discover(
             audios_dir,
-            self._config.audio_supported_extensions
+            self._config.audio_supported_extensions,
         )
 
         if not audio_files:
@@ -664,88 +686,81 @@ class VideoMusicProcessor:
 
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        total_songs = len(audio_files)
+        total_tracks = len(audio_files)
+        total_directories = max(
+            1,
+            (total_tracks + max_items_per_dir - 1) // max_items_per_dir,
+        )
+
+        cpu_workers = max(1, (os.cpu_count() or 1) - 1)
+        max_workers = min(cpu_workers, max_items_per_dir)
+        output_partitioner = OutputDirectoryPartitioner(max_items_per_dir)
 
         self._console.job_started(
             video_path=video_path,
             audios_dir=audios_dir,
             output_dir=output_dir,
-            total_tracks=total_songs,
-            max_items_per_dir=self._max_items_per_dir,
+            total_tracks=total_tracks,
+            max_items_per_dir=max_items_per_dir,
         )
 
-        # ───────────────────────────────
-        # MODO SIN SUBDIRECTORIOS
-        # ───────────────────────────────
-        if (
-            self._max_items_per_dir is None
-            or total_songs <= self._max_items_per_dir
-        ):
-            self._console.processing_started()
+        if total_tracks > max_items_per_dir:
+            self._console.partition_started(
+                total_tracks=total_tracks,
+                max_items_per_dir=max_items_per_dir,
+                total_directories=total_directories,
+            )
 
-            with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
-                futures = []
-
-                for index, audio_path in enumerate(audio_files, start=1):
-                    futures.append(
-                        executor.submit(
-                            self._process_single,
-                            video_path,
-                            audio_path,
-                            output_dir,
-                            index,
-                            total_songs,
-                        )
-                    )
-
-                for future in as_completed(futures):
-                    future.result()
-
-            self._console.job_completed(total_songs, output_dir)
-            return
-
-        # ───────────────────────────────
-        # MODO CON SUBDIRECTORIOS
-        # ───────────────────────────────
-        total_directories = (
-            (total_songs + self._max_items_per_dir - 1)
-            // self._max_items_per_dir
-        )
-        self._console.partition_started(
-            total_tracks=total_songs,
-            max_items_per_dir=self._max_items_per_dir,
-            total_directories=total_directories,
-        )
         self._console.processing_started()
 
-        with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
-            futures = []
+        # Se reserva una posición por pista para conservar el orden original,
+        # aunque los trabajos concurrentes terminen en distinto orden.
+        track_results: list[VideoMusicTrackResult | None] = [
+            None
+        ] * total_tracks
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {}
 
             for index, audio_path in enumerate(audio_files):
-                assert self._output_partitioner is not None
-                subdir = self._output_partitioner.get_output_dir(
-                    index=index,
-                    total_items=total_songs,
-                    root_dir=output_dir
-                )
-
-                subdir.mkdir(exist_ok=True)
-
-                futures.append(
-                    executor.submit(
-                        self._process_single,
-                        video_path,
-                        audio_path,
-                        subdir,
-                        index + 1,
-                        total_songs,
+                if total_tracks > max_items_per_dir:
+                    track_output_dir = output_partitioner.get_output_dir(
+                        index=index,
+                        total_items=total_tracks,
+                        root_dir=output_dir,
                     )
+                    track_output_dir.mkdir(parents=True, exist_ok=True)
+                else:
+                    track_output_dir = output_dir
+
+                future = executor.submit(
+                    self._process_single,
+                    video_path,
+                    audio_path,
+                    track_output_dir,
+                    index + 1,
+                    total_tracks,
                 )
+                futures[future] = index
 
             for future in as_completed(futures):
-                future.result()
+                track_results[futures[future]] = future.result()
 
-        self._console.job_completed(total_songs, output_dir)
+        self._console.job_completed(total_tracks, output_dir)
+
+        # Cada tarea debe producir un resultado. La comprobación evita devolver
+        # silenciosamente un resultado incompleto si cambia el flujo interno.
+        if any(result is None for result in track_results):
+            raise RuntimeError(
+                "La ejecución terminó sin producir un resultado para cada pista."
+            )
+
+        return VideoMusicResult(
+            output_dir=output_dir,
+            total_tracks=total_tracks,
+            tracks=tuple(track_results),
+            total_directories=total_directories,
+        )
 
     def _process_single(
         self,
@@ -754,24 +769,12 @@ class VideoMusicProcessor:
         output_dir: Path,
         index: int,
         total: int,
-    ) -> None:
+    ) -> VideoMusicTrackResult:
         """
-        Procesa una única pista de audio contra el video base.
+        Procesa una pista y devuelve su resultado individual.
 
-        Flujo:
-        1. Convierte el audio a un formato temporal
-        2. Obtiene la duración exacta del audio convertido
-        3. Construye el comando mkvmerge
-        4. Ejecuta mkvmerge
-        5. Limpia el archivo temporal
-
-        Args:
-            video_path:
-                Ruta al video base.
-            audio_path:
-                Ruta a la pista de audio.
-            output_dir:
-                Directorio de salida.
+        Los fallos de una pista se representan en VideoMusicTrackResult para
+        permitir que las demás pistas continúen procesándose.
         """
         self._console.track_started(
             index=index,
@@ -780,18 +783,23 @@ class VideoMusicProcessor:
             output_dir=output_dir,
         )
 
+        tmp_audio_path: Path | None = None
+        duration_seconds: float | None = None
+        output_path = output_dir / f"{audio_path.stem}.mkv"
+        processing_error: Exception | None = None
+
         try:
             tmp_audio_path = self._audio_converter.convert(
                 src=audio_path,
-                dst_dir=output_dir
+                dst_dir=output_dir,
             )
+
             self._console.audio_converted(audio_path, tmp_audio_path)
 
             duration_seconds = self._ffprobe_provider.duration(tmp_audio_path)
             duration = seconds_to_hhmmss_ms(duration_seconds)
-            self._console.duration_detected(audio_path, duration)
 
-            output_path = output_dir / f"{audio_path.stem}.mkv"
+            self._console.duration_detected(audio_path, duration)
 
             cmd = [
                 self._config.paths_mkvmerge,
@@ -807,20 +815,51 @@ class VideoMusicProcessor:
             self._mkvmerge_runner.run(cmd)
 
             self._cleanup_segments(output_dir, audio_path.stem)
+
             self._console.video_created(audio_path, output_path)
 
         except Exception as error:
-            self._console.track_failed(index, total, audio_path, error)
-            raise
+            processing_error = error
 
         finally:
-            if "tmp_audio_path" in locals() and tmp_audio_path.exists():
-                tmp_audio_path.unlink()
-                self._console.temporary_files_cleaned(audio_path)
+            if tmp_audio_path is not None and tmp_audio_path.exists():
+                try:
+                    tmp_audio_path.unlink()
+                    self._console.temporary_files_cleaned(audio_path)
+                except Exception as cleanup_error:
+                    if processing_error is None:
+                        processing_error = cleanup_error
+
+        if processing_error is not None:
+            self._console.track_failed(
+                index,
+                total,
+                audio_path,
+                processing_error,
+            )
+
+            return VideoMusicTrackResult(
+                source_path=audio_path,
+                output_path=output_path if output_path.exists() else None,
+                status=TrackStatus.FAILED,
+                duration_seconds=duration_seconds,
+                error_message=str(processing_error),
+            )
 
         self._console.track_completed(index, total, audio_path)
 
-    def _cleanup_segments(self, output_dir: Path, base_name: str) -> None:
+        return VideoMusicTrackResult(
+            source_path=audio_path,
+            output_path=output_path,
+            status=TrackStatus.COMPLETED,
+            duration_seconds=duration_seconds,
+        )
+
+    def _cleanup_segments(
+        self,
+        output_dir: Path,
+        base_name: str
+    ) -> None:
         """
         Elimina segmentos sobrantes generados por mkvmerge y
         conserva únicamente el archivo principal.
@@ -831,17 +870,21 @@ class VideoMusicProcessor:
             base_name:
                 Nombre base del archivo.
         """
-        files = sorted(output_dir.glob(f"{base_name}-*.mkv"))
+        files = sorted(
+            output_dir.glob(f"{base_name}-*.mkv")
+        )
+
         if not files:
             return
 
         main_file = files[0]
+
         final_path = output_dir / f"{base_name}.mkv"
+
         main_file.rename(final_path)
 
         for f in files[1:]:
             f.unlink()
-
 
 ================================================================================
 FILE: config.json
@@ -886,15 +929,15 @@ FILE: config.json
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "F:/Vacaciones/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST",
-      "default_video_path": "F:/Vacaciones/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/images/video.mp4",
+      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST",
+      "default_video_path": "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Metal Gear/03 Metal Gear 2 - Solid Snake/03 METAL GEAR - METAL GEAR 2 SOLID SNAKE Music Collection/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "METAL GEAR - METAL GEAR 2 SOLID SNAKE - Music Collection",
+      "default_video_name": "Bramble - The Mountain King - OST",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
@@ -1435,6 +1478,11 @@ FILE: gui\file_dialog.py
 
 
 ================================================================================
+FILE: interfaces\cli\__init__.py
+================================================================================
+
+
+================================================================================
 FILE: interfaces\cli\app_cli.py
 ================================================================================
 """
@@ -1458,6 +1506,7 @@ from core.config_manager import ConfigManager
 
 # APPLICATIONS
 from applications.video_music.processor import VideoMusicProcessor
+from applications.video_music.input import VideoMusicInput
 from applications.video_joiner.processor import VideoJoinerProcessor
 from applications.ranking_system.create_db import create_db
 from applications.ranking_system.loaders.load_legacy import (
@@ -1488,39 +1537,29 @@ from services.youtube.storage.session import SessionLocal as YouTubeSessionLocal
 from services.youtube.updater import Updater
 from services.youtube.youtube_discovery import YouTubeDiscovery
 
+# COMPOSITION
+from composition.video_music import VideoMusicProcessorFactory
 
-config = ConfigManager()
-
-
-def run_video_music() -> None:
-    """
-    Genera vídeos musicales utilizando una plantilla de vídeo
-    y múltiples pistas de audio.
-    """
-
-    process_runner = ProcessRunner()
-
-    mkvmerge_runner = MKVMergeRunner(process_runner)
-    audio_converter = AudioConverter(process_runner)
-    ffprobe_provider = FFProbeProvider(process_runner)
-
-    processor = VideoMusicProcessor(
-        mkvmerge_runner=mkvmerge_runner,
-        audio_converter=audio_converter,
-        ffprobe_provider=ffprobe_provider,
-    )
-
-    audios_dir = config.video_music_default_audios_dir
-
-    processor.process(
-        video_path=Path(config.video_music_default_video_path),
-        audios_dir=Path(audios_dir),
-        output_dir=Path(audios_dir)
-        / Path(config.video_music_default_output_dir),
-    )
+# INTERFACES
+from interfaces.cli.presenters.video_music_result_presenter import (
+    VideoMusicResultPresenter,
+)
+from interfaces.cli.builders.video_music_input_builder import (
+    build_video_music_input,
+)
 
 
-def run_video_joiner() -> None:
+def run_video_music(config: ConfigManager) -> None:
+    input_data = build_video_music_input(config)
+
+    processor = VideoMusicProcessorFactory.create_processor()
+    result = processor.process(input_data)
+
+    presenter = VideoMusicResultPresenter()
+    presenter.display(result)
+
+
+def run_video_joiner(config: ConfigManager) -> None:
     """
     Une múltiples vídeos en una compilación única.
     """
@@ -1561,7 +1600,7 @@ def run_video_joiner() -> None:
     )
 
 
-def run_video_converter() -> None:
+def run_video_converter(config: ConfigManager) -> None:
     """
     Convierte vídeos utilizando una referencia de codificación.
     """
@@ -1602,7 +1641,7 @@ def run_load_legacy() -> None:
     load_legacy(csv_path=csv_path)
 
 
-def run_ranking() -> None:
+def run_ranking(config: ConfigManager) -> None:
     """
     Ejecuta consultas del sistema de ranking.
     """
@@ -1631,7 +1670,7 @@ def _ask_youtube_failure_action() -> str:
         print("Invalid action. Please enter 'retry' or 'discard'.")
 
 
-def run_youtube_video_manager() -> None:
+def run_youtube_video_manager(config: ConfigManager) -> None:
     """
     Ejecuta el caso de uso de gestión de vídeos de YouTube.
     """
@@ -1751,19 +1790,20 @@ def main() -> None:
     """
     Punto de entrada principal del CLI.
     """
+    config = ConfigManager()
 
     parser = build_parser()
 
     args = parser.parse_args()
 
     commands = {
-        "video_music": run_video_music,
-        "video_joiner": run_video_joiner,
-        "video_converter": run_video_converter,
+        "video_music": lambda: run_video_music(config),
+        "video_joiner": lambda: run_video_joiner(config),
+        "video_converter": lambda: run_video_converter(config),
         "create_db": run_create_db,
         "load_legacy": run_load_legacy,
-        "ranking": run_ranking,
-        "youtube_video_manager": run_youtube_video_manager,
+        "ranking": lambda: run_ranking(config),
+        "youtube_video_manager": lambda: run_youtube_video_manager(config),
     }
 
     commands[args.command]()
@@ -1771,6 +1811,122 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+================================================================================
+FILE: interfaces\cli\builders\__init__.py
+================================================================================
+
+
+================================================================================
+FILE: interfaces\cli\builders\video_music_input_builder.py
+================================================================================
+
+"""Build the input required by the Video Music CLI command."""
+
+from pathlib import Path
+
+from applications.video_music.input import VideoMusicInput
+from core.config_manager import ConfigManager
+
+
+def build_video_music_input(config: ConfigManager) -> VideoMusicInput:
+    """Build VideoMusicInput from the application configuration."""
+    audios_dir = Path(config.video_music_default_audios_dir)
+
+    return VideoMusicInput(
+        max_items_per_dir=config.video_music_max_items_per_dir,
+        video_path=Path(config.video_music_default_video_path),
+        audios_dir=audios_dir,
+        output_dir=audios_dir / config.video_music_default_output_dir,
+    )
+
+
+================================================================================
+FILE: interfaces\cli\presenters\__init__.py
+================================================================================
+
+
+================================================================================
+FILE: interfaces\cli\presenters\video_music_result_presenter.py
+================================================================================
+"""Present the final result of a Video Music execution in the CLI."""
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+from applications.video_music.output import (
+    TrackStatus,
+    VideoMusicResult,
+)
+
+
+class VideoMusicResultPresenter:
+    """Render a VideoMusicResult for terminal users."""
+
+    def __init__(self, console: Console | None = None) -> None:
+        self._console = console or Console()
+
+    def display(self, result: VideoMusicResult) -> None:
+        """Display the execution summary and per-track results."""
+        summary = Table.grid(padding=(0, 2))
+        summary.add_column(style="bold")
+        summary.add_column()
+
+        summary.add_row("Output directory", str(result.output_dir))
+        summary.add_row("Total tracks", str(result.total_tracks))
+        summary.add_row("Processed tracks", str(result.processed_tracks))
+        summary.add_row("Failed tracks", str(result.failed_tracks))
+        summary.add_row("Output directories", str(result.total_directories))
+
+        self._console.print()
+        self._console.print(
+            Panel(
+                summary,
+                title="Video Music — Execution Summary",
+                expand=False,
+            )
+        )
+
+        if not result.tracks:
+            self._console.print("No track details are available.")
+            return
+
+        tracks_table = Table(title="Track Details", expand=True)
+        tracks_table.add_column("#", justify="right", style="dim", no_wrap=True)
+        tracks_table.add_column("Track", min_width=18)
+        tracks_table.add_column("Status", no_wrap=True)
+        tracks_table.add_column("Duration", justify="right", no_wrap=True)
+        tracks_table.add_column("Output", overflow="fold")
+        tracks_table.add_column("Error", overflow="fold")
+
+        for index, track in enumerate(result.tracks, start=1):
+            if track.status is TrackStatus.COMPLETED:
+                status_label = "[green]COMPLETED[/green]"
+            elif track.status is TrackStatus.FAILED:
+                status_label = "[red]FAILED[/red]"
+            else:
+                status_label = str(track.status.value)
+
+            duration = (
+                f"{track.duration_seconds:.2f} s"
+                if track.duration_seconds is not None
+                else "—"
+            )
+            output_path = str(track.output_path) if track.output_path else "—"
+            error_message = track.error_message or "—"
+
+            tracks_table.add_row(
+                str(index),
+                track.source_path.name,
+                status_label,
+                duration,
+                output_path,
+                error_message,
+            )
+
+        self._console.print(tracks_table)
+
 
 ================================================================================
 FILE: interfaces\web\__init__.py
