@@ -32,7 +32,7 @@ def test_run_video_music_builds_input_processes_and_displays_result(
     app_cli.run_video_music(config)
 
     build_input.assert_called_once_with(config)
-    create_processor.assert_called_once_with()
+    create_processor.assert_called_once_with(config)
     processor.process.assert_called_once_with(input_data)
     presenter_factory.assert_called_once_with()
     presenter.display.assert_called_once_with(result)

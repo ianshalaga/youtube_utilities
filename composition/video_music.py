@@ -1,4 +1,5 @@
 
+from core.config_manager import ConfigManager
 from applications.video_music.processor import VideoMusicProcessor
 from services.media.audio.converter import AudioConverter
 from services.media.ffprobe_provider import FFProbeProvider
@@ -10,7 +11,7 @@ class VideoMusicProcessorFactory:
     """Builds the dependencies required by Video Music."""
 
     @staticmethod
-    def create_processor() -> VideoMusicProcessor:
+    def create_processor(config: ConfigManager) -> VideoMusicProcessor:
         process_runner = ProcessRunner()
 
         audio_converter = AudioConverter(
@@ -29,4 +30,6 @@ class VideoMusicProcessorFactory:
             mkvmerge_runner=mkvmerge_runner,
             audio_converter=audio_converter,
             ffprobe_provider=ffprobe_provider,
+            audio_supported_extensions=config.audio_supported_extensions,
+            paths_mkvmerge=config.paths_mkvmerge,
         )

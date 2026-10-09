@@ -24,20 +24,21 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 
-from core.config_manager import ConfigManager
 from core.time_utils import seconds_to_hhmmss_ms
+
+from applications.video_music.console import VideoMusicConsole
 from applications.video_music.input import VideoMusicInput
 from applications.video_music.output import (
     TrackStatus,
     VideoMusicResult,
     VideoMusicTrackResult,
 )
+
 from services.filesystem.output_partitioner import OutputDirectoryPartitioner
 from services.media.discovery.media_discovery import MediaDiscoveryService
 from services.media.video.mkvmerge_runner import MKVMergeRunner
 from services.media.audio.converter import AudioConverter
 from services.media.ffprobe_provider import FFProbeProvider
-from .console import VideoMusicConsole
 
 
 class VideoMusicProcessor:
@@ -63,12 +64,15 @@ class VideoMusicProcessor:
         mkvmerge_runner: MKVMergeRunner,
         audio_converter: AudioConverter,
         ffprobe_provider: FFProbeProvider,
+        audio_supported_extensions: list[str],
+        paths_mkvmerge: str,
         console: VideoMusicConsole | None = None,
     ):
-        self._config = ConfigManager()
         self._mkvmerge_runner = mkvmerge_runner
         self._audio_converter = audio_converter
         self._ffprobe_provider = ffprobe_provider
+        self._audio_supported_extensions = audio_supported_extensions
+        self._paths_mkvmerge = paths_mkvmerge
         self._console = console or VideoMusicConsole()
 
     def process(self, input_data: VideoMusicInput) -> VideoMusicResult:
@@ -92,7 +96,7 @@ class VideoMusicProcessor:
 
         audio_files = MediaDiscoveryService.discover(
             audios_dir,
-            self._config.audio_supported_extensions,
+            self._audio_supported_extensions,
         )
 
         if not audio_files:
@@ -216,7 +220,7 @@ class VideoMusicProcessor:
             self._console.duration_detected(audio_path, duration)
 
             cmd = [
-                self._config.paths_mkvmerge,
+                self._paths_mkvmerge,
                 "-o", str(output_path),
                 "--split", f"parts:00:00:00-{duration}",
                 "--no-audio",

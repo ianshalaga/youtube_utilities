@@ -65,7 +65,7 @@ from interfaces.cli.builders.video_music_input_builder import (
 def run_video_music(config: ConfigManager) -> None:
     input_data = build_video_music_input(config)
 
-    processor = VideoMusicProcessorFactory.create_processor()
+    processor = VideoMusicProcessorFactory.create_processor(config)
     result = processor.process(input_data)
 
     presenter = VideoMusicResultPresenter()

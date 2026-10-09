@@ -31,15 +31,15 @@ class ConfigManager:
     # PATHS @@@@
     # ───────────────────────────────
     @property
-    def paths_mkvmerge(self) -> dict:
+    def paths_mkvmerge(self) -> str:
         return self._config["paths"]["mkvmerge"]
 
     @property
-    def paths_ffmpeg(self) -> dict:
+    def paths_ffmpeg(self) -> str:
         return self._config["paths"]["ffmpeg"]
 
     @property
-    def paths_probe(self) -> dict:
+    def paths_probe(self) -> str:
         return self._config["paths"]["probe"]
 
     # ───────────────────────────────

@@ -43,17 +43,8 @@ class FakeMKVMergeRunner:
 
 
 @pytest.fixture
-def processor_factory(monkeypatch):
+def processor_factory():
     """Build a processor with fake external dependencies."""
-
-    monkeypatch.setattr(
-        processor_module,
-        "ConfigManager",
-        lambda: SimpleNamespace(
-            audio_supported_extensions={".mp3", ".wav", ".flac"},
-            paths_mkvmerge="mkvmerge",
-        ),
-    )
 
     def create(*, failing_stems: set[str] | None = None):
         console = MagicMock()
@@ -61,6 +52,8 @@ def processor_factory(monkeypatch):
             mkvmerge_runner=FakeMKVMergeRunner(),
             audio_converter=FakeAudioConverter(failing_stems),
             ffprobe_provider=FakeFFProbeProvider(),
+            audio_supported_extensions={".mp3", ".wav", ".flac"},
+            paths_mkvmerge="mkvmerge",
             console=console,
         )
         return processor, console
