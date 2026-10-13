@@ -1,5 +1,23 @@
-<article class="application-card">
-    <h2>{{ application.name }}</h2>
-    <p>{{ application.description }}</p>
-    <a href="{% url application.url_name %}">Open</a>
-</article>
+<a href="{% url application.url_name %}"
+   class="group block h-full rounded-xl border-2 border-[#D61F2C]/60 bg-gray-900 p-5 no-underline transition-all duration-200 ease-out hover:z-10 hover:scale-[1.015] hover:border-[#0A3F32] hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0A3F32]">
+    <div class="flex items-center gap-3">
+        {% if application.url_name == "video_music:index" %}
+            <span role="img" aria-label="Música">🎵</span>
+        {% elif application.url_name == "video_joiner:index" %}
+            <span role="img" aria-label="Unión de vídeos">🎬</span>
+        {% elif application.url_name == "audio_converter:index" %}
+            <span role="img" aria-label="Audio">🎧</span>
+        {% else %}
+            <span role="img" aria-label="Herramienta">🛠️</span>
+        {% endif %}
+        <h2 class="font-display text-xl font-semibold text-white transition-colors duration-200 group-hover:text-[#FAFAF7]">
+            {{ application.name }}
+        </h2>
+    </div>
+    <p class="mt-3 text-base leading-relaxed text-gray-400">{{ application.description }}</p>
+    <div class="mt-5 flex items-center justify-end text-gray-500 transition-colors duration-200 group-hover:text-[#0A9B72]">
+        <span class="text-sm font-bold">Explorar</span>
+        <span class="ml-2 transition-transform duration-200 group-hover:translate-x-1"
+              aria-hidden="true">→</span>
+    </div>
+</a>
