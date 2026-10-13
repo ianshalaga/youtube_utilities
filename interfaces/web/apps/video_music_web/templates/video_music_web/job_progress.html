@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Progreso de Video Music{% endblock %}
+{% block content %}
+    <h1>Progreso de Video Music</h1>
+    <section>
+        <h2>Información del trabajo</h2>
+        <p>
+            <strong>Identificador:</strong>
+            {{ job.job_id }}
+        </p>
+        <p>
+            <strong>Estado:</strong>
+            <span id="job-status">{{ job.status }}</span>
+        </p>
+        <p id="job-message">{{ job.message }}</p>
+        {% if job.error_message %}
+            <p id="job-error">
+                <strong>Error:</strong>
+                {{ job.error_message }}
+            </p>
+        {% endif %}
+    </section>
+    <section>
+        <h2>Progreso</h2>
+        <p>
+            Directorio:
+            <span id="current-directory">{{ job.current_directory }}</span>
+            de
+            <span id="total-directories">{{ job.total_directories }}</span>
+        </p>
+        <p>
+            Pistas completadas:
+            <span id="completed-tracks">{{ job.completed_tracks }}</span>
+            de
+            <span id="total-tracks">{{ job.total_tracks }}</span>
+        </p>
+        <p>
+            En procesamiento:
+            <span id="running-tracks">{{ job.running_tracks }}</span>
+        </p>
+        <p>
+            Fallidas:
+            <span id="failed-tracks">{{ job.failed_tracks }}</span>
+        </p>
+    </section>
+    <section>
+        <h2>Detalle de las pistas</h2>
+        {% if job.tracks %}
+            <ul id="track-list">
+                {% for track in job.tracks %}
+                    <li>
+                        <strong>{{ track.name|default:"Pista"|escape }}</strong>
+                        — {{ track.status }}
+                        — {{ track.message }}
+                        {% if track.duration %}
+                            ({{ track.duration }})
+                        {% endif %}
+                        {% if track.error_message %}
+                            <p>Error: {{ track.error_message }}</p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p id="no-tracks">Todavía no hay pistas registradas.</p>
+        {% endif %}
+    </section>
+    <p>
+        <a href="{% url 'video_music:index' %}">Volver a Video Music</a>
+    </p>
+    <div id="job-progress-config"
+         data-status-url="{% url 'video_music:job_status' job_id=job.job_id %}"></div>
+    <script src="{% static 'video_music_web/js/job_progress.js' %}" defer></script>
+{% endblock %}

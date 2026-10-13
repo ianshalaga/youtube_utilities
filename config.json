@@ -38,8 +38,8 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H:\\@Downloads\\OST\\02 In Progress\\Destiny\\2 Destiny 2\\1 OST",
-      "default_video_path": "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/images/video.mp4",
+      "default_audios_dir": "H:\\@Downloads\\OST\\02 In Progress\\Bramble\\01 Bramble - The Mountain King\\01 OST",
+      "default_video_path": "H:\\@Downloads\\OST\\02 In Progress\\Bramble\\01 Bramble - The Mountain King\\01 OST\\images\\video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {

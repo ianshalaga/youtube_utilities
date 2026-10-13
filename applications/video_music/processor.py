@@ -27,6 +27,7 @@ import os
 from core.time_utils import seconds_to_hhmmss_ms
 
 from applications.video_music.console import VideoMusicConsole
+from applications.video_music.progress import VideoMusicProgressReporter
 from applications.video_music.input import VideoMusicInput
 from applications.video_music.output import (
     TrackStatus,
@@ -66,7 +67,7 @@ class VideoMusicProcessor:
         ffprobe_provider: FFProbeProvider,
         audio_supported_extensions: list[str],
         paths_mkvmerge: str,
-        console: VideoMusicConsole | None = None,
+        console: VideoMusicProgressReporter | None = None,
     ):
         self._mkvmerge_runner = mkvmerge_runner
         self._audio_converter = audio_converter

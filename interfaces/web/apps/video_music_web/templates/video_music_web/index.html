@@ -24,4 +24,35 @@
 {% endfor %}
 <button type="submit">Guardar valores predeterminados</button>
 </form>
+{% if processing_error %}
+    <section>
+        <h2>Error durante el procesamiento</h2>
+        <p role="alert">{{ processing_error }}</p>
+    </section>
+{% endif %}
+{% if result %}
+    <section>
+        <h2>Resultado del procesamiento</h2>
+        <p>Directorio de salida: {{ result.output_dir }}</p>
+        <p>Total de pistas: {{ result.total_tracks }}</p>
+        <p>Directorios de salida: {{ result.total_directories }}</p>
+        <p>Pistas completadas: {{ result.processed_tracks }}</p>
+        <p>Pistas fallidas: {{ result.failed_tracks }}</p>
+        <h3>Detalle de las pistas</h3>
+        <ul>
+            {% for track in result.tracks %}
+                <li>
+                    <strong>{{ track.source_path.name }}</strong>
+                    — {{ track.status.value }}
+                    {% if track.output_path %}
+                        <p>Archivo generado: {{ track.output_path }}</p>
+                    {% endif %}
+                    {% if track.error_message %}
+                        <p role="alert">{{ track.error_message }}</p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}
 {% endblock %}

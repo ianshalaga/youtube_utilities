@@ -1,6 +1,6 @@
 # GENERATED PROJECT CONTEXT
 # base_dir: H:\@Seyfer\@Projects\youtube_utilities
-# total_files: 86
+# total_files: 95
 
 # PROJECT STRUCTURE
 
@@ -12,6 +12,7 @@ applications
     input.py
     output.py
     processor.py
+    progress.py
 config.json
 core
   config_manager.py
@@ -80,9 +81,20 @@ interfaces
         __init__.py
         admin.py
         apps.py
+        forms.py
         migrations
           __init__.py
         models.py
+        progress
+          __init__.py
+          job_progress.py
+          job_runner.py
+          progress_reporter.py
+          runtime.py
+        templates
+          video_music_web
+            index.html
+            job_progress.html
         tests.py
         urls.py
         views.py
@@ -613,6 +625,7 @@ import os
 from core.time_utils import seconds_to_hhmmss_ms
 
 from applications.video_music.console import VideoMusicConsole
+from applications.video_music.progress import VideoMusicProgressReporter
 from applications.video_music.input import VideoMusicInput
 from applications.video_music.output import (
     TrackStatus,
@@ -652,7 +665,7 @@ class VideoMusicProcessor:
         ffprobe_provider: FFProbeProvider,
         audio_supported_extensions: list[str],
         paths_mkvmerge: str,
-        console: VideoMusicConsole | None = None,
+        console: VideoMusicProgressReporter | None = None,
     ):
         self._mkvmerge_runner = mkvmerge_runner
         self._audio_converter = audio_converter
@@ -891,6 +904,88 @@ class VideoMusicProcessor:
             f.unlink()
 
 ================================================================================
+FILE: applications\video_music\progress.py
+================================================================================
+
+from pathlib import Path
+from typing import Protocol
+
+
+class VideoMusicProgressReporter(Protocol):
+    """Contract for reporting Video Music processing progress."""
+
+    def job_started(
+        self,
+        video_path: Path,
+        audios_dir: Path,
+        output_dir: Path,
+        total_tracks: int,
+        max_items_per_dir: int | None,
+    ) -> None: ...
+
+    def partition_started(
+        self,
+        total_tracks: int,
+        max_items_per_dir: int,
+        total_directories: int,
+    ) -> None: ...
+
+    def processing_started(self) -> None: ...
+
+    def track_started(
+        self,
+        index: int,
+        total: int,
+        audio_path: Path,
+        output_dir: Path,
+    ) -> None: ...
+
+    def audio_converted(
+        self,
+        audio_path: Path,
+        output_path: Path,
+    ) -> None: ...
+
+    def duration_detected(
+        self,
+        audio_path: Path,
+        duration: str,
+    ) -> None: ...
+
+    def video_created(
+        self,
+        audio_path: Path,
+        output_path: Path,
+    ) -> None: ...
+
+    def temporary_files_cleaned(
+        self,
+        audio_path: Path,
+    ) -> None: ...
+
+    def track_completed(
+        self,
+        index: int,
+        total: int,
+        audio_path: Path,
+    ) -> None: ...
+
+    def track_failed(
+        self,
+        index: int,
+        total: int,
+        audio_path: Path,
+        error: Exception,
+    ) -> None: ...
+
+    def job_completed(
+        self,
+        total_tracks: int,
+        output_dir: Path,
+    ) -> None: ...
+
+
+================================================================================
 FILE: config.json
 ================================================================================
 {
@@ -933,8 +1028,8 @@ FILE: config.json
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST",
-      "default_video_path": "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/images/video.mp4",
+      "default_audios_dir": "H:\\@Downloads\\OST\\02 In Progress\\Bramble\\01 Bramble - The Mountain King\\01 OST",
+      "default_video_path": "H:\\@Downloads\\OST\\02 In Progress\\Bramble\\01 Bramble - The Mountain King\\01 OST\\images\\video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
@@ -1142,6 +1237,25 @@ class ConfigManager:
     @property
     def video_music_default_output_dir(self) -> str:
         return self._config["apps"]["video_music"]["default_output_dir"]
+
+    def update_video_music_defaults(
+        self,
+        *,
+        max_items_per_dir: int,
+        default_audios_dir: str,
+        default_video_path: str,
+        default_output_dir: str,
+    ) -> None:
+        """Update and persist Video Music default settings."""
+        settings = self._config["apps"]["video_music"]
+
+        settings["max_items_per_dir"] = max_items_per_dir
+        settings["default_audios_dir"] = default_audios_dir
+        settings["default_video_path"] = default_video_path
+        settings["default_output_dir"] = default_output_dir
+
+        self.save()
+
 
     # ───────────────────────────────
     # VIDEO JOINER @@@@
@@ -2071,45 +2185,28 @@ from django.db import models
 FILE: interfaces\web\apps\home\templates\home\application_card.html
 ================================================================================
 <article class="application-card">
-
-    <h2>
-        {{ application.name }}
-    </h2>
-
-    <p>
-        {{ application.description }}
-    </p>
-
-    <a href="{% url application.url_name %}">
-        Open
-    </a>
-
+    <h2>{{ application.name }}</h2>
+    <p>{{ application.description }}</p>
+    <a href="{% url application.url_name %}">Open</a>
 </article>
+
 
 ================================================================================
 FILE: interfaces\web\apps\home\templates\home\index.html
 ================================================================================
 {% extends "base.html" %}
-
 {% block title %}
     YouTube Utilities
 {% endblock %}
-
 {% block content %}
-
-<h1>YouTube Utilities</h1>
-
-<section>
-
-    {% for application in applications %}
-
-        {% include "home/application_card.html" %}
-
-    {% endfor %}
-
-</section>
-
+    <h1>YouTube Utilities</h1>
+    <section>
+        {% for application in applications %}
+            {% include "home/application_card.html" %}
+        {% endfor %}
+    </section>
 {% endblock %}
+
 
 ================================================================================
 FILE: interfaces\web\apps\home\tests.py
@@ -2251,6 +2348,66 @@ class VideoMusicWebConfig(AppConfig):
 
 
 ================================================================================
+FILE: interfaces\web\apps\video_music_web\forms.py
+================================================================================
+from pathlib import Path
+
+from django import forms
+
+
+class VideoMusicForm(forms.Form):
+    max_items_per_dir = forms.IntegerField(
+        label="Límite de pistas por directorio",
+        min_value=1,
+        initial=15,
+    )
+
+    audios_dir = forms.CharField(
+        label="Directorio de audios",
+        max_length=1024,
+        strip=True,
+    )
+
+    video_path = forms.CharField(
+        label="Vídeo base",
+        max_length=1024,
+        strip=True,
+    )
+
+    output_dir = forms.CharField(
+        label="Directorio de salida",
+        max_length=1024,
+        strip=True,
+        help_text=(
+            "Puede ser una ruta absoluta o un directorio "
+            "relativo al directorio de audios."
+        ),
+    )
+
+    def clean_audios_dir(self) -> str:
+        value = self.cleaned_data["audios_dir"]
+        path = Path(value)
+
+        if not path.is_dir():
+            raise forms.ValidationError(
+                "El directorio de audios no existe o no es un directorio."
+            )
+
+        return value
+
+    def clean_video_path(self) -> str:
+        value = self.cleaned_data["video_path"]
+        path = Path(value)
+
+        if not path.is_file():
+            raise forms.ValidationError(
+                "El vídeo base no existe o no es un archivo."
+            )
+
+        return value
+
+
+================================================================================
 FILE: interfaces\web\apps\video_music_web\migrations\__init__.py
 ================================================================================
 
@@ -2261,6 +2418,626 @@ FILE: interfaces\web\apps\video_music_web\models.py
 from django.db import models
 
 # Create your models here.
+
+
+================================================================================
+FILE: interfaces\web\apps\video_music_web\progress\__init__.py
+================================================================================
+
+
+================================================================================
+FILE: interfaces\web\apps\video_music_web\progress\job_progress.py
+================================================================================
+
+from copy import deepcopy
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from threading import RLock
+from uuid import uuid4
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+@dataclass
+class TrackProgress:
+    index: int
+    status: str = "pending"
+    source_path: str | None = None
+    name: str = ""
+    output_dir: str | None = None
+    output_path: str | None = None
+    duration: str | None = None
+    error_message: str | None = None
+    message: str = "Pendiente"
+
+
+@dataclass
+class VideoMusicJobProgress:
+    job_id: str
+    status: str = "queued"
+    created_at: str = field(default_factory=_now)
+    updated_at: str = field(default_factory=_now)
+
+    video_path: str = ""
+    audios_dir: str = ""
+    output_dir: str = ""
+    max_items_per_dir: int = 0
+
+    total_tracks: int = 0
+    total_directories: int = 1
+    current_directory: int = 1
+
+    completed_tracks: int = 0
+    failed_tracks: int = 0
+    running_tracks: int = 0
+
+    message: str = "Trabajo en espera"
+    error_message: str | None = None
+    tracks: list[TrackProgress] = field(default_factory=list)
+
+
+class VideoMusicJobRegistry:
+    """Thread-safe in-memory registry for Video Music jobs."""
+
+    def __init__(self) -> None:
+        self._lock = RLock()
+        self._jobs: dict[str, VideoMusicJobProgress] = {}
+
+    def create_job(
+        self,
+        *,
+        video_path: Path,
+        audios_dir: Path,
+        output_dir: Path,
+        max_items_per_dir: int,
+    ) -> str:
+        job_id = uuid4().hex
+
+        job = VideoMusicJobProgress(
+            job_id=job_id,
+            video_path=str(video_path),
+            audios_dir=str(audios_dir),
+            output_dir=str(output_dir),
+            max_items_per_dir=max_items_per_dir,
+        )
+
+        with self._lock:
+            self._jobs[job_id] = job
+
+        return job_id
+
+    def get_job(
+        self,
+        job_id: str,
+    ) -> VideoMusicJobProgress | None:
+        """Return a detached snapshot, never the mutable internal object."""
+        with self._lock:
+            job = self._jobs.get(job_id)
+            return deepcopy(job) if job is not None else None
+
+    def job_started(
+        self,
+        job_id: str,
+        *,
+        video_path: Path,
+        audios_dir: Path,
+        output_dir: Path,
+        total_tracks: int,
+        max_items_per_dir: int | None,
+    ) -> None:
+        with self._lock:
+            job = self._require_job(job_id)
+
+            job.status = "running"
+            job.video_path = str(video_path)
+            job.audios_dir = str(audios_dir)
+            job.output_dir = str(output_dir)
+            job.total_tracks = total_tracks
+
+            if max_items_per_dir is not None:
+                job.max_items_per_dir = max_items_per_dir
+                job.total_directories = max(
+                    1,
+                    (total_tracks + max_items_per_dir - 1)
+                    // max_items_per_dir,
+                )
+
+            job.tracks = [
+                TrackProgress(index=index)
+                for index in range(1, total_tracks + 1)
+            ]
+
+            job.message = "Procesamiento iniciado"
+            self._touch(job)
+
+    def partition_started(
+        self,
+        job_id: str,
+        *,
+        total_tracks: int,
+        max_items_per_dir: int,
+        total_directories: int,
+    ) -> None:
+        with self._lock:
+            job = self._require_job(job_id)
+            job.total_tracks = total_tracks
+            job.max_items_per_dir = max_items_per_dir
+            job.total_directories = total_directories
+            job.message = "Procesando pistas por directorios"
+            self._touch(job)
+
+    def processing_started(self, job_id: str) -> None:
+        with self._lock:
+            job = self._require_job(job_id)
+            job.status = "running"
+            job.message = "Procesando pistas"
+            self._touch(job)
+
+    def track_started(
+        self,
+        job_id: str,
+        *,
+        index: int,
+        total: int,
+        audio_path: Path,
+        output_dir: Path,
+    ) -> None:
+        with self._lock:
+            job = self._require_job(job_id)
+            track = self._require_track(job, index)
+
+            track.status = "running"
+            track.source_path = str(audio_path)
+            track.name = audio_path.stem
+            track.output_dir = str(output_dir)
+            track.message = "Procesando"
+            job.total_tracks = total
+
+            if job.max_items_per_dir > 0:
+                job.current_directory = (
+                    (index - 1) // job.max_items_per_dir
+                ) + 1
+
+            job.message = f"Procesando pista {index} de {total}"
+            self._update_counts(job)
+            self._touch(job)
+
+    def record_activity(
+        self,
+        job_id: str,
+        *,
+        message: str,
+        audio_path: Path | None = None,
+        output_path: Path | None = None,
+        duration: str | None = None,
+    ) -> None:
+        with self._lock:
+            job = self._require_job(job_id)
+            job.message = message
+
+            if audio_path is not None:
+                track = self._find_track(job, audio_path)
+
+                if track is not None:
+                    track.message = message
+
+                    if output_path is not None:
+                        track.output_path = str(output_path)
+
+                    if duration is not None:
+                        track.duration = duration
+
+            self._touch(job)
+
+    def track_completed(
+        self,
+        job_id: str,
+        *,
+        index: int,
+        total: int,
+        audio_path: Path,
+    ) -> None:
+        with self._lock:
+            job = self._require_job(job_id)
+            track = self._require_track(job, index)
+
+            track.source_path = str(audio_path)
+            track.name = audio_path.stem
+            track.status = "completed"
+            track.message = "Completada"
+
+            job.total_tracks = total
+            job.message = f"Pista {index} completada"
+            self._update_counts(job)
+            self._touch(job)
+
+    def track_failed(
+        self,
+        job_id: str,
+        *,
+        index: int,
+        total: int,
+        audio_path: Path,
+        error: Exception,
+    ) -> None:
+        with self._lock:
+            job = self._require_job(job_id)
+            track = self._require_track(job, index)
+
+            track.source_path = str(audio_path)
+            track.name = audio_path.stem
+            track.status = "failed"
+            track.error_message = str(error)
+            track.message = "Fallida"
+
+            job.total_tracks = total
+            job.message = f"Falló la pista {index}"
+            self._update_counts(job)
+            self._touch(job)
+
+    def job_completed(
+        self,
+        job_id: str,
+        *,
+        total_tracks: int,
+        output_dir: Path,
+    ) -> None:
+        with self._lock:
+            job = self._require_job(job_id)
+
+            job.total_tracks = total_tracks
+            job.output_dir = str(output_dir)
+            job.status = "completed"
+            job.message = "Procesamiento finalizado"
+
+            self._update_counts(job)
+            self._touch(job)
+
+    def job_failed(self, job_id: str, error: Exception) -> None:
+        """Record a job-level exception raised outside individual tracks."""
+        with self._lock:
+            job = self._require_job(job_id)
+            job.status = "failed"
+            job.error_message = str(error)
+            job.message = "El procesamiento ha fallado"
+            self._touch(job)
+
+    def _require_job(self, job_id: str) -> VideoMusicJobProgress:
+        job = self._jobs.get(job_id)
+
+        if job is None:
+            raise KeyError(f"Trabajo desconocido: {job_id}")
+
+        return job
+
+    @staticmethod
+    def _require_track(
+        job: VideoMusicJobProgress,
+        index: int,
+    ) -> TrackProgress:
+        if index < 1 or index > len(job.tracks):
+            raise IndexError(f"Índice de pista inválido: {index}")
+
+        return job.tracks[index - 1]
+
+    @staticmethod
+    def _find_track(
+        job: VideoMusicJobProgress,
+        audio_path: Path,
+    ) -> TrackProgress | None:
+        for track in job.tracks:
+            if track.source_path == str(audio_path):
+                return track
+
+        return None
+
+    @staticmethod
+    def _update_counts(job: VideoMusicJobProgress) -> None:
+        job.completed_tracks = sum(
+            track.status == "completed" for track in job.tracks
+        )
+        job.failed_tracks = sum(
+            track.status == "failed" for track in job.tracks
+        )
+        job.running_tracks = sum(
+            track.status == "running" for track in job.tracks
+        )
+
+    @staticmethod
+    def _touch(job: VideoMusicJobProgress) -> None:
+        job.updated_at = _now()
+
+
+================================================================================
+FILE: interfaces\web\apps\video_music_web\progress\job_runner.py
+================================================================================
+
+from core.config_manager import ConfigManager
+from applications.video_music.input import VideoMusicInput
+from composition.video_music import VideoMusicProcessorFactory
+
+from .progress_reporter import WebVideoMusicProgressReporter
+from .runtime import job_registry
+
+
+def run_video_music_job(
+    job_id: str,
+    input_data: VideoMusicInput,
+) -> None:
+    """Execute a Video Music job and record unexpected failures."""
+
+    reporter = WebVideoMusicProgressReporter(
+        job_id=job_id,
+        registry=job_registry,
+    )
+
+    try:
+        config = ConfigManager()
+
+        processor = VideoMusicProcessorFactory.create_processor(
+            config,
+            console=reporter,
+        )
+
+        processor.process(input_data)
+
+    except Exception as error:
+        job_registry.job_failed(job_id, error)
+
+
+================================================================================
+FILE: interfaces\web\apps\video_music_web\progress\progress_reporter.py
+================================================================================
+from pathlib import Path
+
+from applications.video_music.progress import VideoMusicProgressReporter
+
+from .job_progress import VideoMusicJobRegistry
+
+
+class WebVideoMusicProgressReporter(VideoMusicProgressReporter):
+    """Adapt Video Music progress events to the web job registry."""
+
+    def __init__(
+        self,
+        *,
+        job_id: str,
+        registry: VideoMusicJobRegistry,
+    ) -> None:
+        self._job_id = job_id
+        self._registry = registry
+
+    def job_started(
+        self,
+        video_path: Path,
+        audios_dir: Path,
+        output_dir: Path,
+        total_tracks: int,
+        max_items_per_dir: int | None,
+    ) -> None:
+        self._registry.job_started(
+            self._job_id,
+            video_path=video_path,
+            audios_dir=audios_dir,
+            output_dir=output_dir,
+            total_tracks=total_tracks,
+            max_items_per_dir=max_items_per_dir,
+        )
+
+    def partition_started(
+        self,
+        total_tracks: int,
+        max_items_per_dir: int,
+        total_directories: int,
+    ) -> None:
+        self._registry.partition_started(
+            self._job_id,
+            total_tracks=total_tracks,
+            max_items_per_dir=max_items_per_dir,
+            total_directories=total_directories,
+        )
+
+    def processing_started(self) -> None:
+        self._registry.processing_started(self._job_id)
+
+    def track_started(
+        self,
+        index: int,
+        total: int,
+        audio_path: Path,
+        output_dir: Path,
+    ) -> None:
+        self._registry.track_started(
+            self._job_id,
+            index=index,
+            total=total,
+            audio_path=audio_path,
+            output_dir=output_dir,
+        )
+
+    def audio_converted(
+        self,
+        audio_path: Path,
+        output_path: Path,
+    ) -> None:
+        self._registry.record_activity(
+            self._job_id,
+            message="Audio convertido",
+            audio_path=audio_path,
+        )
+
+    def duration_detected(
+        self,
+        audio_path: Path,
+        duration: str,
+    ) -> None:
+        self._registry.record_activity(
+            self._job_id,
+            message=f"Duración detectada: {duration}",
+            audio_path=audio_path,
+            duration=duration,
+        )
+
+    def video_created(
+        self,
+        audio_path: Path,
+        output_path: Path,
+    ) -> None:
+        self._registry.record_activity(
+            self._job_id,
+            message="Vídeo generado",
+            audio_path=audio_path,
+            output_path=output_path,
+        )
+
+    def temporary_files_cleaned(self, audio_path: Path) -> None:
+        self._registry.record_activity(
+            self._job_id,
+            message="Archivos temporales eliminados",
+            audio_path=audio_path,
+        )
+
+    def track_completed(
+        self,
+        index: int,
+        total: int,
+        audio_path: Path,
+    ) -> None:
+        self._registry.track_completed(
+            self._job_id,
+            index=index,
+            total=total,
+            audio_path=audio_path,
+        )
+
+    def track_failed(
+        self,
+        index: int,
+        total: int,
+        audio_path: Path,
+        error: Exception,
+    ) -> None:
+        self._registry.track_failed(
+            self._job_id,
+            index=index,
+            total=total,
+            audio_path=audio_path,
+            error=error,
+        )
+
+    def job_completed(
+        self,
+        total_tracks: int,
+        output_dir: Path,
+    ) -> None:
+        self._registry.job_completed(
+            self._job_id,
+            total_tracks=total_tracks,
+            output_dir=output_dir,
+        )
+
+    def job_failed(self, error: Exception) -> None:
+        self._registry.job_failed(self._job_id, error)
+
+
+================================================================================
+FILE: interfaces\web\apps\video_music_web\progress\runtime.py
+================================================================================
+from .job_progress import VideoMusicJobRegistry
+
+
+# Shared registry for this Django process.
+job_registry = VideoMusicJobRegistry()
+
+
+================================================================================
+FILE: interfaces\web\apps\video_music_web\templates\video_music_web\index.html
+================================================================================
+{% extends "base.html" %}
+{% block title %}Video Music{% endblock %}
+{% block content %}
+    <h1>Video Music</h1>
+    <p>
+        Configura los parámetros para generar vídeos a partir de un vídeo base y una
+        colección de pistas de audio.
+    </p>
+    {% if messages %}
+        {% for message in messages %}
+            <p role="status">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+    <form method="post">
+        {% csrf_token %} {{ form.non_field_errors }} {% for field in form %}
+        <div>
+            {{ field.label_tag }} {{ field }} {% if field.help_text %}
+            <small>{{ field.help_text }}</small>
+{% endif %}
+{% for error in field.errors %}
+    <p role="alert">{{ error }}</p>
+{% endfor %}
+</div>
+{% endfor %}
+<button type="submit">Guardar valores predeterminados</button>
+</form>
+{% if processing_error %}
+    <section>
+        <h2>Error durante el procesamiento</h2>
+        <p role="alert">{{ processing_error }}</p>
+    </section>
+{% endif %}
+{% if result %}
+    <section>
+        <h2>Resultado del procesamiento</h2>
+        <p>Directorio de salida: {{ result.output_dir }}</p>
+        <p>Total de pistas: {{ result.total_tracks }}</p>
+        <p>Directorios de salida: {{ result.total_directories }}</p>
+        <p>Pistas completadas: {{ result.processed_tracks }}</p>
+        <p>Pistas fallidas: {{ result.failed_tracks }}</p>
+        <h3>Detalle de las pistas</h3>
+        <ul>
+            {% for track in result.tracks %}
+                <li>
+                    <strong>{{ track.source_path.name }}</strong>
+                    — {{ track.status.value }}
+                    {% if track.output_path %}
+                        <p>Archivo generado: {{ track.output_path }}</p>
+                    {% endif %}
+                    {% if track.error_message %}
+                        <p role="alert">{{ track.error_message }}</p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}
+{% endblock %}
+
+
+================================================================================
+FILE: interfaces\web\apps\video_music_web\templates\video_music_web\job_progress.html
+================================================================================
+{% extends "base.html" %}
+{% block title %}Progreso de Video Music{% endblock %}
+{% block content %}
+    <h1>Progreso de Video Music</h1>
+    <section>
+        <h2>Información del trabajo</h2>
+        <p>
+            <strong>Identificador:</strong>
+            {{ job.job_id }}
+        </p>
+        <p>
+            <strong>Estado:</strong>
+            {{ job.status }}
+        </p>
+    </section>
+    <p>
+        <a href="{% url 'video_music:index' %}">Volver a Video Music</a>
+    </p>
+{% endblock %}
 
 
 ================================================================================
@@ -2275,30 +3052,159 @@ from django.test import TestCase
 FILE: interfaces\web\apps\video_music_web\urls.py
 ================================================================================
 from django.urls import path
-
 from . import views
-
 
 app_name = "video_music"
 
 urlpatterns = [
     path("", views.IndexView.as_view(), name="index"),
+    path(
+        "jobs/<str:job_id>/",
+        views.JobProgressView.as_view(),
+        name="job_progress",
+    ),
+    path(
+        "jobs/<str:job_id>/status/",
+        views.JobStatusView.as_view(),
+        name="job_status",
+    ),
 ]
 
 ================================================================================
 FILE: interfaces\web\apps\video_music_web\views.py
 ================================================================================
-from django.shortcuts import render
+from dataclasses import asdict
+from pathlib import Path
+from threading import Thread
+
+from django.contrib import messages
+from django.http import Http404, JsonResponse
+from django.shortcuts import redirect, render
 from django.views import View
+
+from applications.video_music.input import VideoMusicInput
+from core.config_manager import ConfigManager
+
+from .forms import VideoMusicForm
+from .progress.job_runner import run_video_music_job
+from .progress.runtime import job_registry
 
 
 class IndexView(View):
+    template_name = "video_music_web/index.html"
 
     def get(self, request, *args, **kwargs):
+        config = ConfigManager()
+        form = VideoMusicForm(
+            initial={
+                "max_items_per_dir": config.video_music_max_items_per_dir,
+                "audios_dir": config.video_music_default_audios_dir,
+                "video_path": config.video_music_default_video_path,
+                "output_dir": config.video_music_default_output_dir,
+            }
+        )
+
         return render(
             request,
-            "video_music_web/index.html",
+            self.template_name,
+            {"form": form},
         )
+
+    def post(self, request, *args, **kwargs):
+        form = VideoMusicForm(request.POST)
+
+        if not form.is_valid():
+            return render(
+                request,
+                self.template_name,
+                {"form": form},
+            )
+
+        return self._process_video_music(request, form)
+
+    
+    def _process_video_music(self, request, form):
+        config = ConfigManager()
+        cleaned_data = form.cleaned_data
+
+        # Persist the submitted values before starting the job.
+        config.update_video_music_defaults(
+            max_items_per_dir=cleaned_data["max_items_per_dir"],
+            default_audios_dir=cleaned_data["audios_dir"],
+            default_video_path=cleaned_data["video_path"],
+            default_output_dir=cleaned_data["output_dir"],
+        )
+
+        audios_dir = Path(cleaned_data["audios_dir"])
+        output_dir = Path(cleaned_data["output_dir"])
+
+        # Resolve relative output paths against the audio directory.
+        if not output_dir.is_absolute():
+            output_dir = audios_dir / output_dir
+
+        input_data = VideoMusicInput(
+            max_items_per_dir=cleaned_data["max_items_per_dir"],
+            audios_dir=audios_dir,
+            video_path=Path(cleaned_data["video_path"]),
+            output_dir=output_dir,
+        )
+
+        # Register the job before starting its execution.
+        job_id = job_registry.create_job(
+            video_path=input_data.video_path,
+            audios_dir=input_data.audios_dir,
+            output_dir=input_data.output_dir,
+            max_items_per_dir=input_data.max_items_per_dir,
+        )
+
+        # Execute the job outside the HTTP request.
+        thread = Thread(
+            target=run_video_music_job,
+            args=(job_id, input_data),
+            daemon=True,
+        )
+        thread.start()
+
+        messages.success(
+            request,
+            "El trabajo se ha iniciado correctamente.",
+        )
+
+        return redirect(
+            "video_music:job_status",
+            job_id=job_id,
+        )
+
+
+class JobProgressView(View):
+    """Render the page used to monitor a Video Music job."""
+
+    template_name = "video_music_web/job_progress.html"
+
+    def get(self, request, job_id, *args, **kwargs):
+        job = job_registry.get_job(job_id)
+
+        if job is None:
+            raise Http404("No existe un trabajo con ese identificador.")
+
+        return render(
+            request,
+            self.template_name,
+            {"job": job},
+        )
+
+
+class JobStatusView(View):
+    """Expose the current state of a Video Music job as JSON."""
+
+    def get(self, request, job_id, *args, **kwargs):
+        job = job_registry.get_job(job_id)
+
+        if job is None:
+            raise Http404("No existe un trabajo con ese identificador.")
+
+        return JsonResponse({"job": asdict(job)})
+
 
 ================================================================================
 FILE: interfaces\web\config\__init__.py
@@ -2530,6 +3436,11 @@ FILE: interfaces\web\manage.py
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT))
 
 
 def main():
