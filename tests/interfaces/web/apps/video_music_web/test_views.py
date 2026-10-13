@@ -149,3 +149,39 @@ def test_job_progress_returns_404_for_unknown_job(request_factory):
 
     with pytest.raises(Http404):
         JobProgressView.as_view()(request, job_id="unknown")
+
+
+@patch("interfaces.web.apps.video_music_web.views.ConfigManager")
+def test_index_get_displays_existing_job_results(
+    config_manager_class,
+    request_factory,
+    tmp_path,
+):
+    job_id = job_registry.create_job(
+        video_path=tmp_path / "base.mkv",
+        audios_dir=tmp_path / "audio",
+        output_dir=tmp_path / "output",
+        max_items_per_dir=10,
+    )
+
+    request = request_factory.get(
+        f"/video-music/?job_id={job_id}"
+    )
+
+    response = IndexView.as_view()(request)
+
+    assert response.status_code == 200
+    assert b"Progreso de Video Music" not in response.content
+
+
+@patch("interfaces.web.apps.video_music_web.views.ConfigManager")
+def test_index_get_returns_404_for_unknown_job(
+    config_manager_class,
+    request_factory,
+):
+    request = request_factory.get(
+        "/video-music/?job_id=unknown"
+    )
+
+    with pytest.raises(Http404):
+        IndexView.as_view()(request)

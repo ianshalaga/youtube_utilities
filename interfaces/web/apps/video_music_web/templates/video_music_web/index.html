@@ -24,6 +24,47 @@
 {% endfor %}
 <button type="submit">Guardar valores predeterminados</button>
 </form>
+{% if job %}
+    <section id="job-results">
+        <h2>Resultado del procesamiento</h2>
+        <p>
+            <strong>Estado:</strong>
+            {{ job.status }}
+        </p>
+        <p>{{ job.message }}</p>
+        {% if job.error_message %}
+            <p role="alert">
+                <strong>Error:</strong>
+                {{ job.error_message }}
+            </p>
+        {% endif %}
+        <h3>Resumen</h3>
+        <p>Directorio de salida: {{ job.output_dir }}</p>
+        <p>Total de pistas: {{ job.total_tracks }}</p>
+        <p>Pistas completadas: {{ job.completed_tracks }}</p>
+        <p>Pistas fallidas: {{ job.failed_tracks }}</p>
+        <h3>Detalle de las pistas</h3>
+        {% if job.tracks %}
+            <ul>
+                {% for track in job.tracks %}
+                    <li>
+                        <strong>{{ track.name|default:"Pista"|escape }}</strong>
+                        — {{ track.status }}
+                        — {{ track.message }}
+                        {% if track.output_path %}
+                            <p>Archivo generado: {{ track.output_path }}</p>
+                        {% endif %}
+                        {% if track.error_message %}
+                            <p role="alert">Error: {{ track.error_message }}</p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Todavía no hay pistas registradas.</p>
+        {% endif %}
+    </section>
+{% endif %}
 {% if processing_error %}
     <section>
         <h2>Error durante el procesamiento</h2>

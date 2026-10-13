@@ -101,6 +101,9 @@
 
     if (terminalStatuses.has(job.status)) {
       stopPolling();
+      const resultsUrl = new URL("/video-music/", window.location.origin);
+      resultsUrl.searchParams.set("job_id", job.job_id);
+      window.location.assign(resultsUrl.toString());
     }
   }
 

@@ -20,6 +20,7 @@ class IndexView(View):
 
     def get(self, request, *args, **kwargs):
         config = ConfigManager()
+
         form = VideoMusicForm(
             initial={
                 "max_items_per_dir": config.video_music_max_items_per_dir,
@@ -29,10 +30,24 @@ class IndexView(View):
             }
         )
 
+        context = {"form": form}
+
+        job_id = request.GET.get("job_id")
+
+        if job_id:
+            job = job_registry.get_job(job_id)
+
+            if job is None:
+                raise Http404(
+                    "No existe un trabajo con ese identificador."
+                )
+
+            context["job"] = job
+
         return render(
             request,
             self.template_name,
-            {"form": form},
+            context,
         )
 
     def post(self, request, *args, **kwargs):
