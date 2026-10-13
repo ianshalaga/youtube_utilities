@@ -1,74 +1,99 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Progreso de Video Music{% endblock %}
+{% block title %}⏳ Progreso de Video Music | YouTube Utilities{% endblock %}
 {% block content %}
-    <h1>Progreso de Video Music</h1>
-    <section>
-        <h2>Información del trabajo</h2>
-        <p>
-            <strong>Identificador:</strong>
-            {{ job.job_id }}
-        </p>
-        <p>
-            <strong>Estado:</strong>
-            <span id="job-status">{{ job.status }}</span>
-        </p>
-        <p id="job-message">{{ job.message }}</p>
-        {% if job.error_message %}
-            <p id="job-error">
-                <strong>Error:</strong>
-                {{ job.error_message }}
+    <section class="space-y-8">
+        <header class="space-y-3">
+            <h1 class="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">⏳ Progreso de Video Music</h1>
+            <p class="max-w-3xl text-lg leading-relaxed text-gray-400">
+                Sigue la generación de tus vídeos y consulta el estado de cada pista en tiempo real.
             </p>
-        {% endif %}
+        </header>
+        <section class="space-y-4 rounded-xl border-2 border-red-500/40 bg-gray-900 p-5 sm:p-7">
+            <h2 class="font-display text-xl font-semibold text-white">🎮 Información del trabajo</h2>
+            <p class="break-all text-sm text-gray-400">
+                <strong class="text-gray-200">Identificador:</strong>
+                {{ job.job_id }}
+            </p>
+            <p class="text-gray-300">
+                <strong class="text-gray-200">Estado:</strong>
+                <span id="job-status"
+                      class="ml-1 inline-flex rounded-full border border-indigo-500/40 bg-indigo-950/50 px-3 py-1 text-sm font-bold text-indigo-300">
+                    {{ job.status }}
+                </span>
+            </p>
+            <p id="job-message" class="leading-relaxed text-gray-300">{{ job.message }}</p>
+            {% if job.error_message %}
+                <div id="job-error"
+                     role="alert"
+                     class="rounded-lg border border-red-500/40 bg-red-950/30 p-4 text-red-200">
+                    ⚠️ <strong>Error:</strong> {{ job.error_message }}
+                </div>
+            {% endif %}
+        </section>
+        <section class="space-y-5">
+            <h2 class="font-display text-xl font-semibold text-white">📊 Progreso</h2>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="rounded-xl border-2 border-indigo-500/40 bg-gray-900 p-5">
+                    <p class="text-sm text-gray-400">📁 Directorio actual</p>
+                    <p class="mt-2 text-2xl font-bold text-indigo-300">
+                        <span id="current-directory">{{ job.current_directory }}</span>
+                        <span class="text-gray-500">/</span>
+                        <span id="total-directories">{{ job.total_directories }}</span>
+                    </p>
+                </div>
+                <div class="rounded-xl border-2 border-green-500/40 bg-gray-900 p-5">
+                    <p class="text-sm text-gray-400">✅ Pistas completadas</p>
+                    <p class="mt-2 text-2xl font-bold text-green-300">
+                        <span id="completed-tracks">{{ job.completed_tracks }}</span>
+                        <span class="text-gray-500">/</span>
+                        <span id="total-tracks">{{ job.total_tracks }}</span>
+                    </p>
+                </div>
+                <div class="rounded-xl border-2 border-violet-500/40 bg-gray-900 p-5">
+                    <p class="text-sm text-gray-400">🎵 En procesamiento</p>
+                    <p id="running-tracks" class="mt-2 text-2xl font-bold text-violet-300">{{ job.running_tracks }}</p>
+                </div>
+                <div class="rounded-xl border-2 border-red-500/40 bg-gray-900 p-5">
+                    <p class="text-sm text-gray-400">❌ Pistas fallidas</p>
+                    <p id="failed-tracks" class="mt-2 text-2xl font-bold text-red-300">{{ job.failed_tracks }}</p>
+                </div>
+            </div>
+        </section>
+        <section class="space-y-4 rounded-xl border-2 border-red-500/40 bg-gray-900 p-5 sm:p-7">
+            <h2 class="font-display text-xl font-semibold text-white">🎼 Detalle de las pistas</h2>
+            {% if job.tracks %}
+                <ul id="track-list" class="space-y-3">
+                    {% for track in job.tracks %}
+                        <li class="rounded-lg border border-white/10 bg-slate-800/70 p-4">
+                            <strong class="text-white">{{ track.name|default:"Pista"|escape }}</strong>
+                            <p class="mt-1 text-sm text-gray-400">
+                                Estado: {{ track.status }} — {{ track.message }}
+                                {% if track.duration %}
+                                    <span class="text-indigo-300">({{ track.duration }})</span>
+                                {% endif %}
+                            </p>
+                            {% if track.error_message %}
+                                <p role="alert" class="mt-2 text-sm text-red-400">⚠️ {{ track.error_message }}</p>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p id="no-tracks"
+                   class="rounded-lg border border-white/10 bg-slate-800/70 p-4 text-gray-400">
+                    🎵 Todavía no hay pistas registradas.
+                </p>
+            {% endif %}
+        </section>
+        <div>
+            <a href="{% url 'video_music:index' %}"
+               class="inline-flex items-center gap-2 rounded-lg border border-green-500/40 bg-green-950/30 px-4 py-3 font-bold text-green-300 transition-colors duration-200 hover:border-green-400 hover:bg-green-900/50 hover:text-green-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-green-500">
+                <span aria-hidden="true">←</span>
+                Volver a Video Music
+            </a>
+        </div>
     </section>
-    <section>
-        <h2>Progreso</h2>
-        <p>
-            Directorio:
-            <span id="current-directory">{{ job.current_directory }}</span>
-            de
-            <span id="total-directories">{{ job.total_directories }}</span>
-        </p>
-        <p>
-            Pistas completadas:
-            <span id="completed-tracks">{{ job.completed_tracks }}</span>
-            de
-            <span id="total-tracks">{{ job.total_tracks }}</span>
-        </p>
-        <p>
-            En procesamiento:
-            <span id="running-tracks">{{ job.running_tracks }}</span>
-        </p>
-        <p>
-            Fallidas:
-            <span id="failed-tracks">{{ job.failed_tracks }}</span>
-        </p>
-    </section>
-    <section>
-        <h2>Detalle de las pistas</h2>
-        {% if job.tracks %}
-            <ul id="track-list">
-                {% for track in job.tracks %}
-                    <li>
-                        <strong>{{ track.name|default:"Pista"|escape }}</strong>
-                        — {{ track.status }}
-                        — {{ track.message }}
-                        {% if track.duration %}
-                            ({{ track.duration }})
-                        {% endif %}
-                        {% if track.error_message %}
-                            <p>Error: {{ track.error_message }}</p>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p id="no-tracks">Todavía no hay pistas registradas.</p>
-        {% endif %}
-    </section>
-    <p>
-        <a href="{% url 'video_music:index' %}">Volver a Video Music</a>
-    </p>
     <div id="job-progress-config"
          data-status-url="{% url 'video_music:job_status' job_id=job.job_id %}"></div>
     <script src="{% static 'video_music_web/js/job_progress.js' %}" defer></script>

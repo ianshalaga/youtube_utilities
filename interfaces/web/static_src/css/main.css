@@ -4,3 +4,30 @@
   --font-sans: "Rajdhani", sans-serif;
   --font-display: "Inknut Antiqua", serif;
 }
+
+@layer components {
+  .video-music-form
+    input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not(
+      [type="button"]
+    ),
+  .video-music-form select,
+  .video-music-form textarea {
+    @apply w-full rounded-lg border-2 border-gray-600 bg-slate-800 px-4 py-3 text-gray-100 outline-none transition-colors duration-200;
+  }
+
+  .video-music-form input:focus,
+  .video-music-form select:focus,
+  .video-music-form textarea:focus {
+    @apply border-green-500 ring-2 ring-green-500/20;
+  }
+
+  .video-music-form input::placeholder,
+  .video-music-form textarea::placeholder {
+    @apply text-gray-500;
+  }
+
+  .video-music-form input[type="number"] {
+    width: 5.5rem;
+    padding-inline: 0.75rem;
+  }
+}

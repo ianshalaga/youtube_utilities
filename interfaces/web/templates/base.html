@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}⚙️ YouTube Utilities{% endblock %}</title>
+        <title>{% block title %}⚙️ YouTube Utilities | 🎮 Seyfer Studios{% endblock %}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap"
@@ -12,21 +12,23 @@
         <link rel="stylesheet" href="{% static 'css/main.css' %}">
         {% block extra_head %}{% endblock %}
     </head>
-    <body class="min-h-screen flex flex-col bg-gray-950 font-sans text-gray-100 antialiased">
-        <header class="border-b border-white/10 bg-gray-900">
-            <div class="mx-auto flex max-w-7xl items-center px-4 py-4 sm:px-6 lg:px-8">
+    <body class="flex min-h-screen flex-col bg-gray-950 font-sans text-gray-100 antialiased">
+        <header class="border-b border-indigo-500/30 bg-gray-900">
+            <div class="mx-auto flex w-full max-w-7xl items-center px-4 py-4 sm:px-6 lg:px-8">
                 <a href="{% url 'home:index' %}"
-                   class="font-display text-lg font-semibold tracking-tight text-white transition-colors hover:text-red-400 sm:text-xl">
-                    YouTube Utilities
+                   class="font-display text-lg font-semibold tracking-tight text-white transition-colors duration-200 hover:text-indigo-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-green-500 sm:text-xl">
+                    🎮 YouTube Utilities
                 </a>
             </div>
         </header>
-        <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+        <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
             {% block content %}{% endblock %}
         </main>
-        <footer class="border-t border-white/10 bg-gray-900">
+        <footer class="border-t border-violet-500/30 bg-gray-900">
             <div class="mx-auto max-w-7xl px-4 py-4 text-center text-sm text-gray-400 sm:px-6 lg:px-8">
-                YouTube Utilities · Herramientas de Seyfer Studios
+                🎮 YouTube Utilities
+                <span class="mx-1 text-gray-600">·</span>
+                <span class="text-violet-300">Seyfer Studios</span>
             </div>
         </footer>
         {% block extra_scripts %}{% endblock %}
