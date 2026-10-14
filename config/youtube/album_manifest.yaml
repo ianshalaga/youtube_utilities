@@ -1,94 +1,40 @@
-album: Bramble - The Mountain King OST
+album: The Music of Red Dead Redemption II Original Soundtrack
 
-name_prefix: Bramble - The Mountain King OST
+name_prefix: Red Dead Redemption II OST
 
 videos:
-  - "01 Bramble"
-  - "02 Midnight Secrets"
-  - "03 Vakna"
-  - "04 The Nearby Forest"
-  - "05 Stone of Light"
-  - "06 Spark of Courage"
-  - "07 The Land of Bramble"
-  - "08 The Gnome Village"
-  - "09 Kurragömma"
-  - "10 Little Helpers"
-  - "11 Herding The Rumpnissar"
-  - "12 The Frog King"
-  - "13 Upp Till Toppen"
-  - "14 The Wishing Well"
-  - "15 Fairies & Trolls"
-  - "16 Olle's Dream"
-  - "17 The Troll Forest"
-  - "18 Alas, Poor Moose"
-  - "19 Coless The Butcher"
-  - "20 Trickster's Game"
-  - "21 Into The Tall Grass"
-  - "22 Kottmonster"
-  - "23 Olle Soup"
-  - "24 The Kottefolk"
-  - "25 Turned To Stone"
-  - "26 Pollen"
-  - "27 Blomstertid | feat. BJOERN"
-  - "28 Lemus's Meadow"
-  - "29 Gnome Pond"
-  - "30 Skuggrotta"
-  - "31 Dark Runes"
-  - "32 Näcken's Polska"
-  - "33 Forbidden Melodies"
-  - "34 Not Waving, but Drowning"
-  - "35 River of Whispers"
-  - "36 Circling Bramble"
-  - "37 Light in the Darkness"
-  - "38 Tuva's Wood"
-  - "39 Bramblecore"
-  - "40 For Your Life"
-  - "41 The Swamp"
-  - "42 Into the Mire"
-  - "43 Häxans Hus"
-  - "44 Knee Deep"
-  - "45 The Lake"
-  - "46 Crowandah"
-  - "47 Skeppsvraket"
-  - "48 Nipping at His Heels"
-  - "49 Vattenormen"
-  - "50 Mylingar"
-  - "51 A Proper Burial"
-  - "52 Lyktgubbens Lykta"
-  - "53 Old as the World"
-  - "54 Gatherer of Stories | Bonus Track"
-  - "55 Skogsrå's Labyrinth"
-  - "56 Blood & Moonlight"
-  - "57 The Light Sword Forms"
-  - "58 Fall and Rise"
-  - "59 A Mound of Grass"
-  - "60 Blomstertid | Reprise | feat. BJOERN"
-  - "61 Nilshult"
-  - "62 Something Wicked"
-  - "63 The Stable"
-  - "64 A Place of Worship"
-  - "65 Draugr"
-  - "66 Pesta's Nightmare"
-  - "67 River of Blood"
-  - "68 The Ruins"
-  - "69 Into the Mountain"
-  - "70 High Hallway"
-  - "71 Shockwaves"
-  - "72 The Mountain King"
-  - "73 Finale"
-  - "74 Epilogue"
-  - "75 The Loneliest Child in the World | Bonus Track"
-  - "Bramble: The Mountain King OST"
+  - "01 Unshaken"
+  - "02 Moonlight"
+  - "03 That's The Way It Is"
+  - "04 Mountain Finale"
+  - "05 Crash of Worlds"
+  - "06 Cruel World"
+  - "07 Red"
+  - "08 Mountain Hymn"
+  - "09 Mountain Banjo"
+  - "10 Table Top"
+  - "11 Love Come Back"
+  - "12 Oh My Lovely"
+  - "13 Cruel World"
+  - "The Music of Red Dead Redemption II Original Soundtrack"
 
 description: |
-  🎮 BRAMBLE: THE MOUNTAIN KING | 2023
+  🎮 RED DEAD REDEPTION | 2010
 
-  📀 Bramble: The Mountain King OST | https://www.youtube.com/playlist?list=PLF_ubm4OB4ys
+  📀 Red Dead Redemption OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t5O4Z9pfbSmGFaC2Rl5isVc
+  📀 Red Dead Redemption: Undead Nightmare OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t7bd3LXQ4Dphn4TxWQ2EQrE
+  📀 Red Dead Redemption Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t453MM1Y5hYG-rgAtEB3inU
 
-thumbnail: "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/images/miniatura1.png"
+  🎮 RED DEAD REDEPTION II | 2018
+
+  📀 The Music of Red Dead Redemption II Original Soundtrack | https://www.youtube.com/playlist?list=PLVA3XAiZnE5o
+  📀 Red Dead Redemption II Complete OST | https://www.youtube.com/playlist?list=PLbeUq_STHx4k
+
+thumbnail: "H:/@Downloads/OST/02 In Progress/Read Dead Redemption/03 Red Dead Redemption II - 2018/01 The Music of - OST/images/miniatura1.png"
 
 playlists:
-  - PLF_ubm4OB4ys # Bramble: The Mountain King OST
+  - PLVA3XAiZnE5o # The Music of Red Dead Redemption II Original Soundtrack
+  - PLbeUq_STHx4k # Red Dead Redemption II Complete OST
 
 made_for_kids: false
 contains_synthetic_media: false
@@ -100,6 +46,6 @@ game: game # not used
 
 publication:
   # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS
-  first_publish_at: "2026-10-18T04:00:00"
+  first_publish_at: "2026-10-17T05:00:00"
   timezone: "Europe/Paris"
   interval_days: 1

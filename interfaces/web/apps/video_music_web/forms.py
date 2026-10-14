@@ -5,25 +5,25 @@ from django import forms
 
 class VideoMusicForm(forms.Form):
     max_items_per_dir = forms.IntegerField(
-        label="Límite de pistas por directorio",
+        label="#️⃣ Límite de pistas por directorio",
         min_value=1,
         initial=15,
     )
 
     audios_dir = forms.CharField(
-        label="Directorio de audios",
+        label="🎶 Directorio de audios",
         max_length=1024,
         strip=True,
     )
 
     video_path = forms.CharField(
-        label="Vídeo base",
+        label="🎞️ Video base",
         max_length=1024,
         strip=True,
     )
 
     output_dir = forms.CharField(
-        label="Directorio de salida",
+        label="📁 Directorio de salida",
         max_length=1024,
         strip=True,
         help_text=(

@@ -24,29 +24,22 @@
     ]
   },
   "video": {
-    "supported_extensions": [
-      "mkv",
-      "mp4",
-      "mov",
-      "webm",
-      "avi",
-      "m4v"
-    ]
+    "supported_extensions": ["mkv", "mp4", "mov", "webm", "avi", "m4v"]
   },
   "dry_run": false,
   "max_workers": 4,
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H:\\@Downloads\\OST\\02 In Progress\\Bramble\\01 Bramble - The Mountain King\\01 OST\\Nueva carpeta",
-      "default_video_path": "H:\\@Downloads\\OST\\02 In Progress\\Bramble\\01 Bramble - The Mountain King\\01 OST\\images\\video.mp4",
+      "default_audios_dir": "H://@Downloads//OST//02 In Progress//Read Dead Redemption//03 Red Dead Redemption II - 2018//01 The Music of - OST",
+      "default_video_path": "H://@Downloads//OST//02 In Progress//Read Dead Redemption//03 Red Dead Redemption II - 2018//01 The Music of - OST//images//video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Read Dead Redemption/03 Red Dead Redemption II - 2018/01 The Music of - OST/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Bramble - The Mountain King - OST",
+      "default_video_name": "The Music of Red Dead Redemption II Original Soundtrack",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
