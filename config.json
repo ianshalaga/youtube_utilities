@@ -31,15 +31,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H://@Downloads//OST//02 In Progress//Read Dead Redemption//03 Red Dead Redemption II - 2018//02 The Music of - Original Score",
-      "default_video_path": "H://@Downloads//OST//02 In Progress//Read Dead Redemption//03 Red Dead Redemption II - 2018//02 The Music of - Original Score//images//video.mp4",
+      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/The Elder Scrolls/02 The Elder Scrolls II - Daggerfall - 1996/03 Gamerip Tracks - GeneralUser GS",
+      "default_video_path": "H:/@Downloads/OST/02 In Progress/The Elder Scrolls/02 The Elder Scrolls II - Daggerfall - 1996/03 Gamerip Tracks - GeneralUser GS/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Read Dead Redemption/03 Red Dead Redemption II - 2018/02 The Music of - Original Score/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/The Elder Scrolls/02 The Elder Scrolls II - Daggerfall - 1996/03 Gamerip Tracks - GeneralUser GS/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "The Music of Red Dead Redemption II Original Score",
+      "default_video_name": "The Elder Scrolls II - Daggerfall - Gamerip Tracks - GeneralUser GS",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,

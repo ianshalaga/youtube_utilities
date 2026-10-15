@@ -26,14 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const browserUrl = "/file-browser/";
   const selectionUrl = "/file-browser/select/";
 
-  const queryParams = new URLSearchParams(window.location.search);
-  const initialAction = queryParams.get("action");
-  const requestedTarget = queryParams.get("target");
-
-  const validTargets = {
-    audios: "audios_dir",
-    video: "video_path",
-  };
+  let activeTarget = null;
 
   let currentPath = "";
   let selectedEntry = null;
@@ -277,38 +270,44 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedPathInput.value = data.selection.path;
       setStatus("Selección validada correctamente.");
 
-      const targetField = validTargets[requestedTarget];
+      const expectedType = activeTarget === "audios" ? "directory" : "file";
 
-      if (window.opener && !window.opener.closed && targetField) {
-        const expectedType =
-          requestedTarget === "audios" ? "directory" : "file";
+      if (data.selection.type !== expectedType) {
+        confirmButton.disabled = false;
 
-        if (data.selection.type !== expectedType) {
-          confirmButton.disabled = false;
-          setStatus(
-            requestedTarget === "audios"
-              ? "Debes seleccionar un directorio de canciones."
-              : "Debes seleccionar un archivo de vídeo.",
-          );
-          return;
-        }
-
-        window.opener.postMessage(
-          {
-            type: "file-browser-selection",
-            target: targetField,
-            path: data.selection.path,
-          },
-          window.location.origin,
+        setStatus(
+          activeTarget === "audios"
+            ? "Debes seleccionar un directorio de canciones."
+            : "Debes seleccionar un archivo de vídeo.",
         );
 
-        window.close();
+        return;
       }
+
+      window.dispatchEvent(
+        new CustomEvent("file-browser-selected", {
+          detail: {
+            target: activeTarget,
+            path: data.selection.path,
+          },
+        }),
+      );
     } catch (error) {
       confirmButton.disabled = false;
       setStatus(`Error al validar la selección: ${error.message}`);
     }
   }
+
+  window.addEventListener("file-browser-open", (event) => {
+    const target = event.detail?.target;
+
+    if (!["audios", "video"].includes(target)) {
+      return;
+    }
+
+    activeTarget = target;
+    loadDefaultLocation(target);
+  });
 
   drivesButton.addEventListener("click", loadDrives);
 
@@ -329,8 +328,4 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   confirmButton.addEventListener("click", confirmSelection);
-
-  if (validTargets[requestedTarget]) {
-    loadDefaultLocation(requestedTarget);
-  }
 });

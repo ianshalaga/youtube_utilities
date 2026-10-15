@@ -62,6 +62,78 @@
                 </div>
             </form>
         </section>
+        <section id="file-browser-panel"
+                 hidden
+                 data-target=""
+                 class="hidden space-y-5 rounded-xl border-2 border-indigo-500/40 bg-gray-900 p-5 sm:p-7">
+            <header class="flex flex-wrap items-center justify-between gap-3">
+                <div class="space-y-1">
+                    <h2 class="font-display text-xl font-semibold text-white">📂 Navegador de archivos</h2>
+                    <p id="file-browser-description"
+                       class="text-sm text-gray-400">Selecciona una ruta para completar el formulario.</p>
+                </div>
+                <button type="button"
+                        id="file-browser-close"
+                        class="rounded-lg border border-gray-600 px-4 py-2 font-bold text-gray-200 transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">
+                    Cerrar
+                </button>
+            </header>
+            <div class="flex flex-wrap gap-3">
+                <button type="button"
+                        id="file-browser-drives"
+                        class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:border-indigo-400 hover:bg-indigo-900/60">
+                    Unidades
+                </button>
+                <button type="button"
+                        id="file-browser-parent"
+                        disabled
+                        class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:bg-indigo-900/60 disabled:cursor-not-allowed disabled:opacity-40">
+                    Directorio superior
+                </button>
+                <button type="button"
+                        id="file-browser-refresh"
+                        disabled
+                        class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:bg-indigo-900/60 disabled:cursor-not-allowed disabled:opacity-40">
+                    Actualizar
+                </button>
+            </div>
+            <div class="space-y-2">
+                <label for="file-browser-path" class="font-bold text-gray-200">Ruta actual</label>
+                <input type="text"
+                       id="file-browser-path"
+                       readonly
+                       placeholder="Cargando ubicación…"
+                       class="w-full rounded-lg border-2 border-gray-600 bg-slate-800 px-4 py-3 text-gray-100">
+            </div>
+            <p id="file-browser-status"
+               role="status"
+               aria-live="polite"
+               class="rounded-lg border border-indigo-500/30 bg-gray-950 p-4 text-gray-300">
+                Selecciona una ubicación para comenzar.
+            </p>
+            <div class="max-h-[45vh] min-h-40 overflow-auto rounded-xl border border-white/10 bg-gray-950 p-3">
+                <ul id="file-browser-entries"
+                    aria-label="Contenido del directorio"
+                    class="flex flex-col gap-2">
+                </ul>
+            </div>
+            <div class="space-y-4 rounded-xl border border-indigo-500/30 bg-slate-800/70 p-4">
+                <div class="space-y-2">
+                    <label for="file-browser-selected-path" class="font-bold text-gray-200">Ruta seleccionada</label>
+                    <input type="text"
+                           id="file-browser-selected-path"
+                           readonly
+                           placeholder="Ninguna ruta seleccionada"
+                           class="w-full rounded-lg border-2 border-gray-600 bg-slate-800 px-4 py-3 text-gray-100">
+                </div>
+                <button type="button"
+                        id="file-browser-confirm"
+                        disabled
+                        class="rounded-lg border border-green-500/50 bg-green-900/40 px-5 py-3 font-bold text-green-100 transition-colors hover:bg-green-800/60 disabled:cursor-not-allowed disabled:opacity-40">
+                    Confirmar selección
+                </button>
+            </div>
+        </section>
         {% if job %}
             <section id="job-results"
                      class="space-y-5 rounded-xl border-2 border-indigo-500/40 bg-gray-900 p-5 sm:p-7">
@@ -167,5 +239,6 @@
 {% endblock %}
 {% block extra_scripts %}
     {{ block.super }}
+    <script src="{% static 'file_browser/js/browser.js' %}" defer></script>
     <script src="{% static 'video_music_web/js/file_picker.js' %}" defer></script>
 {% endblock %}

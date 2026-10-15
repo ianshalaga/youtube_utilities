@@ -1,17 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
   const pickerButtons = document.querySelectorAll("[data-file-picker]");
+  const browserPanel = document.getElementById("file-browser-panel");
+  const closeButton = document.getElementById("file-browser-close");
+  const description = document.getElementById("file-browser-description");
 
-  if (pickerButtons.length === 0) {
+  if (!browserPanel || !closeButton || !description) {
+    console.error("No se encontró el panel del navegador de archivos.");
     return;
   }
 
-  const browserUrl = "/file-browser/";
   const allowedTargets = {
     audios_dir: "audios",
     video_path: "video",
   };
 
-  let browserWindow = null;
+  let activeField = null;
 
   function openBrowser(fieldName) {
     const target = allowedTargets[fieldName];
@@ -20,25 +23,33 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const params = new URLSearchParams({ target });
-    const url = `${browserUrl}?${params.toString()}`;
+    activeField = fieldName;
 
-    if (browserWindow && !browserWindow.closed) {
-      browserWindow.close();
-    }
+    description.textContent =
+      target === "audios"
+        ? "Selecciona el directorio que contiene las canciones."
+        : "Selecciona el archivo de vídeo base.";
 
-    browserWindow = window.open(
-      url,
-      "videoMusicFileBrowser",
-      "width=1100,height=800,resizable=yes,scrollbars=yes",
+    browserPanel.dataset.target = target;
+    browserPanel.hidden = false;
+    browserPanel.classList.remove("hidden");
+
+    browserPanel.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    window.dispatchEvent(
+      new CustomEvent("file-browser-open", {
+        detail: { target },
+      }),
     );
+  }
 
-    if (!browserWindow) {
-      window.alert(
-        "El navegador de archivos fue bloqueado. " +
-          "Permite las ventanas emergentes para este sitio.",
-      );
-    }
+  function closeBrowser() {
+    browserPanel.hidden = true;
+    browserPanel.classList.add("hidden");
+    activeField = null;
   }
 
   pickerButtons.forEach((button) => {
@@ -47,34 +58,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  window.addEventListener("message", (event) => {
-    if (event.origin !== window.location.origin) {
-      return;
-    }
+  closeButton.addEventListener("click", closeBrowser);
 
-    const data = event.data;
+  window.addEventListener("file-browser-selected", (event) => {
+    const { target, path } = event.detail || {};
 
     if (
-      !data ||
-      data.type !== "file-browser-selection" ||
-      !Object.hasOwn(allowedTargets, data.target) ||
-      typeof data.path !== "string" ||
-      !data.path
+      !activeField ||
+      allowedTargets[activeField] !== target ||
+      typeof path !== "string" ||
+      !path
     ) {
       return;
     }
 
-    const field = document.getElementById(`id_${data.target}`);
+    const field = document.getElementById(`id_${activeField}`);
 
     if (!field) {
+      console.error(`No se encontró el campo id_${activeField}.`);
       return;
     }
 
-    field.value = data.path;
+    field.value = path;
     field.dispatchEvent(new Event("input", { bubbles: true }));
     field.dispatchEvent(new Event("change", { bubbles: true }));
 
-    browserWindow = null;
+    closeBrowser();
     field.focus();
   });
 });
