@@ -37,4 +37,9 @@ urlpatterns = [
         "audio-converter/",
         include("apps.audio_converter_web.urls"),
     ),
+
+    path(
+        "file-browser/",
+        include("features.file_browser.urls"),
+    ),
 ]

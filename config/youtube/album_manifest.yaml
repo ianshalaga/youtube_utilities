@@ -1,22 +1,31 @@
-album: The Music of Red Dead Redemption II Original Soundtrack
+album: The Music of Red Dead Redemption II Original Score
 
 name_prefix: Red Dead Redemption II OST
 
 videos:
-  - "01 Unshaken"
-  - "02 Moonlight"
-  - "03 That's The Way It Is"
-  - "04 Mountain Finale"
-  - "05 Crash of Worlds"
-  - "06 Cruel World"
-  - "07 Red"
-  - "08 Mountain Hymn"
-  - "09 Mountain Banjo"
-  - "10 Table Top"
-  - "11 Love Come Back"
-  - "12 Oh My Lovely"
-  - "13 Cruel World"
-  - "The Music of Red Dead Redemption II Original Soundtrack"
+  - "01 By 1899, The Age Of Outlaws And Gunslingers Was At An End"
+  - "02 Outlaws From The West"
+  - "03 Blessed Are The Peacemakers"
+  - "04 Mrs. Sadie Adler, Widow"
+  - "05 Revenge Is A Dish Best Eaten"
+  - "06 It All Makes Sense Now"
+  - "07 The Fine Art Of Conversation"
+  - "08 Banking, The Old American Art"
+  - "09 There She Is…A Real City, The Future"
+  - "10 Everybody Wake Up"
+  - "11 Welcome To The New World"
+  - "12 Paradise Mercifully Departed"
+  - "13 Doctor’s Opinion"
+  - "14 Fleeting Joy"
+  - "15 Icarus And Friends"
+  - "16 Country Pursuits"
+  - "17 An American Pastoral Scene"
+  - "18 Blood Feuds, Ancient And Modern"
+  - "19 Red Dead Redemption"
+  - "20 The Wheel"
+  - "21 American Venom"
+  - "22 American Reprise"
+  - "The Music of Red Dead Redemption II Original Score"
 
 description: |
   🎮 RED DEAD REDEPTION | 2010
@@ -28,12 +37,13 @@ description: |
   🎮 RED DEAD REDEPTION II | 2018
 
   📀 The Music of Red Dead Redemption II Original Soundtrack | https://www.youtube.com/playlist?list=PLVA3XAiZnE5o
+  📀 The Music of Red Dead Redemption II Original Score | https://www.youtube.com/playlist?list=PLEU9mB3gkr9s
   📀 Red Dead Redemption II Complete OST | https://www.youtube.com/playlist?list=PLbeUq_STHx4k
 
-thumbnail: "H:/@Downloads/OST/02 In Progress/Read Dead Redemption/03 Red Dead Redemption II - 2018/01 The Music of - OST/images/miniatura1.png"
+thumbnail: "H:/@Downloads/OST/02 In Progress/Read Dead Redemption/03 Red Dead Redemption II - 2018/02 The Music of - Original Score/images/miniatura1.png"
 
 playlists:
-  - PLVA3XAiZnE5o # The Music of Red Dead Redemption II Original Soundtrack
+  - PLEU9mB3gkr9s # The Music of Red Dead Redemption II Original Score
   - PLbeUq_STHx4k # Red Dead Redemption II Complete OST
 
 made_for_kids: false
@@ -46,6 +56,6 @@ game: game # not used
 
 publication:
   # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS
-  first_publish_at: "2026-10-17T05:00:00"
+  first_publish_at: "2026-10-31T05:00:00"
   timezone: "Europe/Paris"
   interval_days: 1

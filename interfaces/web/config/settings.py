@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "apps.video_music_web",
     "apps.video_joiner_web",
     "apps.audio_converter_web",
+    "features.file_browser",
 ]
 
 MIDDLEWARE = [
