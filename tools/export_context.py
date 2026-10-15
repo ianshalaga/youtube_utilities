@@ -20,7 +20,6 @@ VIDEO_MUSIC_CONTEXT = (
     BASE_DIR / "core/config_manager.py",
     BASE_DIR / "core/time_utils.py",
     BASE_DIR / "applications/video_music",
-    BASE_DIR / "gui",
     BASE_DIR / "interfaces/cli",
     BASE_DIR / "interfaces/web",
     BASE_DIR / "domain/media",

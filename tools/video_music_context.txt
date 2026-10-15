@@ -1,6 +1,6 @@
 # GENERATED PROJECT CONTEXT
 # base_dir: H:\@Seyfer\@Projects\youtube_utilities
-# total_files: 99
+# total_files: 104
 
 # PROJECT STRUCTURE
 
@@ -26,9 +26,6 @@ domain
       video.py
       video_encoding.py
       video_signature.py
-gui
-  __init__.py
-  file_dialog.py
 interfaces
   cli
     __init__.py
@@ -104,6 +101,18 @@ interfaces
       settings.py
       urls.py
       wsgi.py
+    features
+      file_browser
+        __init__.py
+        services.py
+        templates
+          file_browser
+            browse.html
+            file_browser
+              browser.js
+        tests.py
+        urls.py
+        views.py
     manage.py
     package-lock.json
     package.json
@@ -1022,29 +1031,22 @@ FILE: config.json
     ]
   },
   "video": {
-    "supported_extensions": [
-      "mkv",
-      "mp4",
-      "mov",
-      "webm",
-      "avi",
-      "m4v"
-    ]
+    "supported_extensions": ["mkv", "mp4", "mov", "webm", "avi", "m4v"]
   },
   "dry_run": false,
   "max_workers": 4,
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H:\\@Downloads\\OST\\02 In Progress\\Bramble\\01 Bramble - The Mountain King\\01 OST\\Nueva carpeta",
-      "default_video_path": "H:\\@Downloads\\OST\\02 In Progress\\Bramble\\01 Bramble - The Mountain King\\01 OST\\images\\video.mp4",
+      "default_audios_dir": "H://@Downloads//OST//02 In Progress//Read Dead Redemption//03 Red Dead Redemption II - 2018//02 The Music of - Original Score",
+      "default_video_path": "H://@Downloads//OST//02 In Progress//Read Dead Redemption//03 Red Dead Redemption II - 2018//02 The Music of - Original Score//images//video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Bramble/01 Bramble - The Mountain King/01 OST/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Read Dead Redemption/03 Red Dead Redemption II - 2018/02 The Music of - Original Score/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Bramble - The Mountain King - OST",
+      "default_video_name": "The Music of Red Dead Redemption II Original Score",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
@@ -1112,6 +1114,7 @@ FILE: config.json
     }
   }
 }
+
 
 ================================================================================
 FILE: core\config_manager.py
@@ -1585,22 +1588,6 @@ class VideoSignature:
     Se utiliza una tupla en lugar de una lista para garantizar
     inmutabilidad y permitir comparaciones directas.
     """
-
-
-================================================================================
-FILE: gui\__init__.py
-================================================================================
-from .file_dialog import FileDialog
-
-__all__ = [
-    "FileDialog",
-]
-
-
-================================================================================
-FILE: gui\file_dialog.py
-================================================================================
-# A futuro
 
 
 ================================================================================
@@ -2193,7 +2180,7 @@ from django.db import models
 FILE: interfaces\web\apps\home\templates\home\application_card.html
 ================================================================================
 <a href="{% url application.url_name %}"
-   class="group relative z-0 block h-full rounded-xl border-2 border-red-500/40 bg-gray-900 p-5 no-underline transition-all duration-200 ease-out hover:z-10 hover:scale-[1.01] hover:border-green-500 hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-green-500">
+   class="group relative z-0 block h-full rounded-xl border-2 border-red-500/40 bg-gray-900 p-5 no-underline transition-all duration-200 ease-out hover:z-10 hover:border-green-500 hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-green-500">
     <div class="flex items-center gap-2">
         {% if application.url_name == "video_music:index" %}
             <span role="img" aria-label="Música">🎵</span>
@@ -2216,12 +2203,11 @@ FILE: interfaces\web\apps\home\templates\home\application_card.html
 FILE: interfaces\web\apps\home\templates\home\index.html
 ================================================================================
 {% extends "base.html" %}
-{% block title %}⚙️ YouTube Utilities | 🎮 Seyfer Studios{% endblock %}
 {% block content %}
     <section class="space-y-6">
         <header>
             <p class="max-w-2xl text-lg leading-relaxed text-gray-400">
-                🎮 Centro de herramientas para crear, transformar y gestionar contenido multimedia para YouTube.
+                📝 Centro de herramientas para crear, transformar y gestionar contenido multimedia para YouTube.
             </p>
         </header>
         <section aria-label="Aplicaciones disponibles" class="space-y-5">
@@ -2394,25 +2380,25 @@ from django import forms
 
 class VideoMusicForm(forms.Form):
     max_items_per_dir = forms.IntegerField(
-        label="Límite de pistas por directorio",
+        label="#️⃣ Límite de pistas por directorio",
         min_value=1,
         initial=15,
     )
 
     audios_dir = forms.CharField(
-        label="Directorio de audios",
+        label="🎶 Directorio de audios",
         max_length=1024,
         strip=True,
     )
 
     video_path = forms.CharField(
-        label="Vídeo base",
+        label="🎞️ Video base",
         max_length=1024,
         strip=True,
     )
 
     output_dir = forms.CharField(
-        label="Directorio de salida",
+        label="📁 Directorio de salida",
         max_length=1024,
         strip=True,
         help_text=(
@@ -2994,7 +2980,7 @@ job_registry = VideoMusicJobRegistry()
 FILE: interfaces\web\apps\video_music_web\templates\video_music_web\index.html
 ================================================================================
 {% extends "base.html" %}
-{% block title %}🎵 Video Music | YouTube Utilities{% endblock %}
+{% block title %}🎵 Video Music | ⚙️ YouTube Utilities{% endblock %}
 {% block content %}
     <section class="space-y-8">
         <header class="space-y-3">
@@ -3519,6 +3505,7 @@ INSTALLED_APPS = [
     "apps.video_music_web",
     "apps.video_joiner_web",
     "apps.audio_converter_web",
+    "features.file_browser",
 ]
 
 MIDDLEWARE = [
@@ -3645,6 +3632,11 @@ urlpatterns = [
         "audio-converter/",
         include("apps.audio_converter_web.urls"),
     ),
+
+    path(
+        "file-browser/",
+        include("features.file_browser.urls"),
+    ),
 ]
 
 
@@ -3667,6 +3659,795 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
 application = get_wsgi_application()
+
+
+================================================================================
+FILE: interfaces\web\features\file_browser\__init__.py
+================================================================================
+
+
+================================================================================
+FILE: interfaces\web\features\file_browser\services.py
+================================================================================
+import os
+from pathlib import Path
+from typing import Literal
+
+
+EntryType = Literal["directory", "file"]
+
+
+class FileBrowserError(Exception):
+    """Base exception for file browser errors."""
+
+
+class InvalidPathError(FileBrowserError):
+    """Raised when a path does not exist or is invalid."""
+
+
+class PermissionDeniedError(FileBrowserError):
+    """Raised when a path cannot be accessed due to permissions."""
+
+
+class FileBrowserService:
+    """Explore the filesystem accessible to the current process."""
+
+    def list_drives(self) -> list[dict[str, str]]:
+        """
+        Return available Windows drives.
+
+        On non-Windows systems, return the filesystem root.
+        """
+        if os.name == "nt":
+            import string
+
+            drives = []
+
+            for letter in string.ascii_uppercase:
+                drive = Path(f"{letter}:/")
+
+                if drive.exists():
+                    drives.append(
+                        {
+                            "name": f"{letter}:",
+                            "path": str(drive),
+                            "type": "drive",
+                        }
+                    )
+
+            return drives
+
+        root = Path("/")
+
+        return [
+            {
+                "name": "/",
+                "path": str(root),
+                "type": "drive",
+            }
+        ]
+
+    def list_directory(
+        self,
+        path: str | Path,
+        *,
+        show_files: bool = True,
+    ) -> list[dict[str, str]]:
+        """
+        List the immediate contents of a directory.
+
+        Directories are listed first, followed by files.
+        Hidden entries are not excluded automatically.
+        """
+        directory = self._resolve_directory(path)
+
+        try:
+            entries = list(directory.iterdir())
+        except PermissionError as exc:
+            raise PermissionDeniedError(
+                f"Permission denied: {directory}"
+            ) from exc
+        except OSError as exc:
+            raise FileBrowserError(
+                f"Unable to read directory: {directory}"
+            ) from exc
+
+        results = []
+
+        for entry in entries:
+            try:
+                if entry.is_dir():
+                    results.append(
+                        {
+                            "name": entry.name,
+                            "path": str(entry),
+                            "type": "directory",
+                        }
+                    )
+                elif show_files and entry.is_file():
+                    results.append(
+                        {
+                            "name": entry.name,
+                            "path": str(entry),
+                            "type": "file",
+                        }
+                    )
+            except PermissionError:
+                # An inaccessible entry should not prevent listing
+                # the remaining entries.
+                continue
+            except OSError:
+                continue
+
+        results.sort(
+            key=lambda item: (
+                item["type"] != "directory",
+                item["name"].casefold(),
+            )
+        )
+
+        return results
+
+    def get_entry(
+        self,
+        path: str | Path,
+        *,
+        expected_type: EntryType,
+    ) -> dict[str, str]:
+        """Validate a selected file or directory and return its metadata."""
+        entry = self._resolve_path(path)
+
+        try:
+            if expected_type == "directory" and not entry.is_dir():
+                raise InvalidPathError(
+                    f"Expected a directory: {entry}"
+                )
+
+            if expected_type == "file" and not entry.is_file():
+                raise InvalidPathError(
+                    f"Expected a file: {entry}"
+                )
+        except PermissionError as exc:
+            raise PermissionDeniedError(
+                f"Permission denied: {entry}"
+            ) from exc
+        except OSError as exc:
+            raise FileBrowserError(
+                f"Unable to access path: {entry}"
+            ) from exc
+
+        return {
+            "name": entry.name or str(entry),
+            "path": str(entry),
+            "type": expected_type,
+        }
+
+    @staticmethod
+    def _resolve_path(path: str | Path) -> Path:
+        """Validate and normalize a filesystem path."""
+        if not str(path).strip():
+            raise InvalidPathError("Path cannot be empty.")
+
+        try:
+            resolved = Path(path).resolve(strict=True)
+        except (OSError, RuntimeError, ValueError) as exc:
+            raise InvalidPathError(
+                f"Invalid or inaccessible path: {path}"
+            ) from exc
+
+        return resolved
+
+    def _resolve_directory(self, path: str | Path) -> Path:
+        """Validate that the supplied path is an accessible directory."""
+        directory = self._resolve_path(path)
+
+        try:
+            if not directory.is_dir():
+                raise InvalidPathError(
+                    f"Path is not a directory: {directory}"
+                )
+        except PermissionError as exc:
+            raise PermissionDeniedError(
+                f"Permission denied: {directory}"
+            ) from exc
+        except OSError as exc:
+            raise FileBrowserError(
+                f"Unable to access directory: {directory}"
+            ) from exc
+
+        return directory
+
+
+================================================================================
+FILE: interfaces\web\features\file_browser\templates\file_browser\browse.html
+================================================================================
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Navegador de archivos | YouTube Utilities{% endblock %}
+{% block content %}
+    <section class="file-browser">
+        <header class="file-browser__header">
+            <h1>Navegador de archivos</h1>
+            <p>Selecciona una unidad, navega por sus directorios y elige una ruta.</p>
+        </header>
+        <div class="file-browser__toolbar">
+            <button type="button" id="file-browser-drives">Unidades</button>
+            <button type="button" id="file-browser-parent" disabled>Directorio superior</button>
+            <button type="button" id="file-browser-refresh" disabled>Actualizar</button>
+        </div>
+        <div class="file-browser__location">
+            <label for="file-browser-path">Ruta actual</label>
+            <input type="text"
+                   id="file-browser-path"
+                   readonly
+                   placeholder="Selecciona una unidad o un directorio">
+        </div>
+        <p id="file-browser-status" role="status" aria-live="polite">Selecciona «Unidades» para comenzar.</p>
+        <div class="file-browser__listing">
+            <ul id="file-browser-entries" aria-label="Contenido del directorio">
+            </ul>
+        </div>
+        <div class="file-browser__selection">
+            <label for="file-browser-selected-path">Ruta seleccionada</label>
+            <input type="text"
+                   id="file-browser-selected-path"
+                   readonly
+                   placeholder="Ninguna ruta seleccionada">
+            <button type="button" id="file-browser-confirm" disabled>Confirmar selección</button>
+        </div>
+    </section>
+{% endblock %}
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'file_browser/browser.js' %}" defer></script>
+{% endblock %}
+
+
+================================================================================
+FILE: interfaces\web\features\file_browser\templates\file_browser\file_browser\browser.js
+================================================================================
+document.addEventListener("DOMContentLoaded", () => {
+  const drivesButton = document.getElementById("file-browser-drives");
+  const parentButton = document.getElementById("file-browser-parent");
+  const refreshButton = document.getElementById("file-browser-refresh");
+  const pathInput = document.getElementById("file-browser-path");
+  const selectedPathInput = document.getElementById(
+    "file-browser-selected-path",
+  );
+  const statusElement = document.getElementById("file-browser-status");
+  const entriesList = document.getElementById("file-browser-entries");
+  const confirmButton = document.getElementById("file-browser-confirm");
+
+  if (
+    !drivesButton ||
+    !parentButton ||
+    !refreshButton ||
+    !pathInput ||
+    !selectedPathInput ||
+    !statusElement ||
+    !entriesList ||
+    !confirmButton
+  ) {
+    return;
+  }
+
+  const browserUrl = "/file-browser/";
+  const selectionUrl = "/file-browser/select/";
+
+  let currentPath = "";
+  let selectedEntry = null;
+
+  async function requestJson(url, options = {}) {
+    const response = await fetch(url, options);
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error || `Error HTTP ${response.status}`);
+    }
+
+    return data;
+  }
+
+  function setStatus(message) {
+    statusElement.textContent = message;
+  }
+
+  function clearSelection() {
+    selectedEntry = null;
+    selectedPathInput.value = "";
+    confirmButton.disabled = true;
+  }
+
+  function clearEntries() {
+    entriesList.replaceChildren();
+  }
+
+  function renderEntries(entries) {
+    clearEntries();
+
+    if (entries.length === 0) {
+      const item = document.createElement("li");
+      item.textContent = "No hay elementos para mostrar.";
+      entriesList.appendChild(item);
+      return;
+    }
+
+    for (const entry of entries) {
+      const item = document.createElement("li");
+      item.className = "file-browser__item";
+
+      const isDirectory = entry.type === "directory" || entry.type === "drive";
+
+      const openButton = document.createElement("button");
+      openButton.type = "button";
+      openButton.className = "file-browser__entry";
+      openButton.textContent = `${isDirectory ? "📁" : "📄"} ${entry.name}`;
+
+      openButton.addEventListener("click", () => {
+        if (isDirectory) {
+          openDirectory(entry.path);
+        } else {
+          selectEntry(entry);
+        }
+      });
+
+      item.appendChild(openButton);
+
+      if (entry.type !== "drive") {
+        const selectButton = document.createElement("button");
+        selectButton.type = "button";
+        selectButton.textContent = "Seleccionar";
+
+        selectButton.addEventListener("click", () => {
+          selectEntry(entry);
+        });
+
+        item.appendChild(selectButton);
+      }
+
+      entriesList.appendChild(item);
+    }
+  }
+
+  async function loadDrives() {
+    clearSelection();
+    clearEntries();
+    setStatus("Cargando unidades…");
+
+    try {
+      const data = await requestJson(`${browserUrl}?action=drives`);
+
+      currentPath = "";
+      pathInput.value = "";
+      parentButton.disabled = true;
+      refreshButton.disabled = true;
+
+      renderEntries(data.entries || []);
+      setStatus("Selecciona una unidad para explorarla.");
+    } catch (error) {
+      setStatus(`Error al cargar las unidades: ${error.message}`);
+    }
+  }
+
+  async function openDirectory(path) {
+    clearSelection();
+    clearEntries();
+    setStatus("Cargando directorio…");
+
+    try {
+      const params = new URLSearchParams({
+        action: "list",
+        path: path,
+      });
+
+      const data = await requestJson(`${browserUrl}?${params.toString()}`);
+
+      currentPath = data.path || path;
+      pathInput.value = currentPath;
+
+      parentButton.disabled = false;
+      refreshButton.disabled = false;
+
+      renderEntries(data.entries || []);
+      setStatus(`${(data.entries || []).length} elemento(s) encontrado(s).`);
+    } catch (error) {
+      setStatus(`Error al abrir el directorio: ${error.message}`);
+    }
+  }
+
+  function getParentPath(path) {
+    // En Windows, la unidad raíz debe conservarse como C:\.
+    if (/^[a-zA-Z]:[\\/]*$/.test(path)) {
+      return null;
+    }
+
+    // En otros sistemas, la raíz es /.
+    if (path === "/") {
+      return null;
+    }
+
+    const trimmed = path.replace(/[\\/]+$/, "");
+    const separatorIndex = Math.max(
+      trimmed.lastIndexOf("\\"),
+      trimmed.lastIndexOf("/"),
+    );
+
+    if (separatorIndex < 0) {
+      return null;
+    }
+
+    // Conserva la barra final de la raíz de una unidad Windows.
+    if (separatorIndex === 2 && /^[a-zA-Z]:/.test(trimmed)) {
+      return trimmed.slice(0, 3);
+    }
+
+    if (separatorIndex === 0) {
+      return "/";
+    }
+
+    return trimmed.slice(0, separatorIndex);
+  }
+
+  function selectEntry(entry) {
+    selectedEntry = entry;
+    selectedPathInput.value = entry.path;
+    confirmButton.disabled = false;
+    setStatus(`Seleccionado: ${entry.name}`);
+  }
+
+  async function confirmSelection() {
+    if (!selectedEntry) {
+      return;
+    }
+
+    confirmButton.disabled = true;
+    setStatus("Validando selección…");
+
+    try {
+      const body = new URLSearchParams({
+        path: selectedEntry.path,
+        type: selectedEntry.type,
+      });
+
+      const csrfInput = document.querySelector("[name=csrfmiddlewaretoken]");
+
+      const headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+      };
+
+      if (csrfInput) {
+        headers["X-CSRFToken"] = csrfInput.value;
+      }
+
+      const data = await requestJson(selectionUrl, {
+        method: "POST",
+        headers,
+        body,
+        credentials: "same-origin",
+      });
+
+      selectedEntry = data.selection;
+      selectedPathInput.value = data.selection.path;
+      setStatus("Selección validada correctamente.");
+    } catch (error) {
+      confirmButton.disabled = false;
+      setStatus(`Error al validar la selección: ${error.message}`);
+    }
+  }
+
+  drivesButton.addEventListener("click", loadDrives);
+
+  parentButton.addEventListener("click", () => {
+    const parentPath = getParentPath(currentPath);
+
+    if (parentPath === null) {
+      loadDrives();
+    } else {
+      openDirectory(parentPath);
+    }
+  });
+
+  refreshButton.addEventListener("click", () => {
+    if (currentPath) {
+      openDirectory(currentPath);
+    }
+  });
+
+  confirmButton.addEventListener("click", confirmSelection);
+});
+
+
+================================================================================
+FILE: interfaces\web\features\file_browser\tests.py
+================================================================================
+
+import tempfile
+from pathlib import Path
+
+from django.test import TestCase
+
+# from .services import FileBrowserService
+
+
+class FileBrowserViewTests(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.directory = Path(self.temp_dir.name)
+        (self.directory / "songs").mkdir()
+        (self.directory / "track.mp3").write_text("test")
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_list_drives(self):
+        response = self.client.get(
+            "/file-browser/",
+            {"action": "drives"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("entries", response.json())
+
+    def test_list_directory(self):
+        response = self.client.get(
+            "/file-browser/",
+            {
+                "action": "list",
+                "path": str(self.directory),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        entries = response.json()["entries"]
+        names = {entry["name"] for entry in entries}
+
+        self.assertEqual(names, {"songs", "track.mp3"})
+
+    def test_list_directories_only(self):
+        response = self.client.get(
+            "/file-browser/",
+            {
+                "action": "list",
+                "path": str(self.directory),
+                "show_files": "false",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        entries = response.json()["entries"]
+
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0]["name"], "songs")
+
+    def test_invalid_directory(self):
+        response = self.client.get(
+            "/file-browser/",
+            {
+                "action": "list",
+                "path": str(self.directory / "does-not-exist"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_select_directory(self):
+        response = self.client.post(
+            "/file-browser/select/",
+            {
+                "path": str(self.directory),
+                "type": "directory",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["selection"]["path"],
+            str(self.directory.resolve()),
+        )
+
+    def test_select_file(self):
+        file_path = self.directory / "track.mp3"
+
+        response = self.client.post(
+            "/file-browser/select/",
+            {
+                "path": str(file_path),
+                "type": "file",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["selection"]["path"],
+            str(file_path.resolve()),
+        )
+
+    def test_reject_wrong_selection_type(self):
+        response = self.client.post(
+            "/file-browser/select/",
+            {
+                "path": str(self.directory),
+                "type": "file",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+
+================================================================================
+FILE: interfaces\web\features\file_browser\urls.py
+================================================================================
+from django.urls import path
+
+from .views import FileBrowserSelectionView, FileBrowserView
+
+app_name = "file_browser"
+
+urlpatterns = [
+    path("", FileBrowserView.as_view(), name="browse"),
+    path(
+        "select/",
+        FileBrowserSelectionView.as_view(),
+        name="select",
+    ),
+]
+
+
+================================================================================
+FILE: interfaces\web\features\file_browser\views.py
+================================================================================
+from pathlib import Path
+
+from django.http import JsonResponse
+from django.views import View
+
+from .services import (
+    FileBrowserError,
+    FileBrowserService,
+    InvalidPathError,
+    PermissionDeniedError,
+)
+
+from core.config_manager import ConfigManager
+
+
+class FileBrowserView(View):
+    """Expose filesystem browsing operations through HTTP."""
+
+    
+    @staticmethod
+    def _resolve_default_directory(
+        path: str | Path,
+        *,
+        is_file_path: bool = False,
+    ) -> Path:
+        """Find the closest existing directory, ascending from a path."""
+        candidate = Path(path).expanduser()
+
+        if is_file_path:
+            candidate = candidate.parent
+
+        while True:
+            try:
+                if candidate.is_dir():
+                    return candidate.resolve(strict=True)
+            except (OSError, RuntimeError, ValueError):
+                pass
+
+            parent = candidate.parent
+
+            if parent == candidate:
+                raise InvalidPathError(
+                    f"No existing directory could be found for: {path}"
+                )
+
+            candidate = parent
+
+
+    def get(self, request):
+        action = request.GET.get("action", "list")
+        browser = FileBrowserService()
+
+        if action == "default":
+            target = request.GET.get("target", "").lower()
+            config = ConfigManager()
+
+            if target == "audios":
+                configured_path = config.video_music_default_audios_dir
+            elif target == "video":
+                configured_path = config.video_music_default_video_path
+            else:
+                return JsonResponse({
+                    "error": "Target must be 'audios' or 'video'.",
+                }, status=400)
+
+            try:
+                directory = self._resolve_default_directory(
+                    configured_path,
+                    is_file_path=(target == "video"),
+                )
+
+                return JsonResponse({
+                    "path": str(directory),
+                    "entries": browser.list_directory(directory),
+                })
+
+            except InvalidPathError as exc:
+                return JsonResponse({"error": str(exc)}, status=400)
+            except PermissionDeniedError as exc:
+                return JsonResponse({"error": str(exc)}, status=403)
+            except FileBrowserError as exc:
+                return JsonResponse({"error": str(exc)}, status=400)
+
+        try:
+            if action == "drives":
+                return JsonResponse({
+                    "entries": browser.list_drives(),
+                })
+
+            if action == "list":
+                path = request.GET.get("path")
+
+                if not path:
+                    return JsonResponse({
+                        "error": "A directory path is required.",
+                    }, status=400)
+
+                show_files = (
+                    request.GET.get("show_files", "true").lower()
+                    in {"true", "1", "yes"}
+                )
+
+                return JsonResponse({
+                    "path": str(Path(path)),
+                    "entries": browser.list_directory(
+                        path,
+                        show_files=show_files,
+                    ),
+                })
+
+            return JsonResponse({
+                "error": f"Unknown action: {action}",
+            }, status=400)
+
+        except InvalidPathError as exc:
+            return JsonResponse({"error": str(exc)}, status=400)
+        except PermissionDeniedError as exc:
+            return JsonResponse({"error": str(exc)}, status=403)
+        except FileBrowserError as exc:
+            return JsonResponse({"error": str(exc)}, status=400)
+
+
+class FileBrowserSelectionView(View):
+    """Validate a file or directory selection."""
+
+    def post(self, request):
+        path = request.POST.get("path", "")
+        entry_type = request.POST.get("type", "")
+
+        if entry_type not in {"file", "directory"}:
+            return JsonResponse({
+                "error": "Type must be 'file' or 'directory'.",
+            }, status=400)
+
+        browser = FileBrowserService()
+
+        try:
+            entry = browser.get_entry(
+                path,
+                expected_type=entry_type,
+            )
+
+            return JsonResponse({"selection": entry})
+
+        except InvalidPathError as exc:
+            return JsonResponse({"error": str(exc)}, status=400)
+        except PermissionDeniedError as exc:
+            return JsonResponse({"error": str(exc)}, status=403)
+        except FileBrowserError as exc:
+            return JsonResponse({"error": str(exc)}, status=400)
 
 
 ================================================================================
@@ -5102,7 +5883,7 @@ FILE: interfaces\web\templates\base.html
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}⚙️ YouTube Utilities | 🎮 Seyfer Studios{% endblock %}</title>
+        <title>{% block title %}⚙️ YouTube Utilities | 🔴 Seyfer Studios 🟢{% endblock %}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap"
@@ -5115,7 +5896,7 @@ FILE: interfaces\web\templates\base.html
             <div class="mx-auto flex w-full max-w-7xl items-center px-4 py-4 sm:px-6 lg:px-8">
                 <a href="{% url 'home:index' %}"
                    class="font-display text-lg font-semibold tracking-tight text-white transition-colors duration-200 hover:text-indigo-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-green-500 sm:text-xl">
-                    🎮 YouTube Utilities
+                    ⚙️ YouTube Utilities
                 </a>
             </div>
         </header>
@@ -5124,9 +5905,9 @@ FILE: interfaces\web\templates\base.html
         </main>
         <footer class="border-t border-violet-500/30 bg-gray-900">
             <div class="mx-auto max-w-7xl px-4 py-4 text-center text-sm text-gray-400 sm:px-6 lg:px-8">
-                🎮 YouTube Utilities
+                ⚙️ YouTube Utilities
                 <span class="mx-1 text-gray-600">·</span>
-                <span class="text-violet-300">Seyfer Studios</span>
+                <span class="text-violet-300">🔴 Seyfer Studios 🟢</span>
             </div>
         </footer>
         {% block extra_scripts %}{% endblock %}

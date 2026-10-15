@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Navegador de archivos | YouTube Utilities{% endblock %}
+{% block content %}
+    <section class="flex flex-col gap-6 text-gray-100">
+        <form class="hidden" aria-hidden="true">
+            {% csrf_token %}
+        </form>
+        <header class="flex flex-col gap-2">
+            <h1 class="font-display text-2xl font-semibold text-white sm:text-3xl">Navegador de archivos</h1>
+            <p class="text-gray-400">Selecciona una unidad, navega por sus directorios y elige una ruta.</p>
+        </header>
+        <div class="flex flex-wrap gap-3">
+            <button type="button"
+                    id="file-browser-drives"
+                    class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:border-indigo-400 hover:bg-indigo-900/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">
+                Unidades
+            </button>
+            <button type="button"
+                    id="file-browser-parent"
+                    disabled
+                    class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:border-indigo-400 hover:bg-indigo-900/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 disabled:cursor-not-allowed disabled:opacity-40">
+                Directorio superior
+            </button>
+            <button type="button"
+                    id="file-browser-refresh"
+                    disabled
+                    class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:border-indigo-400 hover:bg-indigo-900/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 disabled:cursor-not-allowed disabled:opacity-40">
+                Actualizar
+            </button>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label for="file-browser-path" class="font-bold text-gray-200">Ruta actual</label>
+            <input type="text"
+                   id="file-browser-path"
+                   readonly
+                   placeholder="Selecciona una unidad o un directorio"
+                   class="w-full rounded-lg border-2 border-gray-600 bg-slate-800 px-4 py-3 text-gray-100 placeholder:text-gray-500">
+        </div>
+        <p id="file-browser-status"
+           role="status"
+           aria-live="polite"
+           class="rounded-lg border border-indigo-500/30 bg-gray-900 p-4 text-gray-300">
+            Selecciona «Unidades» para comenzar.
+        </p>
+        <div class="max-h-[55vh] min-h-40 overflow-auto rounded-xl border border-white/10 bg-gray-900 p-3">
+            <ul id="file-browser-entries"
+                aria-label="Contenido del directorio"
+                class="flex flex-col gap-2">
+            </ul>
+        </div>
+        <div class="flex flex-col gap-4 rounded-xl border border-indigo-500/30 bg-gray-900 p-4 sm:p-5">
+            <div class="flex flex-col gap-2">
+                <label for="file-browser-selected-path" class="font-bold text-gray-200">Ruta seleccionada</label>
+                <input type="text"
+                       id="file-browser-selected-path"
+                       readonly
+                       placeholder="Ninguna ruta seleccionada"
+                       class="w-full rounded-lg border-2 border-gray-600 bg-slate-800 px-4 py-3 text-gray-100 placeholder:text-gray-500">
+            </div>
+            <button type="button"
+                    id="file-browser-confirm"
+                    disabled
+                    class="self-start rounded-lg border border-green-500/50 bg-green-900/40 px-5 py-3 font-bold text-green-100 transition-colors hover:border-green-400 hover:bg-green-800/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 disabled:cursor-not-allowed disabled:opacity-40">
+                Confirmar selección
+            </button>
+        </div>
+    </section>
+{% endblock %}
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'file_browser/js/browser.js' %}" defer></script>
+{% endblock %}

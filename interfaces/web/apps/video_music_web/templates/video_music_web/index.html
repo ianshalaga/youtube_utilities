@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}🎵 Video Music | ⚙️ YouTube Utilities{% endblock %}
 {% block content %}
     <section class="space-y-8">
@@ -163,4 +164,8 @@
             </section>
         {% endif %}
     </section>
+{% endblock %}
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'video_music_web/js/file_picker.js' %}" defer></script>
 {% endblock %}
