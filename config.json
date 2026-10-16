@@ -31,15 +31,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/The Elder Scrolls/02 The Elder Scrolls II - Daggerfall - 1996/03 Gamerip Tracks - GeneralUser GS",
-      "default_video_path": "H:/@Downloads/OST/02 In Progress/The Elder Scrolls/02 The Elder Scrolls II - Daggerfall - 1996/03 Gamerip Tracks - GeneralUser GS/images/video.mp4",
+      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/TMNT/03 TMNT II - The Arcade Game - 1990/02 TMNT II - The Arcade Game OST",
+      "default_video_path": "H:/@Downloads/OST/02 In Progress/TMNT/03 TMNT II - The Arcade Game - 1990/02 TMNT II - The Arcade Game OST/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/The Elder Scrolls/02 The Elder Scrolls II - Daggerfall - 1996/03 Gamerip Tracks - GeneralUser GS/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/TMNT/03 TMNT II - The Arcade Game - 1990/02 TMNT II - The Arcade Game OST/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "The Elder Scrolls II - Daggerfall - Gamerip Tracks - GeneralUser GS",
+      "default_video_name": "Teenage Mutant Ninja Turtles II - The Arcade Game OST",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
