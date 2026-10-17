@@ -31,15 +31,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/TMNT/03 TMNT II - The Arcade Game - 1990/02 TMNT II - The Arcade Game OST",
-      "default_video_path": "H:/@Downloads/OST/02 In Progress/TMNT/03 TMNT II - The Arcade Game - 1990/02 TMNT II - The Arcade Game OST/images/video.mp4",
+      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/Tekken/02 Tekken 2 - 1995/01 Namco Game Sound Express VOL.26 Tekken 2",
+      "default_video_path": "H:/@Downloads/OST/02 In Progress/Tekken/02 Tekken 2 - 1995/01 Namco Game Sound Express VOL.26 Tekken 2/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/TMNT/03 TMNT II - The Arcade Game - 1990/02 TMNT II - The Arcade Game OST/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Tekken/02 Tekken 2 - 1995/01 Namco Game Sound Express VOL.26 Tekken 2/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Teenage Mutant Ninja Turtles II - The Arcade Game OST",
+      "default_video_name": "Namco Game Sound Express VOL.26 Tekken 2",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
