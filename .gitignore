@@ -190,7 +190,7 @@ node_modules
 *.m4a
 *.jpg
 *.ogg
-*.png
+# *.png
 
 # YouTube Video Manager
 client_secret.json
