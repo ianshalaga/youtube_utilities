@@ -31,15 +31,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H:\\@Downloads\\OST\\02 In Progress\\Legacy of Kain\\02 Legacy of Kain - Soul Reaver - 1999\\01 Gamerip Tracks\\@",
-      "default_video_path": "H:\\@Downloads\\OST\\02 In Progress\\Legacy of Kain\\02 Legacy of Kain - Soul Reaver - 1999\\01 Gamerip Tracks\\images\\video.mp4",
+      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/01 OST",
+      "default_video_path": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/01 OST/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Tekken/02 Tekken 2 - 1995/01 Namco Game Sound Express VOL.26 Tekken 2/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/01 OST/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Namco Game Sound Express VOL.26 Tekken 2",
+      "default_video_name": "Grand Theft Auto - The Soundtrack",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
