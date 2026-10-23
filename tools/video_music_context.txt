@@ -1,6 +1,6 @@
 # GENERATED PROJECT CONTEXT
 # base_dir: H:\@Seyfer\@Projects\youtube_utilities
-# total_files: 104
+# total_files: 105
 
 # PROJECT STRUCTURE
 
@@ -108,8 +108,6 @@ interfaces
         templates
           file_browser
             browse.html
-            file_browser
-              browser.js
         tests.py
         urls.py
         views.py
@@ -119,8 +117,12 @@ interfaces
     static
       css
         main.css
+      file_browser
+        js
+          browser.js
       video_music_web
         js
+          file_picker.js
           job_progress.js
     static_src
       css
@@ -1031,22 +1033,29 @@ FILE: config.json
     ]
   },
   "video": {
-    "supported_extensions": ["mkv", "mp4", "mov", "webm", "avi", "m4v"]
+    "supported_extensions": [
+      "mkv",
+      "mp4",
+      "mov",
+      "webm",
+      "avi",
+      "m4v"
+    ]
   },
   "dry_run": false,
   "max_workers": 4,
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H://@Downloads//OST//02 In Progress//Read Dead Redemption//03 Red Dead Redemption II - 2018//02 The Music of - Original Score",
-      "default_video_path": "H://@Downloads//OST//02 In Progress//Read Dead Redemption//03 Red Dead Redemption II - 2018//02 The Music of - Original Score//images//video.mp4",
+      "default_audios_dir": "H:\\@Downloads\\OST\\02 In Progress\\Legacy of Kain\\02 Legacy of Kain - Soul Reaver - 1999\\01 Gamerip Tracks\\@",
+      "default_video_path": "H:\\@Downloads\\OST\\02 In Progress\\Legacy of Kain\\02 Legacy of Kain - Soul Reaver - 1999\\01 Gamerip Tracks\\images\\video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Read Dead Redemption/03 Red Dead Redemption II - 2018/02 The Music of - Original Score/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Tekken/02 Tekken 2 - 1995/01 Namco Game Sound Express VOL.26 Tekken 2/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "The Music of Red Dead Redemption II Original Score",
+      "default_video_name": "Namco Game Sound Express VOL.26 Tekken 2",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
@@ -1114,7 +1123,6 @@ FILE: config.json
     }
   }
 }
-
 
 ================================================================================
 FILE: core\config_manager.py
@@ -2980,6 +2988,7 @@ job_registry = VideoMusicJobRegistry()
 FILE: interfaces\web\apps\video_music_web\templates\video_music_web\index.html
 ================================================================================
 {% extends "base.html" %}
+{% load static %}
 {% block title %}🎵 Video Music | ⚙️ YouTube Utilities{% endblock %}
 {% block content %}
     <section class="space-y-8">
@@ -3041,6 +3050,78 @@ FILE: interfaces\web\apps\video_music_web\templates\video_music_web\index.html
                     </button>
                 </div>
             </form>
+        </section>
+        <section id="file-browser-panel"
+                 hidden
+                 data-target=""
+                 class="hidden space-y-5 rounded-xl border-2 border-indigo-500/40 bg-gray-900 p-5 sm:p-7">
+            <header class="flex flex-wrap items-center justify-between gap-3">
+                <div class="space-y-1">
+                    <h2 class="font-display text-xl font-semibold text-white">📂 Navegador de archivos</h2>
+                    <p id="file-browser-description"
+                       class="text-sm text-gray-400">Selecciona una ruta para completar el formulario.</p>
+                </div>
+                <button type="button"
+                        id="file-browser-close"
+                        class="rounded-lg border border-gray-600 px-4 py-2 font-bold text-gray-200 transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">
+                    Cerrar
+                </button>
+            </header>
+            <div class="flex flex-wrap gap-3">
+                <button type="button"
+                        id="file-browser-drives"
+                        class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:border-indigo-400 hover:bg-indigo-900/60">
+                    Unidades
+                </button>
+                <button type="button"
+                        id="file-browser-parent"
+                        disabled
+                        class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:bg-indigo-900/60 disabled:cursor-not-allowed disabled:opacity-40">
+                    Directorio superior
+                </button>
+                <button type="button"
+                        id="file-browser-refresh"
+                        disabled
+                        class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:bg-indigo-900/60 disabled:cursor-not-allowed disabled:opacity-40">
+                    Actualizar
+                </button>
+            </div>
+            <div class="space-y-2">
+                <label for="file-browser-path" class="font-bold text-gray-200">Ruta actual</label>
+                <input type="text"
+                       id="file-browser-path"
+                       readonly
+                       placeholder="Cargando ubicación…"
+                       class="w-full rounded-lg border-2 border-gray-600 bg-slate-800 px-4 py-3 text-gray-100">
+            </div>
+            <p id="file-browser-status"
+               role="status"
+               aria-live="polite"
+               class="rounded-lg border border-indigo-500/30 bg-gray-950 p-4 text-gray-300">
+                Selecciona una ubicación para comenzar.
+            </p>
+            <div class="max-h-[45vh] min-h-40 overflow-auto rounded-xl border border-white/10 bg-gray-950 p-3">
+                <ul id="file-browser-entries"
+                    aria-label="Contenido del directorio"
+                    class="flex flex-col gap-2">
+                </ul>
+            </div>
+            <div class="space-y-4 rounded-xl border border-indigo-500/30 bg-slate-800/70 p-4">
+                <div class="space-y-2">
+                    <label for="file-browser-selected-path" class="font-bold text-gray-200">Ruta seleccionada</label>
+                    <input type="text"
+                           id="file-browser-selected-path"
+                           readonly
+                           placeholder="Ninguna ruta seleccionada"
+                           class="w-full rounded-lg border-2 border-gray-600 bg-slate-800 px-4 py-3 text-gray-100">
+                </div>
+                <button type="button"
+                        id="file-browser-confirm"
+                        disabled
+                        class="rounded-lg border border-green-500/50 bg-green-900/40 px-5 py-3 font-bold text-green-100 transition-colors hover:bg-green-800/60 disabled:cursor-not-allowed disabled:opacity-40">
+                    Confirmar selección
+                </button>
+            </div>
         </section>
         {% if job %}
             <section id="job-results"
@@ -3144,6 +3225,11 @@ FILE: interfaces\web\apps\video_music_web\templates\video_music_web\index.html
             </section>
         {% endif %}
     </section>
+{% endblock %}
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'file_browser/js/browser.js' %}" defer></script>
+    <script src="{% static 'video_music_web/js/file_picker.js' %}" defer></script>
 {% endblock %}
 
 
@@ -3865,296 +3951,75 @@ FILE: interfaces\web\features\file_browser\templates\file_browser\browse.html
 {% load static %}
 {% block title %}Navegador de archivos | YouTube Utilities{% endblock %}
 {% block content %}
-    <section class="file-browser">
-        <header class="file-browser__header">
-            <h1>Navegador de archivos</h1>
-            <p>Selecciona una unidad, navega por sus directorios y elige una ruta.</p>
+    <section class="flex flex-col gap-6 text-gray-100">
+        <form class="hidden" aria-hidden="true">
+            {% csrf_token %}
+        </form>
+        <header class="flex flex-col gap-2">
+            <h1 class="font-display text-2xl font-semibold text-white sm:text-3xl">Navegador de archivos</h1>
+            <p class="text-gray-400">Selecciona una unidad, navega por sus directorios y elige una ruta.</p>
         </header>
-        <div class="file-browser__toolbar">
-            <button type="button" id="file-browser-drives">Unidades</button>
-            <button type="button" id="file-browser-parent" disabled>Directorio superior</button>
-            <button type="button" id="file-browser-refresh" disabled>Actualizar</button>
+        <div class="flex flex-wrap gap-3">
+            <button type="button"
+                    id="file-browser-drives"
+                    class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:border-indigo-400 hover:bg-indigo-900/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">
+                Unidades
+            </button>
+            <button type="button"
+                    id="file-browser-parent"
+                    disabled
+                    class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:border-indigo-400 hover:bg-indigo-900/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 disabled:cursor-not-allowed disabled:opacity-40">
+                Directorio superior
+            </button>
+            <button type="button"
+                    id="file-browser-refresh"
+                    disabled
+                    class="rounded-lg border border-indigo-500/50 bg-indigo-950/40 px-4 py-2 font-bold text-indigo-200 transition-colors hover:border-indigo-400 hover:bg-indigo-900/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 disabled:cursor-not-allowed disabled:opacity-40">
+                Actualizar
+            </button>
         </div>
-        <div class="file-browser__location">
-            <label for="file-browser-path">Ruta actual</label>
+        <div class="flex flex-col gap-2">
+            <label for="file-browser-path" class="font-bold text-gray-200">Ruta actual</label>
             <input type="text"
                    id="file-browser-path"
                    readonly
-                   placeholder="Selecciona una unidad o un directorio">
+                   placeholder="Selecciona una unidad o un directorio"
+                   class="w-full rounded-lg border-2 border-gray-600 bg-slate-800 px-4 py-3 text-gray-100 placeholder:text-gray-500">
         </div>
-        <p id="file-browser-status" role="status" aria-live="polite">Selecciona «Unidades» para comenzar.</p>
-        <div class="file-browser__listing">
-            <ul id="file-browser-entries" aria-label="Contenido del directorio">
+        <p id="file-browser-status"
+           role="status"
+           aria-live="polite"
+           class="rounded-lg border border-indigo-500/30 bg-gray-900 p-4 text-gray-300">
+            Selecciona «Unidades» para comenzar.
+        </p>
+        <div class="max-h-[55vh] min-h-40 overflow-auto rounded-xl border border-white/10 bg-gray-900 p-3">
+            <ul id="file-browser-entries"
+                aria-label="Contenido del directorio"
+                class="flex flex-col gap-2">
             </ul>
         </div>
-        <div class="file-browser__selection">
-            <label for="file-browser-selected-path">Ruta seleccionada</label>
-            <input type="text"
-                   id="file-browser-selected-path"
-                   readonly
-                   placeholder="Ninguna ruta seleccionada">
-            <button type="button" id="file-browser-confirm" disabled>Confirmar selección</button>
+        <div class="flex flex-col gap-4 rounded-xl border border-indigo-500/30 bg-gray-900 p-4 sm:p-5">
+            <div class="flex flex-col gap-2">
+                <label for="file-browser-selected-path" class="font-bold text-gray-200">Ruta seleccionada</label>
+                <input type="text"
+                       id="file-browser-selected-path"
+                       readonly
+                       placeholder="Ninguna ruta seleccionada"
+                       class="w-full rounded-lg border-2 border-gray-600 bg-slate-800 px-4 py-3 text-gray-100 placeholder:text-gray-500">
+            </div>
+            <button type="button"
+                    id="file-browser-confirm"
+                    disabled
+                    class="self-start rounded-lg border border-green-500/50 bg-green-900/40 px-5 py-3 font-bold text-green-100 transition-colors hover:border-green-400 hover:bg-green-800/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 disabled:cursor-not-allowed disabled:opacity-40">
+                Confirmar selección
+            </button>
         </div>
     </section>
 {% endblock %}
 {% block extra_scripts %}
     {{ block.super }}
-    <script src="{% static 'file_browser/browser.js' %}" defer></script>
+    <script src="{% static 'file_browser/js/browser.js' %}" defer></script>
 {% endblock %}
-
-
-================================================================================
-FILE: interfaces\web\features\file_browser\templates\file_browser\file_browser\browser.js
-================================================================================
-document.addEventListener("DOMContentLoaded", () => {
-  const drivesButton = document.getElementById("file-browser-drives");
-  const parentButton = document.getElementById("file-browser-parent");
-  const refreshButton = document.getElementById("file-browser-refresh");
-  const pathInput = document.getElementById("file-browser-path");
-  const selectedPathInput = document.getElementById(
-    "file-browser-selected-path",
-  );
-  const statusElement = document.getElementById("file-browser-status");
-  const entriesList = document.getElementById("file-browser-entries");
-  const confirmButton = document.getElementById("file-browser-confirm");
-
-  if (
-    !drivesButton ||
-    !parentButton ||
-    !refreshButton ||
-    !pathInput ||
-    !selectedPathInput ||
-    !statusElement ||
-    !entriesList ||
-    !confirmButton
-  ) {
-    return;
-  }
-
-  const browserUrl = "/file-browser/";
-  const selectionUrl = "/file-browser/select/";
-
-  let currentPath = "";
-  let selectedEntry = null;
-
-  async function requestJson(url, options = {}) {
-    const response = await fetch(url, options);
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-      throw new Error(data.error || `Error HTTP ${response.status}`);
-    }
-
-    return data;
-  }
-
-  function setStatus(message) {
-    statusElement.textContent = message;
-  }
-
-  function clearSelection() {
-    selectedEntry = null;
-    selectedPathInput.value = "";
-    confirmButton.disabled = true;
-  }
-
-  function clearEntries() {
-    entriesList.replaceChildren();
-  }
-
-  function renderEntries(entries) {
-    clearEntries();
-
-    if (entries.length === 0) {
-      const item = document.createElement("li");
-      item.textContent = "No hay elementos para mostrar.";
-      entriesList.appendChild(item);
-      return;
-    }
-
-    for (const entry of entries) {
-      const item = document.createElement("li");
-      item.className = "file-browser__item";
-
-      const isDirectory = entry.type === "directory" || entry.type === "drive";
-
-      const openButton = document.createElement("button");
-      openButton.type = "button";
-      openButton.className = "file-browser__entry";
-      openButton.textContent = `${isDirectory ? "📁" : "📄"} ${entry.name}`;
-
-      openButton.addEventListener("click", () => {
-        if (isDirectory) {
-          openDirectory(entry.path);
-        } else {
-          selectEntry(entry);
-        }
-      });
-
-      item.appendChild(openButton);
-
-      if (entry.type !== "drive") {
-        const selectButton = document.createElement("button");
-        selectButton.type = "button";
-        selectButton.textContent = "Seleccionar";
-
-        selectButton.addEventListener("click", () => {
-          selectEntry(entry);
-        });
-
-        item.appendChild(selectButton);
-      }
-
-      entriesList.appendChild(item);
-    }
-  }
-
-  async function loadDrives() {
-    clearSelection();
-    clearEntries();
-    setStatus("Cargando unidades…");
-
-    try {
-      const data = await requestJson(`${browserUrl}?action=drives`);
-
-      currentPath = "";
-      pathInput.value = "";
-      parentButton.disabled = true;
-      refreshButton.disabled = true;
-
-      renderEntries(data.entries || []);
-      setStatus("Selecciona una unidad para explorarla.");
-    } catch (error) {
-      setStatus(`Error al cargar las unidades: ${error.message}`);
-    }
-  }
-
-  async function openDirectory(path) {
-    clearSelection();
-    clearEntries();
-    setStatus("Cargando directorio…");
-
-    try {
-      const params = new URLSearchParams({
-        action: "list",
-        path: path,
-      });
-
-      const data = await requestJson(`${browserUrl}?${params.toString()}`);
-
-      currentPath = data.path || path;
-      pathInput.value = currentPath;
-
-      parentButton.disabled = false;
-      refreshButton.disabled = false;
-
-      renderEntries(data.entries || []);
-      setStatus(`${(data.entries || []).length} elemento(s) encontrado(s).`);
-    } catch (error) {
-      setStatus(`Error al abrir el directorio: ${error.message}`);
-    }
-  }
-
-  function getParentPath(path) {
-    // En Windows, la unidad raíz debe conservarse como C:\.
-    if (/^[a-zA-Z]:[\\/]*$/.test(path)) {
-      return null;
-    }
-
-    // En otros sistemas, la raíz es /.
-    if (path === "/") {
-      return null;
-    }
-
-    const trimmed = path.replace(/[\\/]+$/, "");
-    const separatorIndex = Math.max(
-      trimmed.lastIndexOf("\\"),
-      trimmed.lastIndexOf("/"),
-    );
-
-    if (separatorIndex < 0) {
-      return null;
-    }
-
-    // Conserva la barra final de la raíz de una unidad Windows.
-    if (separatorIndex === 2 && /^[a-zA-Z]:/.test(trimmed)) {
-      return trimmed.slice(0, 3);
-    }
-
-    if (separatorIndex === 0) {
-      return "/";
-    }
-
-    return trimmed.slice(0, separatorIndex);
-  }
-
-  function selectEntry(entry) {
-    selectedEntry = entry;
-    selectedPathInput.value = entry.path;
-    confirmButton.disabled = false;
-    setStatus(`Seleccionado: ${entry.name}`);
-  }
-
-  async function confirmSelection() {
-    if (!selectedEntry) {
-      return;
-    }
-
-    confirmButton.disabled = true;
-    setStatus("Validando selección…");
-
-    try {
-      const body = new URLSearchParams({
-        path: selectedEntry.path,
-        type: selectedEntry.type,
-      });
-
-      const csrfInput = document.querySelector("[name=csrfmiddlewaretoken]");
-
-      const headers = {
-        "Content-Type": "application/x-www-form-urlencoded",
-      };
-
-      if (csrfInput) {
-        headers["X-CSRFToken"] = csrfInput.value;
-      }
-
-      const data = await requestJson(selectionUrl, {
-        method: "POST",
-        headers,
-        body,
-        credentials: "same-origin",
-      });
-
-      selectedEntry = data.selection;
-      selectedPathInput.value = data.selection.path;
-      setStatus("Selección validada correctamente.");
-    } catch (error) {
-      confirmButton.disabled = false;
-      setStatus(`Error al validar la selección: ${error.message}`);
-    }
-  }
-
-  drivesButton.addEventListener("click", loadDrives);
-
-  parentButton.addEventListener("click", () => {
-    const parentPath = getParentPath(currentPath);
-
-    if (parentPath === null) {
-      loadDrives();
-    } else {
-      openDirectory(parentPath);
-    }
-  });
-
-  refreshButton.addEventListener("click", () => {
-    if (currentPath) {
-      openDirectory(currentPath);
-    }
-  });
-
-  confirmButton.addEventListener("click", confirmSelection);
-});
 
 
 ================================================================================
@@ -4302,6 +4167,7 @@ from pathlib import Path
 
 from django.http import JsonResponse
 from django.views import View
+from django.shortcuts import render
 
 from .services import (
     FileBrowserError,
@@ -4347,7 +4213,14 @@ class FileBrowserView(View):
 
 
     def get(self, request):
-        action = request.GET.get("action", "list")
+        action = request.GET.get("action")
+
+        if action is None:
+            return render(
+                request,
+                "file_browser/browse.html",
+            )
+            
         browser = FileBrowserService()
 
         if action == "default":
@@ -5688,7 +5561,437 @@ FILE: interfaces\web\package.json
 FILE: interfaces\web\static\css\main.css
 ================================================================================
 /*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
-@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-space-y-reverse:0;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-duration:initial;--tw-ease:initial;--tw-outline-style:solid;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000}}}@layer theme{:root,:host{--font-sans:"Rajdhani", sans-serif;--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-red-200:oklch(88.5% .062 18.334);--color-red-300:oklch(80.8% .114 19.571);--color-red-400:oklch(70.4% .191 22.216);--color-red-500:oklch(63.7% .237 25.331);--color-red-950:oklch(25.8% .092 26.042);--color-green-100:oklch(96.2% .044 156.743);--color-green-200:oklch(92.5% .084 155.995);--color-green-300:oklch(87.1% .15 154.449);--color-green-400:oklch(79.2% .209 151.711);--color-green-500:oklch(72.3% .219 149.579);--color-green-800:oklch(44.8% .119 151.328);--color-green-900:oklch(39.3% .095 152.535);--color-green-950:oklch(26.6% .065 152.934);--color-indigo-200:oklch(87% .065 274.039);--color-indigo-300:oklch(78.5% .115 274.713);--color-indigo-400:oklch(67.3% .182 276.935);--color-indigo-500:oklch(58.5% .233 277.117);--color-indigo-900:oklch(35.9% .144 278.697);--color-indigo-950:oklch(25.7% .09 281.288);--color-violet-300:oklch(81.1% .111 293.571);--color-violet-500:oklch(60.6% .25 292.717);--color-slate-800:oklch(27.9% .041 260.031);--color-gray-100:oklch(96.7% .003 264.542);--color-gray-200:oklch(92.8% .006 264.531);--color-gray-300:oklch(87.2% .01 258.338);--color-gray-400:oklch(70.7% .022 261.325);--color-gray-500:oklch(55.1% .027 264.364);--color-gray-600:oklch(44.6% .03 256.802);--color-gray-900:oklch(21% .034 264.665);--color-gray-950:oklch(13% .028 261.692);--color-white:#fff;--spacing:.25rem;--container-2xl:42rem;--container-3xl:48rem;--container-7xl:80rem;--text-sm:.875rem;--text-sm--line-height:calc(1.25 / .875);--text-base:1rem;--text-base--line-height:calc(1.5 / 1);--text-lg:1.125rem;--text-lg--line-height:calc(1.75 / 1.125);--text-xl:1.25rem;--text-xl--line-height:calc(1.75 / 1.25);--text-2xl:1.5rem;--text-2xl--line-height:calc(2 / 1.5);--text-3xl:1.875rem;--text-3xl--line-height:calc(2.25 / 1.875);--text-4xl:2.25rem;--text-4xl--line-height:calc(2.5 / 2.25);--font-weight-semibold:600;--font-weight-bold:700;--tracking-tight:-.025em;--leading-relaxed:1.625;--radius-lg:.5rem;--radius-xl:.75rem;--ease-out:cubic-bezier(0, 0, .2, 1);--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--font-display:"Inknut Antiqua", serif}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components{.video-music-form input:not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]),.video-music-form select,.video-music-form textarea{border-radius:var(--radius-lg);border-style:var(--tw-border-style);border-width:2px;border-color:var(--color-gray-600);background-color:var(--color-slate-800);width:100%;padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 3);color:var(--color-gray-100);transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration));--tw-duration:.2s;--tw-outline-style:none;outline-style:none;transition-duration:.2s}.video-music-form input:focus,.video-music-form select:focus,.video-music-form textarea:focus{border-color:var(--color-green-500);--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);--tw-ring-color:#00c75833}@supports (color:color-mix(in lab, red, red)){.video-music-form input:focus,.video-music-form select:focus,.video-music-form textarea:focus{--tw-ring-color:color-mix(in oklab, var(--color-green-500) 20%, transparent)}}.video-music-form input::placeholder,.video-music-form textarea::placeholder{color:var(--color-gray-500)}.video-music-form input[type=number]{width:5.5rem;padding-inline:.75rem}}@layer utilities{.relative{position:relative}.static{position:static}.z-0{z-index:0}.col-span-full{grid-column:1/-1}.mx-1{margin-inline:var(--spacing)}.mx-auto{margin-inline:auto}.mt-1{margin-top:var(--spacing)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-6{margin-bottom:calc(var(--spacing) * 6)}.ml-1{margin-left:var(--spacing)}.block{display:block}.flex{display:flex}.grid{display:grid}.inline-flex{display:inline-flex}.h-7{height:calc(var(--spacing) * 7)}.h-full{height:100%}.min-h-screen{min-height:100vh}.w-1{width:var(--spacing)}.w-full{width:100%}.max-w-2xl{max-width:var(--container-2xl)}.max-w-3xl{max-width:var(--container-3xl)}.max-w-7xl{max-width:var(--container-7xl)}.min-w-0{min-width:0}.flex-1{flex:1}.shrink-0{flex-shrink:0}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.flex-col{flex-direction:column}.items-center{align-items:center}.items-stretch{align-items:stretch}.gap-2{gap:calc(var(--spacing) * 2)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-6{gap:calc(var(--spacing) * 6)}:where(.space-y-2>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-3>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 3) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-4>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-5>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 5) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 5) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-6>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 6) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 6) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-8>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 8) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 8) * calc(1 - var(--tw-space-y-reverse)))}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-2{border-style:var(--tw-border-style);border-width:2px}.border-t{border-top-style:var(--tw-border-style);border-top-width:1px}.border-b{border-bottom-style:var(--tw-border-style);border-bottom-width:1px}.border-green-500\/30{border-color:#00c7584d}@supports (color:color-mix(in lab, red, red)){.border-green-500\/30{border-color:color-mix(in oklab, var(--color-green-500) 30%, transparent)}}.border-green-500\/40{border-color:#00c75866}@supports (color:color-mix(in lab, red, red)){.border-green-500\/40{border-color:color-mix(in oklab, var(--color-green-500) 40%, transparent)}}.border-green-500\/50{border-color:#00c75880}@supports (color:color-mix(in lab, red, red)){.border-green-500\/50{border-color:color-mix(in oklab, var(--color-green-500) 50%, transparent)}}.border-indigo-500\/30{border-color:#625fff4d}@supports (color:color-mix(in lab, red, red)){.border-indigo-500\/30{border-color:color-mix(in oklab, var(--color-indigo-500) 30%, transparent)}}.border-indigo-500\/40{border-color:#625fff66}@supports (color:color-mix(in lab, red, red)){.border-indigo-500\/40{border-color:color-mix(in oklab, var(--color-indigo-500) 40%, transparent)}}.border-indigo-500\/50{border-color:#625fff80}@supports (color:color-mix(in lab, red, red)){.border-indigo-500\/50{border-color:color-mix(in oklab, var(--color-indigo-500) 50%, transparent)}}.border-red-500\/30{border-color:#fb2c364d}@supports (color:color-mix(in lab, red, red)){.border-red-500\/30{border-color:color-mix(in oklab, var(--color-red-500) 30%, transparent)}}.border-red-500\/40{border-color:#fb2c3666}@supports (color:color-mix(in lab, red, red)){.border-red-500\/40{border-color:color-mix(in oklab, var(--color-red-500) 40%, transparent)}}.border-violet-500\/30{border-color:#8d54ff4d}@supports (color:color-mix(in lab, red, red)){.border-violet-500\/30{border-color:color-mix(in oklab, var(--color-violet-500) 30%, transparent)}}.border-violet-500\/40{border-color:#8d54ff66}@supports (color:color-mix(in lab, red, red)){.border-violet-500\/40{border-color:color-mix(in oklab, var(--color-violet-500) 40%, transparent)}}.border-white\/10{border-color:#ffffff1a}@supports (color:color-mix(in lab, red, red)){.border-white\/10{border-color:color-mix(in oklab, var(--color-white) 10%, transparent)}}.bg-gray-900{background-color:var(--color-gray-900)}.bg-gray-950{background-color:var(--color-gray-950)}.bg-green-900\/40{background-color:#0d542b66}@supports (color:color-mix(in lab, red, red)){.bg-green-900\/40{background-color:color-mix(in oklab, var(--color-green-900) 40%, transparent)}}.bg-green-950\/30{background-color:#032e154d}@supports (color:color-mix(in lab, red, red)){.bg-green-950\/30{background-color:color-mix(in oklab, var(--color-green-950) 30%, transparent)}}.bg-green-950\/40{background-color:#032e1566}@supports (color:color-mix(in lab, red, red)){.bg-green-950\/40{background-color:color-mix(in oklab, var(--color-green-950) 40%, transparent)}}.bg-indigo-950\/40{background-color:#1e1a4d66}@supports (color:color-mix(in lab, red, red)){.bg-indigo-950\/40{background-color:color-mix(in oklab, var(--color-indigo-950) 40%, transparent)}}.bg-indigo-950\/50{background-color:#1e1a4d80}@supports (color:color-mix(in lab, red, red)){.bg-indigo-950\/50{background-color:color-mix(in oklab, var(--color-indigo-950) 50%, transparent)}}.bg-red-500{background-color:var(--color-red-500)}.bg-red-950\/30{background-color:#4608094d}@supports (color:color-mix(in lab, red, red)){.bg-red-950\/30{background-color:color-mix(in oklab, var(--color-red-950) 30%, transparent)}}.bg-slate-800{background-color:var(--color-slate-800)}.bg-slate-800\/70{background-color:#1d293db3}@supports (color:color-mix(in lab, red, red)){.bg-slate-800\/70{background-color:color-mix(in oklab, var(--color-slate-800) 70%, transparent)}}.p-4{padding:calc(var(--spacing) * 4)}.p-5{padding:calc(var(--spacing) * 5)}.p-8{padding:calc(var(--spacing) * 8)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-4{padding-inline:calc(var(--spacing) * 4)}.px-5{padding-inline:calc(var(--spacing) * 5)}.py-1{padding-block:var(--spacing)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-4{padding-block:calc(var(--spacing) * 4)}.py-6{padding-block:calc(var(--spacing) * 6)}.pt-5{padding-top:calc(var(--spacing) * 5)}.text-center{text-align:center}.font-display{font-family:var(--font-display)}.font-sans{font-family:var(--font-sans)}.text-2xl{font-size:var(--text-2xl);line-height:var(--tw-leading,var(--text-2xl--line-height))}.text-3xl{font-size:var(--text-3xl);line-height:var(--tw-leading,var(--text-3xl--line-height))}.text-base{font-size:var(--text-base);line-height:var(--tw-leading,var(--text-base--line-height))}.text-lg{font-size:var(--text-lg);line-height:var(--tw-leading,var(--text-lg--line-height))}.text-sm{font-size:var(--text-sm);line-height:var(--tw-leading,var(--text-sm--line-height))}.text-xl{font-size:var(--text-xl);line-height:var(--tw-leading,var(--text-xl--line-height))}.leading-relaxed{--tw-leading:var(--leading-relaxed);line-height:var(--leading-relaxed)}.font-bold{--tw-font-weight:var(--font-weight-bold);font-weight:var(--font-weight-bold)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.break-words{overflow-wrap:break-word}.break-all{word-break:break-all}.text-gray-100{color:var(--color-gray-100)}.text-gray-200{color:var(--color-gray-200)}.text-gray-300{color:var(--color-gray-300)}.text-gray-400{color:var(--color-gray-400)}.text-gray-500{color:var(--color-gray-500)}.text-gray-600{color:var(--color-gray-600)}.text-green-100{color:var(--color-green-100)}.text-green-200{color:var(--color-green-200)}.text-green-300{color:var(--color-green-300)}.text-indigo-200{color:var(--color-indigo-200)}.text-indigo-300{color:var(--color-indigo-300)}.text-red-200{color:var(--color-red-200)}.text-red-300{color:var(--color-red-300)}.text-red-400{color:var(--color-red-400)}.text-violet-300{color:var(--color-violet-300)}.text-white{color:var(--color-white)}.no-underline{text-decoration-line:none}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.duration-200{--tw-duration:.2s;transition-duration:.2s}.ease-out{--tw-ease:var(--ease-out);transition-timing-function:var(--ease-out)}@media (hover:hover){.group-hover\:text-indigo-300:is(:where(.group):hover *){color:var(--color-indigo-300)}.hover\:z-10:hover{z-index:10}.hover\:scale-\[1\.01\]:hover{scale:1.01}.hover\:border-green-400:hover{border-color:var(--color-green-400)}.hover\:border-green-500:hover{border-color:var(--color-green-500)}.hover\:border-indigo-400:hover{border-color:var(--color-indigo-400)}.hover\:bg-green-800\/60:hover{background-color:#01663099}@supports (color:color-mix(in lab, red, red)){.hover\:bg-green-800\/60:hover{background-color:color-mix(in oklab, var(--color-green-800) 60%, transparent)}}.hover\:bg-green-900\/50:hover{background-color:#0d542b80}@supports (color:color-mix(in lab, red, red)){.hover\:bg-green-900\/50:hover{background-color:color-mix(in oklab, var(--color-green-900) 50%, transparent)}}.hover\:bg-indigo-900\/60:hover{background-color:#312c8599}@supports (color:color-mix(in lab, red, red)){.hover\:bg-indigo-900\/60:hover{background-color:color-mix(in oklab, var(--color-indigo-900) 60%, transparent)}}.hover\:bg-slate-800:hover{background-color:var(--color-slate-800)}.hover\:text-green-200:hover{color:var(--color-green-200)}.hover\:text-indigo-300:hover{color:var(--color-indigo-300)}}.focus-visible\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\:outline-offset-2:focus-visible{outline-offset:2px}.focus-visible\:outline-offset-4:focus-visible{outline-offset:4px}.focus-visible\:outline-green-500:focus-visible{outline-color:var(--color-green-500)}@media (min-width:40rem){.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}.sm\:p-7{padding:calc(var(--spacing) * 7)}.sm\:px-6{padding-inline:calc(var(--spacing) * 6)}.sm\:py-8{padding-block:calc(var(--spacing) * 8)}.sm\:text-2xl{font-size:var(--text-2xl);line-height:var(--tw-leading,var(--text-2xl--line-height))}.sm\:text-4xl{font-size:var(--text-4xl);line-height:var(--tw-leading,var(--text-4xl--line-height))}.sm\:text-xl{font-size:var(--text-xl);line-height:var(--tw-leading,var(--text-xl--line-height))}}@media (min-width:64rem){.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.lg\:px-8{padding-inline:calc(var(--spacing) * 8)}}}@property --tw-space-y-reverse{syntax:"*";inherits:false;initial-value:0}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-duration{syntax:"*";inherits:false}@property --tw-ease{syntax:"*";inherits:false}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-space-y-reverse:0;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-duration:initial;--tw-ease:initial;--tw-outline-style:solid;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000}}}@layer theme{:root,:host{--font-sans:"Rajdhani", sans-serif;--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-red-200:oklch(88.5% .062 18.334);--color-red-300:oklch(80.8% .114 19.571);--color-red-400:oklch(70.4% .191 22.216);--color-red-500:oklch(63.7% .237 25.331);--color-red-950:oklch(25.8% .092 26.042);--color-green-100:oklch(96.2% .044 156.743);--color-green-200:oklch(92.5% .084 155.995);--color-green-300:oklch(87.1% .15 154.449);--color-green-400:oklch(79.2% .209 151.711);--color-green-500:oklch(72.3% .219 149.579);--color-green-800:oklch(44.8% .119 151.328);--color-green-900:oklch(39.3% .095 152.535);--color-green-950:oklch(26.6% .065 152.934);--color-indigo-200:oklch(87% .065 274.039);--color-indigo-300:oklch(78.5% .115 274.713);--color-indigo-400:oklch(67.3% .182 276.935);--color-indigo-500:oklch(58.5% .233 277.117);--color-indigo-900:oklch(35.9% .144 278.697);--color-indigo-950:oklch(25.7% .09 281.288);--color-violet-300:oklch(81.1% .111 293.571);--color-violet-500:oklch(60.6% .25 292.717);--color-slate-700:oklch(37.2% .044 257.287);--color-slate-800:oklch(27.9% .041 260.031);--color-gray-100:oklch(96.7% .003 264.542);--color-gray-200:oklch(92.8% .006 264.531);--color-gray-300:oklch(87.2% .01 258.338);--color-gray-400:oklch(70.7% .022 261.325);--color-gray-500:oklch(55.1% .027 264.364);--color-gray-600:oklch(44.6% .03 256.802);--color-gray-900:oklch(21% .034 264.665);--color-gray-950:oklch(13% .028 261.692);--color-white:#fff;--spacing:.25rem;--container-2xl:42rem;--container-3xl:48rem;--container-7xl:80rem;--text-sm:.875rem;--text-sm--line-height:calc(1.25 / .875);--text-base:1rem;--text-base--line-height:calc(1.5 / 1);--text-lg:1.125rem;--text-lg--line-height:calc(1.75 / 1.125);--text-xl:1.25rem;--text-xl--line-height:calc(1.75 / 1.25);--text-2xl:1.5rem;--text-2xl--line-height:calc(2 / 1.5);--text-3xl:1.875rem;--text-3xl--line-height:calc(2.25 / 1.875);--text-4xl:2.25rem;--text-4xl--line-height:calc(2.5 / 2.25);--font-weight-semibold:600;--font-weight-bold:700;--tracking-tight:-.025em;--leading-relaxed:1.625;--radius-lg:.5rem;--radius-xl:.75rem;--ease-out:cubic-bezier(0, 0, .2, 1);--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--font-display:"Inknut Antiqua", serif}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components{.video-music-form input:not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]),.video-music-form select,.video-music-form textarea{border-radius:var(--radius-lg);border-style:var(--tw-border-style);border-width:2px;border-color:var(--color-gray-600);background-color:var(--color-slate-800);width:100%;padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 3);color:var(--color-gray-100);transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration));--tw-duration:.2s;--tw-outline-style:none;outline-style:none;transition-duration:.2s}.video-music-form input:focus,.video-music-form select:focus,.video-music-form textarea:focus{border-color:var(--color-green-500);--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);--tw-ring-color:#00c75833}@supports (color:color-mix(in lab, red, red)){.video-music-form input:focus,.video-music-form select:focus,.video-music-form textarea:focus{--tw-ring-color:color-mix(in oklab, var(--color-green-500) 20%, transparent)}}.video-music-form input::placeholder,.video-music-form textarea::placeholder{color:var(--color-gray-500)}.video-music-form input[type=number]{width:5.5rem;padding-inline:.75rem}}@layer utilities{.relative{position:relative}.static{position:static}.z-0{z-index:0}.col-span-full{grid-column:1/-1}.mx-1{margin-inline:var(--spacing)}.mx-auto{margin-inline:auto}.mt-1{margin-top:var(--spacing)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-6{margin-bottom:calc(var(--spacing) * 6)}.ml-1{margin-left:var(--spacing)}.block{display:block}.contents{display:contents}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline-flex{display:inline-flex}.h-7{height:calc(var(--spacing) * 7)}.h-full{height:100%}.max-h-\[45vh\]{max-height:45vh}.max-h-\[55vh\]{max-height:55vh}.min-h-40{min-height:calc(var(--spacing) * 40)}.min-h-screen{min-height:100vh}.w-1{width:var(--spacing)}.w-full{width:100%}.max-w-2xl{max-width:var(--container-2xl)}.max-w-3xl{max-width:var(--container-3xl)}.max-w-7xl{max-width:var(--container-7xl)}.min-w-0{min-width:0}.flex-1{flex:1}.shrink-0{flex-shrink:0}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.items-stretch{align-items:stretch}.justify-between{justify-content:space-between}.gap-2{gap:calc(var(--spacing) * 2)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-6{gap:calc(var(--spacing) * 6)}:where(.space-y-1>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(var(--spacing) * var(--tw-space-y-reverse));margin-block-end:calc(var(--spacing) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-2>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-3>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 3) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-4>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-5>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 5) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 5) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-6>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 6) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 6) * calc(1 - var(--tw-space-y-reverse)))}:where(.space-y-8>:not(:last-child)){--tw-space-y-reverse:0;margin-block-start:calc(calc(var(--spacing) * 8) * var(--tw-space-y-reverse));margin-block-end:calc(calc(var(--spacing) * 8) * calc(1 - var(--tw-space-y-reverse)))}.self-start{align-self:flex-start}.overflow-auto{overflow:auto}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-2{border-style:var(--tw-border-style);border-width:2px}.border-t{border-top-style:var(--tw-border-style);border-top-width:1px}.border-b{border-bottom-style:var(--tw-border-style);border-bottom-width:1px}.border-gray-600{border-color:var(--color-gray-600)}.border-green-500\/30{border-color:#00c7584d}@supports (color:color-mix(in lab, red, red)){.border-green-500\/30{border-color:color-mix(in oklab, var(--color-green-500) 30%, transparent)}}.border-green-500\/40{border-color:#00c75866}@supports (color:color-mix(in lab, red, red)){.border-green-500\/40{border-color:color-mix(in oklab, var(--color-green-500) 40%, transparent)}}.border-green-500\/50{border-color:#00c75880}@supports (color:color-mix(in lab, red, red)){.border-green-500\/50{border-color:color-mix(in oklab, var(--color-green-500) 50%, transparent)}}.border-indigo-500\/30{border-color:#625fff4d}@supports (color:color-mix(in lab, red, red)){.border-indigo-500\/30{border-color:color-mix(in oklab, var(--color-indigo-500) 30%, transparent)}}.border-indigo-500\/40{border-color:#625fff66}@supports (color:color-mix(in lab, red, red)){.border-indigo-500\/40{border-color:color-mix(in oklab, var(--color-indigo-500) 40%, transparent)}}.border-indigo-500\/50{border-color:#625fff80}@supports (color:color-mix(in lab, red, red)){.border-indigo-500\/50{border-color:color-mix(in oklab, var(--color-indigo-500) 50%, transparent)}}.border-red-500\/30{border-color:#fb2c364d}@supports (color:color-mix(in lab, red, red)){.border-red-500\/30{border-color:color-mix(in oklab, var(--color-red-500) 30%, transparent)}}.border-red-500\/40{border-color:#fb2c3666}@supports (color:color-mix(in lab, red, red)){.border-red-500\/40{border-color:color-mix(in oklab, var(--color-red-500) 40%, transparent)}}.border-transparent{border-color:#0000}.border-violet-500\/30{border-color:#8d54ff4d}@supports (color:color-mix(in lab, red, red)){.border-violet-500\/30{border-color:color-mix(in oklab, var(--color-violet-500) 30%, transparent)}}.border-violet-500\/40{border-color:#8d54ff66}@supports (color:color-mix(in lab, red, red)){.border-violet-500\/40{border-color:color-mix(in oklab, var(--color-violet-500) 40%, transparent)}}.border-white\/10{border-color:#ffffff1a}@supports (color:color-mix(in lab, red, red)){.border-white\/10{border-color:color-mix(in oklab, var(--color-white) 10%, transparent)}}.bg-gray-900{background-color:var(--color-gray-900)}.bg-gray-950{background-color:var(--color-gray-950)}.bg-green-900\/40{background-color:#0d542b66}@supports (color:color-mix(in lab, red, red)){.bg-green-900\/40{background-color:color-mix(in oklab, var(--color-green-900) 40%, transparent)}}.bg-green-950\/30{background-color:#032e154d}@supports (color:color-mix(in lab, red, red)){.bg-green-950\/30{background-color:color-mix(in oklab, var(--color-green-950) 30%, transparent)}}.bg-green-950\/40{background-color:#032e1566}@supports (color:color-mix(in lab, red, red)){.bg-green-950\/40{background-color:color-mix(in oklab, var(--color-green-950) 40%, transparent)}}.bg-indigo-950\/40{background-color:#1e1a4d66}@supports (color:color-mix(in lab, red, red)){.bg-indigo-950\/40{background-color:color-mix(in oklab, var(--color-indigo-950) 40%, transparent)}}.bg-indigo-950\/50{background-color:#1e1a4d80}@supports (color:color-mix(in lab, red, red)){.bg-indigo-950\/50{background-color:color-mix(in oklab, var(--color-indigo-950) 50%, transparent)}}.bg-red-500{background-color:var(--color-red-500)}.bg-red-950\/30{background-color:#4608094d}@supports (color:color-mix(in lab, red, red)){.bg-red-950\/30{background-color:color-mix(in oklab, var(--color-red-950) 30%, transparent)}}.bg-slate-800{background-color:var(--color-slate-800)}.bg-slate-800\/70{background-color:#1d293db3}@supports (color:color-mix(in lab, red, red)){.bg-slate-800\/70{background-color:color-mix(in oklab, var(--color-slate-800) 70%, transparent)}}.p-2{padding:calc(var(--spacing) * 2)}.p-3{padding:calc(var(--spacing) * 3)}.p-4{padding:calc(var(--spacing) * 4)}.p-5{padding:calc(var(--spacing) * 5)}.p-8{padding:calc(var(--spacing) * 8)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-4{padding-inline:calc(var(--spacing) * 4)}.px-5{padding-inline:calc(var(--spacing) * 5)}.py-1{padding-block:var(--spacing)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-4{padding-block:calc(var(--spacing) * 4)}.py-6{padding-block:calc(var(--spacing) * 6)}.pt-5{padding-top:calc(var(--spacing) * 5)}.text-center{text-align:center}.text-left{text-align:left}.font-display{font-family:var(--font-display)}.font-sans{font-family:var(--font-sans)}.text-2xl{font-size:var(--text-2xl);line-height:var(--tw-leading,var(--text-2xl--line-height))}.text-3xl{font-size:var(--text-3xl);line-height:var(--tw-leading,var(--text-3xl--line-height))}.text-base{font-size:var(--text-base);line-height:var(--tw-leading,var(--text-base--line-height))}.text-lg{font-size:var(--text-lg);line-height:var(--tw-leading,var(--text-lg--line-height))}.text-sm{font-size:var(--text-sm);line-height:var(--tw-leading,var(--text-sm--line-height))}.text-xl{font-size:var(--text-xl);line-height:var(--tw-leading,var(--text-xl--line-height))}.leading-relaxed{--tw-leading:var(--leading-relaxed);line-height:var(--leading-relaxed)}.font-bold{--tw-font-weight:var(--font-weight-bold);font-weight:var(--font-weight-bold)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.break-words{overflow-wrap:break-word}.break-all{word-break:break-all}.text-gray-100{color:var(--color-gray-100)}.text-gray-200{color:var(--color-gray-200)}.text-gray-300{color:var(--color-gray-300)}.text-gray-400{color:var(--color-gray-400)}.text-gray-500{color:var(--color-gray-500)}.text-gray-600{color:var(--color-gray-600)}.text-green-100{color:var(--color-green-100)}.text-green-200{color:var(--color-green-200)}.text-green-300{color:var(--color-green-300)}.text-indigo-200{color:var(--color-indigo-200)}.text-indigo-300{color:var(--color-indigo-300)}.text-red-200{color:var(--color-red-200)}.text-red-300{color:var(--color-red-300)}.text-red-400{color:var(--color-red-400)}.text-violet-300{color:var(--color-violet-300)}.text-white{color:var(--color-white)}.no-underline{text-decoration-line:none}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.duration-200{--tw-duration:.2s;transition-duration:.2s}.ease-out{--tw-ease:var(--ease-out);transition-timing-function:var(--ease-out)}@media (hover:hover){.group-hover\:text-indigo-300:is(:where(.group):hover *){color:var(--color-indigo-300)}}.placeholder\:text-gray-500::placeholder{color:var(--color-gray-500)}@media (hover:hover){.hover\:z-10:hover{z-index:10}.hover\:border-green-400:hover{border-color:var(--color-green-400)}.hover\:border-green-500:hover{border-color:var(--color-green-500)}.hover\:border-indigo-400:hover{border-color:var(--color-indigo-400)}.hover\:bg-green-800\/60:hover{background-color:#01663099}@supports (color:color-mix(in lab, red, red)){.hover\:bg-green-800\/60:hover{background-color:color-mix(in oklab, var(--color-green-800) 60%, transparent)}}.hover\:bg-green-900\/50:hover{background-color:#0d542b80}@supports (color:color-mix(in lab, red, red)){.hover\:bg-green-900\/50:hover{background-color:color-mix(in oklab, var(--color-green-900) 50%, transparent)}}.hover\:bg-indigo-900\/60:hover{background-color:#312c8599}@supports (color:color-mix(in lab, red, red)){.hover\:bg-indigo-900\/60:hover{background-color:color-mix(in oklab, var(--color-indigo-900) 60%, transparent)}}.hover\:bg-slate-700:hover{background-color:var(--color-slate-700)}.hover\:bg-slate-800:hover{background-color:var(--color-slate-800)}.hover\:text-green-200:hover{color:var(--color-green-200)}.hover\:text-indigo-300:hover{color:var(--color-indigo-300)}}.focus-visible\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\:outline-offset-2:focus-visible{outline-offset:2px}.focus-visible\:outline-offset-4:focus-visible{outline-offset:4px}.focus-visible\:outline-green-500:focus-visible{outline-color:var(--color-green-500)}.disabled\:cursor-not-allowed:disabled{cursor:not-allowed}.disabled\:opacity-40:disabled{opacity:.4}@media (min-width:40rem){.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}.sm\:p-5{padding:calc(var(--spacing) * 5)}.sm\:p-7{padding:calc(var(--spacing) * 7)}.sm\:px-6{padding-inline:calc(var(--spacing) * 6)}.sm\:py-8{padding-block:calc(var(--spacing) * 8)}.sm\:text-2xl{font-size:var(--text-2xl);line-height:var(--tw-leading,var(--text-2xl--line-height))}.sm\:text-3xl{font-size:var(--text-3xl);line-height:var(--tw-leading,var(--text-3xl--line-height))}.sm\:text-4xl{font-size:var(--text-4xl);line-height:var(--tw-leading,var(--text-4xl--line-height))}.sm\:text-xl{font-size:var(--text-xl);line-height:var(--tw-leading,var(--text-xl--line-height))}}@media (min-width:64rem){.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.lg\:px-8{padding-inline:calc(var(--spacing) * 8)}}}@property --tw-space-y-reverse{syntax:"*";inherits:false;initial-value:0}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-duration{syntax:"*";inherits:false}@property --tw-ease{syntax:"*";inherits:false}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}
+
+================================================================================
+FILE: interfaces\web\static\file_browser\js\browser.js
+================================================================================
+document.addEventListener("DOMContentLoaded", () => {
+  const drivesButton = document.getElementById("file-browser-drives");
+  const parentButton = document.getElementById("file-browser-parent");
+  const refreshButton = document.getElementById("file-browser-refresh");
+  const pathInput = document.getElementById("file-browser-path");
+  const selectedPathInput = document.getElementById(
+    "file-browser-selected-path",
+  );
+  const statusElement = document.getElementById("file-browser-status");
+  const entriesList = document.getElementById("file-browser-entries");
+  const confirmButton = document.getElementById("file-browser-confirm");
+
+  if (
+    !drivesButton ||
+    !parentButton ||
+    !refreshButton ||
+    !pathInput ||
+    !selectedPathInput ||
+    !statusElement ||
+    !entriesList ||
+    !confirmButton
+  ) {
+    return;
+  }
+
+  const browserUrl = "/file-browser/";
+  const selectionUrl = "/file-browser/select/";
+
+  let activeTarget = null;
+
+  let currentPath = "";
+  let selectedEntry = null;
+
+  async function requestJson(url, options = {}) {
+    const response = await fetch(url, options);
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error || `Error HTTP ${response.status}`);
+    }
+
+    return data;
+  }
+
+  function setStatus(message) {
+    statusElement.textContent = message;
+  }
+
+  function clearSelection() {
+    selectedEntry = null;
+    selectedPathInput.value = "";
+    confirmButton.disabled = true;
+  }
+
+  function clearEntries() {
+    entriesList.replaceChildren();
+  }
+
+  function renderEntries(entries) {
+    clearEntries();
+
+    if (entries.length === 0) {
+      const item = document.createElement("li");
+      item.className = "rounded-lg p-4 text-center text-gray-400";
+      item.textContent = "No hay elementos para mostrar.";
+      entriesList.appendChild(item);
+      return;
+    }
+
+    for (const entry of entries) {
+      const item = document.createElement("li");
+      item.className =
+        "flex flex-wrap items-center gap-2 rounded-lg p-2 " +
+        "transition-colors hover:bg-slate-800";
+
+      const isDirectory = entry.type === "directory" || entry.type === "drive";
+
+      const openButton = document.createElement("button");
+      openButton.type = "button";
+      openButton.className =
+        "min-w-0 flex-1 rounded-lg border border-transparent " +
+        "px-3 py-2 text-left font-semibold text-gray-200 " +
+        "transition-colors hover:bg-slate-700 " +
+        "focus-visible:outline-2 focus-visible:outline-offset-2 " +
+        "focus-visible:outline-green-500";
+      openButton.textContent = `${isDirectory ? "📁" : "📄"} ${entry.name}`;
+
+      openButton.addEventListener("click", () => {
+        if (isDirectory) {
+          openDirectory(entry.path);
+        } else {
+          selectEntry(entry);
+        }
+      });
+
+      item.appendChild(openButton);
+
+      if (entry.type !== "drive") {
+        const selectButton = document.createElement("button");
+        selectButton.type = "button";
+        selectButton.className =
+          "shrink-0 rounded-lg border border-indigo-500/50 " +
+          "bg-indigo-950/40 px-3 py-2 text-sm font-bold " +
+          "text-indigo-200 transition-colors " +
+          "hover:border-indigo-400 hover:bg-indigo-900/60 " +
+          "focus-visible:outline-2 focus-visible:outline-offset-2 " +
+          "focus-visible:outline-green-500";
+        selectButton.textContent = "Seleccionar";
+
+        selectButton.addEventListener("click", () => {
+          selectEntry(entry);
+        });
+
+        item.appendChild(selectButton);
+      }
+
+      entriesList.appendChild(item);
+    }
+  }
+
+  async function loadDrives() {
+    clearSelection();
+    clearEntries();
+    setStatus("Cargando unidades…");
+
+    try {
+      const data = await requestJson(`${browserUrl}?action=drives`);
+
+      currentPath = "";
+      pathInput.value = "";
+      parentButton.disabled = true;
+      refreshButton.disabled = true;
+
+      renderEntries(data.entries || []);
+      setStatus("Selecciona una unidad para explorarla.");
+    } catch (error) {
+      setStatus(`Error al cargar las unidades: ${error.message}`);
+    }
+  }
+
+  async function loadDefaultLocation(target) {
+    clearSelection();
+    clearEntries();
+    setStatus("Cargando ubicación predeterminada…");
+
+    try {
+      const params = new URLSearchParams({
+        action: "default",
+        target,
+      });
+
+      const data = await requestJson(`${browserUrl}?${params.toString()}`);
+
+      currentPath = data.path;
+      pathInput.value = currentPath;
+
+      parentButton.disabled = false;
+      refreshButton.disabled = false;
+
+      renderEntries(data.entries || []);
+      setStatus(
+        `Ubicación predeterminada cargada. ` +
+          `${(data.entries || []).length} elemento(s) encontrado(s).`,
+      );
+    } catch (error) {
+      setStatus(
+        `Error al cargar la ubicación predeterminada: ${error.message}`,
+      );
+    }
+  }
+
+  async function openDirectory(path) {
+    clearSelection();
+    clearEntries();
+    setStatus("Cargando directorio…");
+
+    try {
+      const params = new URLSearchParams({
+        action: "list",
+        path: path,
+      });
+
+      const data = await requestJson(`${browserUrl}?${params.toString()}`);
+
+      currentPath = data.path || path;
+      pathInput.value = currentPath;
+
+      parentButton.disabled = false;
+      refreshButton.disabled = false;
+
+      renderEntries(data.entries || []);
+      setStatus(`${(data.entries || []).length} elemento(s) encontrado(s).`);
+    } catch (error) {
+      setStatus(`Error al abrir el directorio: ${error.message}`);
+    }
+  }
+
+  function getParentPath(path) {
+    // En Windows, la unidad raíz debe conservarse como C:\.
+    if (/^[a-zA-Z]:[\\/]*$/.test(path)) {
+      return null;
+    }
+
+    // En otros sistemas, la raíz es /.
+    if (path === "/") {
+      return null;
+    }
+
+    const trimmed = path.replace(/[\\/]+$/, "");
+    const separatorIndex = Math.max(
+      trimmed.lastIndexOf("\\"),
+      trimmed.lastIndexOf("/"),
+    );
+
+    if (separatorIndex < 0) {
+      return null;
+    }
+
+    // Conserva la barra final de la raíz de una unidad Windows.
+    if (separatorIndex === 2 && /^[a-zA-Z]:/.test(trimmed)) {
+      return trimmed.slice(0, 3);
+    }
+
+    if (separatorIndex === 0) {
+      return "/";
+    }
+
+    return trimmed.slice(0, separatorIndex);
+  }
+
+  function selectEntry(entry) {
+    selectedEntry = entry;
+    selectedPathInput.value = entry.path;
+    confirmButton.disabled = false;
+    setStatus(`Seleccionado: ${entry.name}`);
+  }
+
+  async function confirmSelection() {
+    if (!selectedEntry) {
+      return;
+    }
+
+    confirmButton.disabled = true;
+    setStatus("Validando selección…");
+
+    try {
+      const body = new URLSearchParams({
+        path: selectedEntry.path,
+        type: selectedEntry.type,
+      });
+
+      const csrfInput = document.querySelector("[name=csrfmiddlewaretoken]");
+
+      const headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+      };
+
+      if (csrfInput) {
+        headers["X-CSRFToken"] = csrfInput.value;
+      }
+
+      const data = await requestJson(selectionUrl, {
+        method: "POST",
+        headers,
+        body,
+        credentials: "same-origin",
+      });
+
+      selectedEntry = data.selection;
+      selectedPathInput.value = data.selection.path;
+      setStatus("Selección validada correctamente.");
+
+      const expectedType = activeTarget === "audios" ? "directory" : "file";
+
+      if (data.selection.type !== expectedType) {
+        confirmButton.disabled = false;
+
+        setStatus(
+          activeTarget === "audios"
+            ? "Debes seleccionar un directorio de canciones."
+            : "Debes seleccionar un archivo de vídeo.",
+        );
+
+        return;
+      }
+
+      window.dispatchEvent(
+        new CustomEvent("file-browser-selected", {
+          detail: {
+            target: activeTarget,
+            path: data.selection.path,
+          },
+        }),
+      );
+    } catch (error) {
+      confirmButton.disabled = false;
+      setStatus(`Error al validar la selección: ${error.message}`);
+    }
+  }
+
+  window.addEventListener("file-browser-open", (event) => {
+    const target = event.detail?.target;
+
+    if (!["audios", "video"].includes(target)) {
+      return;
+    }
+
+    activeTarget = target;
+    loadDefaultLocation(target);
+  });
+
+  drivesButton.addEventListener("click", loadDrives);
+
+  parentButton.addEventListener("click", () => {
+    const parentPath = getParentPath(currentPath);
+
+    if (parentPath === null) {
+      loadDrives();
+    } else {
+      openDirectory(parentPath);
+    }
+  });
+
+  refreshButton.addEventListener("click", () => {
+    if (currentPath) {
+      openDirectory(currentPath);
+    }
+  });
+
+  confirmButton.addEventListener("click", confirmSelection);
+});
+
+
+================================================================================
+FILE: interfaces\web\static\video_music_web\js\file_picker.js
+================================================================================
+document.addEventListener("DOMContentLoaded", () => {
+  const pickerButtons = document.querySelectorAll("[data-file-picker]");
+  const browserPanel = document.getElementById("file-browser-panel");
+  const closeButton = document.getElementById("file-browser-close");
+  const description = document.getElementById("file-browser-description");
+
+  if (!browserPanel || !closeButton || !description) {
+    console.error("No se encontró el panel del navegador de archivos.");
+    return;
+  }
+
+  const allowedTargets = {
+    audios_dir: "audios",
+    video_path: "video",
+  };
+
+  let activeField = null;
+
+  function openBrowser(fieldName) {
+    const target = allowedTargets[fieldName];
+
+    if (!target) {
+      return;
+    }
+
+    activeField = fieldName;
+
+    description.textContent =
+      target === "audios"
+        ? "Selecciona el directorio que contiene las canciones."
+        : "Selecciona el archivo de vídeo base.";
+
+    browserPanel.dataset.target = target;
+    browserPanel.hidden = false;
+    browserPanel.classList.remove("hidden");
+
+    browserPanel.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    window.dispatchEvent(
+      new CustomEvent("file-browser-open", {
+        detail: { target },
+      }),
+    );
+  }
+
+  function closeBrowser() {
+    browserPanel.hidden = true;
+    browserPanel.classList.add("hidden");
+    activeField = null;
+  }
+
+  pickerButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      openBrowser(button.dataset.filePicker);
+    });
+  });
+
+  closeButton.addEventListener("click", closeBrowser);
+
+  window.addEventListener("file-browser-selected", (event) => {
+    const { target, path } = event.detail || {};
+
+    if (
+      !activeField ||
+      allowedTargets[activeField] !== target ||
+      typeof path !== "string" ||
+      !path
+    ) {
+      return;
+    }
+
+    const field = document.getElementById(`id_${activeField}`);
+
+    if (!field) {
+      console.error(`No se encontró el campo id_${activeField}.`);
+      return;
+    }
+
+    field.value = path;
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+
+    closeBrowser();
+    field.focus();
+  });
+});
+
 
 ================================================================================
 FILE: interfaces\web\static\video_music_web\js\job_progress.js
