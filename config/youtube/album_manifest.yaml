@@ -1,24 +1,80 @@
-album: Grand Theft Auto | GTA | Gamerip Tracks
+album: Super Smash Bros. | Nintendo | 3DS | Wii U | ♪ —A Smashing Soundtrack— | Disc 1
 
-name_prefix: Grand Theft Auto (GTA) OST
+name_prefix: Super Smash Bros. - 3DS - Wii U OST
 
 videos:
-  - "01 Police Radio | Bonus"
-  - "02 City Noises | Bonus"
-  - "Grand Theft Auto | GTA | Gamerip Tracks"
+  - "01 Menu"
+  - "02 How to Play"
+  - "03 Ground Theme | Underground Theme"
+  - "04 Super Mario 3D Land Theme | Beach Theme"
+  - "05 Try, Try Again"
+  - "06 Kongo Jungle"
+  - "07 Stickerbush Symphony"
+  - "08 Gerudo Valley"
+  - "09 Full Steam Ahead"
+  - "10 Brinstar"
+  - "11 Obstacle Course | Spring | Summer"
+  - "12 Green Greens Ver. 2"
+  - "13 Corneria"
+  - "14 Star Wolf’s Theme | Sector Z"
+  - "15 Battle! | Trainer Battle"
+  - "16 N’s Castle Medley"
+  - "17 Mute City Ver. 3"
+  - "18 Id | Purpose"
+  - "19 Wrath of the Reset Bomb"
+  - "20 Dark Pit’s Theme"
+  - "21 Ashley’s Song | JP"
+  - "22 Tortimer Island Medley"
+  - "23 Kapp’n’s Song"
+  - "24 Jogging | Countdown"
+  - "25 Gaur Plain"
+  - "26 You Will Know Our Names"
+  - "27 Balloon Fight Medley"
+  - "28 Bath Time Theme | vocal mix"
+  - "29 Save the World, Heroes!"
+  - "30 Tomodachi Life"
+  - "31 PAC-MAN | club mix"
+  - "32 Tetris Type A"
+  - "33 Trophy Rush"
+  - "34 Multi-Man Smash"
+  - "35 Credits"
+  - "36 Online Practice Stage"
+  - "Super Smash Bros. | Nintendo | 3DS | Wii U | ♪ —A Smashing Soundtrack— | Disc 1"
 
 description: |
-  🎮 GRAND THEFT AUTO | 1997
+  🎮 SUPER SMASH BROS. | 1999
 
-  📀 The Soundtrack | https://www.youtube.com/playlist?list=PLOmaHkBkn0dk
-  📀 Gamerip Tracks | https://www.youtube.com/playlist?list=PLNqzlJxhEFwo
-  📀 Complete OST | https://www.youtube.com/playlist?list=PLbmozbJB2z7o
+  📀 Super Smash Bros. OST: Disc 1 | https://www.youtube.com/playlist?list=PL90QAKwVH1t7_uekEQi-ZJPf4xKb5QEmT
+  📀 Super Smash Bros. OST: Disc 2 | https://www.youtube.com/playlist?list=PL90QAKwVH1t59U-dMzmaKw-xUKJ0fpTTa
+  📀 Super Smash Bros. OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t4PP1PcXiRvpNIW0R6sKaw9
+  📀 Super Smash Bros. OST: Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t7VLGiT8jD4hSgzzCl6tqJq
+  📀 Super Smash Bros. Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t7_ReZq1nHr9ihqV69sXa5R
 
-thumbnail: "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/02 Gamerip Tracks/images/miniatura3.png"
+  🎮 SUPER SMASH BROS. MELEE | 2001
+
+  📀 Super Smash Bros. Melee Smashing…Live! Live Orchestra Music | https://www.youtube.com/playlist?list=PL90QAKwVH1t73TIlig1YCkvq4IhqlFx5w
+  📀 Super Smash Bros. Melee Smashing…Live! | https://www.youtube.com/playlist?list=PLAmCrfj--0FQ
+  📀 Super Smash Bros. Melee: Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t4MHYzfjWaH16J-h0sDNIhp
+  📀 Super Smash Bros. Melee Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t4rHPc-lWJX4RfXlhzmxgoW
+
+  🎮 SUPER SMASH BROS. BRAWL | 2008
+
+  📀 Super Smash Bros. Brawl - Gamerip Tracks | https://www.youtube.com/playlist?list=PLeAbPc3Q8igA
+  📀 Super Smash Bros. Brawl - Lost Tracks | https://www.youtube.com/playlist?list=PLbxJ2UdQK-ro
+  📀 Super Smash Bros. Brawl Complete OST | https://www.youtube.com/playlist?list=PLabJqUVi3mpE
+
+  🎮 SUPER SMASH BROS. FOR NINTENDO 3DS / WII U | 2014
+
+  📀 ♪ —A SMASHING SOUNDTRACK— - Disc 1 | https://www.youtube.com/playlist?list=PLR-q3vjOx7N4
+  📀 ♪ —A SMASHING SOUNDTRACK— | https://www.youtube.com/playlist?list=PLFXSG9Z36rOo
+  📀 Complete OST | https://www.youtube.com/playlist?list=PLOw4WNnCHjic
+
+thumbnail: "H:/@Downloads/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/01 SUPER SMASH BROS FOR NINTENDO 3DS⁄Wii U ♪ —A SMASHING SOUNDTRACK—/images/miniatura2.png"
 
 playlists:
-  - PLNqzlJxhEFwo # Gamerip Tracks
-  - PLbmozbJB2z7o # Complete OST
+  - PLR-q3vjOx7N4 # ♪ —A SMASHING SOUNDTRACK— - Disc 1
+  - PLFXSG9Z36rOo # ♪ —A SMASHING SOUNDTRACK—
+  - PLOw4WNnCHjic # Complete OST
 
 made_for_kids: false
 contains_synthetic_media: false
@@ -30,6 +86,6 @@ game: game # not used
 
 publication:
   # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS
-  first_publish_at: "2026-10-26T08:00:00"
+  first_publish_at: "2026-10-24T23:00:00"
   timezone: "Europe/Paris"
   interval_days: 1

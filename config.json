@@ -31,15 +31,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/02 Gamerip Tracks",
-      "default_video_path": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/02 Gamerip Tracks/images/video.mp4",
+      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/01 SUPER SMASH BROS FOR NINTENDO 3DS⁄Wii U ♪ —A SMASHING SOUNDTRACK—/Disc 2",
+      "default_video_path": "H:/@Downloads/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/01 SUPER SMASH BROS FOR NINTENDO 3DS⁄Wii U ♪ —A SMASHING SOUNDTRACK—/images/video2.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/02 Gamerip Tracks/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/01 SUPER SMASH BROS FOR NINTENDO 3DS⁄Wii U ♪ —A SMASHING SOUNDTRACK—/Disc 1/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Grand Theft Auto - Gamerip Tracks",
+      "default_video_name": "Super Smash Bros. for Nintendo 3DS⁄Wii U ♪ —A Smashing Soundtrack— - Disc 1",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
