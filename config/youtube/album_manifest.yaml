@@ -1,28 +1,23 @@
-album: Grand Theft Auto | The Soundtrack
+album: Grand Theft Auto | GTA | Gamerip Tracks
 
 name_prefix: Grand Theft Auto (GTA) OST
 
 videos:
-  - "01 The Fix FM | Dance"
-  - "02 Head Radio | Chart"
-  - "03 Radio 76 | On 197.6 FM | Funk"
-  - "04 N-Ct FM | Hip-Hop"
-  - "05 Brooklyn Underground 77.7 | Techno"
-  - "06 It's Unleashed on 93.5 FM | Metal"
-  - "07 The Fergus Buckner Show | Sponsored By 'Rattler Creek' Chewing Tobacco | Country"
-  - "08 Title Music"
-  - "Grand Theft Auto | GTA | The Soundtrack"
+  - "01 Police Radio | Bonus"
+  - "02 City Noises | Bonus"
+  - "Grand Theft Auto | GTA | Gamerip Tracks"
 
 description: |
   🎮 GRAND THEFT AUTO | 1997
 
   📀 The Soundtrack | https://www.youtube.com/playlist?list=PLOmaHkBkn0dk
+  📀 Gamerip Tracks | https://www.youtube.com/playlist?list=PLNqzlJxhEFwo
   📀 Complete OST | https://www.youtube.com/playlist?list=PLbmozbJB2z7o
 
-thumbnail: "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/01 OST/images/miniatura1.png"
+thumbnail: "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/02 Gamerip Tracks/images/miniatura3.png"
 
 playlists:
-  - PLOmaHkBkn0dk # The Soundtrack
+  - PLNqzlJxhEFwo # Gamerip Tracks
   - PLbmozbJB2z7o # Complete OST
 
 made_for_kids: false
@@ -35,6 +30,6 @@ game: game # not used
 
 publication:
   # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS
-  first_publish_at: "2026-10-24T07:00:00"
+  first_publish_at: "2026-10-26T08:00:00"
   timezone: "Europe/Paris"
   interval_days: 1

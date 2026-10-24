@@ -31,15 +31,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/01 OST",
-      "default_video_path": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/01 OST/images/video.mp4",
+      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/02 Gamerip Tracks",
+      "default_video_path": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/02 Gamerip Tracks/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/01 OST/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Grand Theft Auto/01 Grand Theft Auto - GTA - 1997/02 Gamerip Tracks/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Grand Theft Auto - The Soundtrack",
+      "default_video_name": "Grand Theft Auto - Gamerip Tracks",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
