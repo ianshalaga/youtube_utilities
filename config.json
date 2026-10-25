@@ -31,15 +31,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/Tenchu/06 Tenchu - Dark Secret - 2006/01 Gamerip Tracks",
-      "default_video_path": "H:/@Downloads/OST/02 In Progress/Tenchu/06 Tenchu - Dark Secret - 2006/01 Gamerip Tracks/images/video.mp4",
+      "default_audios_dir": "H:/@Downloads/OST/02 In Progress/Fallout/04 Fallout - Brotherhood of Steel - 2004/01 Gamerip Tracks",
+      "default_video_path": "H:/@Downloads/OST/02 In Progress/Fallout/04 Fallout - Brotherhood of Steel - 2004/01 Gamerip Tracks/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Tenchu/06 Tenchu - Dark Secret - 2006/01 Gamerip Tracks/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Fallout/04 Fallout - Brotherhood of Steel - 2004/01 Gamerip Tracks/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Tenchu - Dark Secret - Gamerip Tracks",
+      "default_video_name": "Fallout - Brotherhood of Steel - Gamerip Tracks",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
