@@ -129,6 +129,52 @@ def test_builder_creates_album_from_manifest_and_youtube():
     ]
 
 
+def test_builder_creates_album_without_compilation():
+    manifest = _create_manifest(
+        videos=[
+            "01 Opening Theme",
+            "02 Battle Theme",
+        ]
+    )
+    youtube_videos = (
+        _song(2, title="02 Battle Theme"),
+        _song(1, title="01 Opening Theme"),
+    )
+
+    album = AlbumBuilder().build(manifest, youtube_videos)
+
+    assert [video.video_id for video in album.videos] == [
+        "video-1",
+        "video-2",
+    ]
+    assert [video.video_type for video in album.videos] == [
+        VideoType.SONG,
+        VideoType.SONG,
+    ]
+
+
+def test_builder_ignores_youtube_compilation_when_manifest_has_none():
+    manifest = _create_manifest(
+        videos=[
+            "01 Opening Theme",
+            "02 Battle Theme",
+        ]
+    )
+    youtube_videos = (
+        _compilation(),
+        _compilation(title="Other Compilation"),
+        _song(2, title="02 Battle Theme"),
+        _song(1, title="01 Opening Theme"),
+    )
+
+    album = AlbumBuilder().build(manifest, youtube_videos)
+
+    assert [video.video_id for video in album.videos] == [
+        "video-1",
+        "video-2",
+    ]
+
+
 # =============================================================================
 # Metadata
 # =============================================================================
@@ -237,6 +283,40 @@ def test_builder_calculates_publication_dates():
     ]
 
     assert publish_dates == [
+        datetime(2026, 10, 1, 18, 0, tzinfo=ZoneInfo("Europe/Paris")),
+        datetime(2026, 10, 3, 18, 0, tzinfo=ZoneInfo("Europe/Paris")),
+        datetime(2026, 10, 5, 18, 0, tzinfo=ZoneInfo("Europe/Paris")),
+        datetime(2026, 10, 7, 18, 0, tzinfo=ZoneInfo("Europe/Paris")),
+    ]
+
+
+def test_builder_schedules_sparse_track_numbers_from_first_video():
+    manifest = _create_manifest(
+        videos=[
+            "067 Opening Theme",
+            "120 Battle Theme",
+            "180 Ending Theme",
+            "Super Battle Sound Attack",
+        ],
+        interval_days=2,
+    )
+    youtube_videos = (
+        _compilation(),
+        _song(180, title="180 Ending Theme"),
+        _song(120, title="120 Battle Theme"),
+        _song(67, title="067 Opening Theme"),
+    )
+
+    album = AlbumBuilder().build(manifest, youtube_videos)
+
+    assert [video.position for video in album.videos] == [1, 2, 3, 4]
+    assert [video.video_id for video in album.videos] == [
+        "video-67",
+        "video-120",
+        "video-180",
+        "video-compilation",
+    ]
+    assert [video.metadata.publish_at for video in album.videos] == [
         datetime(2026, 10, 1, 18, 0, tzinfo=ZoneInfo("Europe/Paris")),
         datetime(2026, 10, 3, 18, 0, tzinfo=ZoneInfo("Europe/Paris")),
         datetime(2026, 10, 5, 18, 0, tzinfo=ZoneInfo("Europe/Paris")),

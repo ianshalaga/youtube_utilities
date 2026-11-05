@@ -52,7 +52,8 @@ class AlbumBuilder:
         manifest_songs, manifest_compilation = self._parse_manifest(manifest)
 
         youtube_songs, youtube_compilation = self._parse_youtube_videos(
-            youtube_videos
+            youtube_videos,
+            expect_compilation=manifest_compilation is not None,
         )
 
         missing, extra = self._find_mismatches(
@@ -91,7 +92,7 @@ class AlbumBuilder:
     def _parse_manifest(
         self,
         manifest: AlbumManifest,
-    ) -> tuple[dict[int, str], str]:
+    ) -> tuple[dict[int, str], str | None]:
         songs: dict[int, str] = {}
         compilation: str | None = None
 
@@ -116,16 +117,13 @@ class AlbumBuilder:
 
             songs[position] = title
 
-        if compilation is None:
-            raise AlbumBuildError(
-                "Manifest does not contain a compilation."
-            )
-
         return songs, compilation
 
     def _parse_youtube_videos(
         self,
         youtube_videos: Iterable[YouTubeVideo],
+        *,
+        expect_compilation: bool,
     ) -> tuple[dict[int, YouTubeVideo], YouTubeVideo | None]:
         songs: dict[int, YouTubeVideo] = {}
         compilation: YouTubeVideo | None = None
@@ -134,6 +132,9 @@ class AlbumBuilder:
             match = self._SONG_TITLE_PATTERN.match(video.title)
 
             if match is None:
+                if not expect_compilation:
+                    continue
+
                 if compilation is not None:
                     raise AlbumBuildError(
                         "YouTube discovery contains more than one compilation."
@@ -158,7 +159,7 @@ class AlbumBuilder:
     @staticmethod
     def _find_mismatches(
         manifest_songs: dict[int, str],
-        manifest_compilation: str,
+        manifest_compilation: str | None,
         youtube_songs: dict[int, YouTubeVideo],
         youtube_compilation: YouTubeVideo | None,
     ) -> tuple[list[str], list[str]]:
@@ -174,7 +175,9 @@ class AlbumBuilder:
         for position in sorted(youtube_positions - manifest_positions):
             extra.append(youtube_songs[position].title)
 
-        if youtube_compilation is None:
+        if manifest_compilation is None:
+            pass
+        elif youtube_compilation is None:
             missing.append(manifest_compilation)
         elif youtube_compilation.title != manifest_compilation:
             missing.append(manifest_compilation)
@@ -204,13 +207,15 @@ class AlbumBuilder:
         manifest: AlbumManifest,
         manifest_songs: dict[int, str],
         youtube_songs: dict[int, YouTubeVideo],
-        youtube_compilation: YouTubeVideo,
+        youtube_compilation: YouTubeVideo | None,
     ) -> list[Video]:
         videos: list[Video] = []
 
-        for position in sorted(manifest_songs):
-            youtube_video = youtube_songs[position]
-            manifest_title = manifest_songs[position]
+        for position, (track_number, manifest_title) in enumerate(
+            sorted(manifest_songs.items()),
+            start=1,
+        ):
+            youtube_video = youtube_songs[track_number]
 
             metadata = self._build_song_metadata(
                 manifest=manifest,
@@ -227,22 +232,23 @@ class AlbumBuilder:
                 )
             )
 
-        compilation_position = len(manifest.videos)
+        if youtube_compilation is not None:
+            compilation_position = len(videos) + 1
 
-        metadata = self._build_compilation_metadata(
-            manifest=manifest,
-            youtube_video=youtube_compilation,
-            position=compilation_position,
-        )
-
-        videos.append(
-            Video(
-                video_id=youtube_compilation.video_id,
+            metadata = self._build_compilation_metadata(
+                manifest=manifest,
+                youtube_video=youtube_compilation,
                 position=compilation_position,
-                video_type=VideoType.COMPILATION,
-                metadata=metadata,
             )
-        )
+
+            videos.append(
+                Video(
+                    video_id=youtube_compilation.video_id,
+                    position=compilation_position,
+                    video_type=VideoType.COMPILATION,
+                    metadata=metadata,
+                )
+            )
 
         return videos
 
