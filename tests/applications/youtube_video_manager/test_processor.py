@@ -14,6 +14,9 @@ from applications.youtube_video_manager.processor import (
     YouTubeVideoManagerProcessor,
 )
 from services.youtube.console import YouTubeConsole
+from services.youtube.video_id_overrides_reader import VideoIdOverridesReader
+from services.youtube.youtube_discovery import MissingYouTubeVideosError
+from domain.youtube.youtube_video import PrivacyStatus, YouTubeVideo
 
 
 @pytest.fixture
@@ -100,6 +103,11 @@ def console() -> Mock:
 
 
 @pytest.fixture
+def video_id_overrides_reader() -> Mock:
+    return Mock(spec=VideoIdOverridesReader)
+
+
+@pytest.fixture
 def processor(
     manifest_reader: Mock,
     youtube_discovery: Mock,
@@ -109,6 +117,7 @@ def processor(
     job_repository: Mock,
     failure_action: Mock,
     console: Mock,
+    video_id_overrides_reader: Mock,
 ) -> YouTubeVideoManagerProcessor:
     return YouTubeVideoManagerProcessor(
         manifest_reader=manifest_reader,
@@ -119,6 +128,8 @@ def processor(
         job_repository=job_repository,
         failure_action=failure_action,
         console=console,
+        video_id_overrides_reader=video_id_overrides_reader,
+        video_id_overrides_path=Path("config/youtube/video_id_overrides.yaml"),
     )
 
 
@@ -193,7 +204,9 @@ def test_failed_job_discard_creates_new_job(
 
     failed_job.retry.assert_not_called()
     manifest_reader.read.assert_called_once_with(manifest_path)
-    youtube_discovery.discover.assert_called_once_with(len(manifest.videos))
+    youtube_discovery.discover.assert_called_once_with(
+        expected_video_titles=manifest.videos
+    )
     album_builder.build.assert_called_once_with(manifest, youtube_videos)
     planner.plan.assert_called_once_with(album)
     updater.update.assert_called_once_with(new_job)
@@ -224,7 +237,9 @@ def test_no_existing_job_creates_new_job_from_manifest(
     processor.process(manifest_path)
 
     manifest_reader.read.assert_called_once_with(manifest_path)
-    youtube_discovery.discover.assert_called_once_with(len(manifest.videos))
+    youtube_discovery.discover.assert_called_once_with(
+        expected_video_titles=manifest.videos
+    )
     album_builder.build.assert_called_once_with(manifest, youtube_videos)
     planner.plan.assert_called_once_with(album)
     updater.update.assert_called_once_with(new_job)
@@ -410,4 +425,66 @@ def test_manifest_path_is_passed_unchanged(
     processor.process(manifest_path)
 
     assert manifest_reader.read.call_args.args == (manifest_path,)
+    updater.update.assert_called_once_with(new_job)
+
+
+def test_missing_playlist_videos_are_resolved_from_id_overrides(
+    processor: YouTubeVideoManagerProcessor,
+    manifest_path: Path,
+    job_repository: Mock,
+    manifest_reader: Mock,
+    youtube_discovery: Mock,
+    video_id_overrides_reader: Mock,
+    album_builder: Mock,
+    planner: Mock,
+    updater: Mock,
+    console: Mock,
+    manifest: Mock,
+) -> None:
+    job_repository.find_pending.return_value = None
+    job_repository.find_failed.return_value = None
+    manifest.videos = ("066 Existing title", "067 Manifest title")
+    manifest_reader.read.return_value = manifest
+    playlist_video = YouTubeVideo(
+        video_id="youtube-id-066",
+        title="066 Existing title",
+        description=None,
+        privacy_status=PrivacyStatus.PRIVATE,
+    )
+    youtube_discovery.discover.side_effect = MissingYouTubeVideosError(
+        discovered_videos=(playlist_video,),
+        missing_titles=("067 Manifest title",),
+        message="Missing from uploads playlist",
+    )
+    video_id_overrides_reader.read.return_value = {
+        "067 Manifest title": "youtube-id-067"
+    }
+    recovered_video = YouTubeVideo(
+        video_id="youtube-id-067",
+        title="067 Different YouTube title",
+        description=None,
+        privacy_status=PrivacyStatus.PRIVATE,
+    )
+    youtube_discovery.discover_by_video_ids.return_value = (
+        (recovered_video,),
+        (),
+    )
+    album = Mock(name="album")
+    album_builder.build.return_value = album
+    new_job = Mock(spec=Job)
+    planner.plan.return_value = new_job
+
+    processor.process(manifest_path)
+
+    console.videos_missing_from_uploads.assert_called_once_with(
+        ("067 Manifest title",)
+    )
+    youtube_discovery.discover_by_video_ids.assert_called_once_with(
+        expected_titles=("067 Manifest title",),
+        video_ids_by_title={"067 Manifest title": "youtube-id-067"},
+    )
+    album_builder.build.assert_called_once_with(
+        manifest,
+        (playlist_video, recovered_video),
+    )
     updater.update.assert_called_once_with(new_job)

@@ -2,9 +2,9 @@ OST
 
 "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/DESCARGAS/@Music/youtube_music/@/Sonic/3 Sonic CD (1993)/01 OST/videos",
+      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Fallout/04 Fallout - Brotherhood of Steel - 2004/01 Gamerip Tracks/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Sonic CD OST",
+      "default_video_name": "Fallout - Brotherhood of Steel - Gamerip Tracks",
       "default_target_duration": null,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
@@ -17,11 +17,11 @@ SOULCALIBUR
 
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "F:/@Seyfer/GRABACIONES/Soulcalibur VI/@Fights/02 holydwing",
+      "default_videos_dir": "D:/@Seyfer/GRABACIONES/Soulcalibur VI/@Fights/20 MiumauZone",
       "default_output_dir": "compilation",
-      "default_video_name": "Soulcalibur VI - 2.31 - Online - Ranked - holydwing - Amy VS Seyfer - Taki",
+      "default_video_name": "Soulcalibur VI - 2.31 - Online - Ranked - MiumauZone - Geralt VS Seyfer - Talim",
       "default_target_duration": 600,
-      "default_end_screens_dir": "F:/@Seyfer/GRABACIONES/Soulcalibur VI/@EndScreens/PC 48 KHz",
+      "default_end_screens_dir": "D:/@Seyfer/GRABACIONES/Soulcalibur VI/@EndScreens/PC 48 KHz",
       "default_random_end_screen": true,
       "default_timestamps_prefix": "Fight ",
       "default_timestamps_secuence": false,

@@ -6,7 +6,10 @@ import pytest
 
 from domain.youtube.youtube_video import PrivacyStatus, YouTubeVideo
 from services.youtube.api.methods import YouTubeMethods
-from services.youtube.youtube_discovery import YouTubeDiscovery
+from services.youtube.youtube_discovery import (
+    MissingYouTubeVideosError,
+    YouTubeDiscovery,
+)
 
 
 UPLOADS_PLAYLIST_ID = "UU_TEST_UPLOADS"
@@ -244,16 +247,18 @@ def test_discover_raises_when_expected_video_is_missing():
 
     discovery = YouTubeDiscovery(methods)
 
-    with pytest.raises(
-        RuntimeError,
-        match="Not all expected YouTube videos were discovered",
-    ):
+    with pytest.raises(MissingYouTubeVideosError) as exc:
         discovery.discover(
             expected_video_titles=(
                 "01 Opening Theme",
                 "02 Missing Theme",
             )
         )
+
+    assert [video.video_id for video in exc.value.discovered_videos] == [
+        "video-01"
+    ]
+    assert exc.value.missing_titles == ("02 Missing Theme",)
 
 
 def test_discover_raises_when_playlist_is_empty():
@@ -525,6 +530,52 @@ def test_discover_uses_multiple_pagination_strategies_until_all_expected_videos_
         "max_results": 23,
         "page_token": None,
     }
+
+
+def test_discover_by_video_ids_matches_number_when_title_differs():
+    methods = _create_methods()
+    methods.videos_list.return_value = {
+        "items": [
+            {
+                "id": "aB3dEfGhI12",
+                "snippet": {
+                    "title": "067 Alternate YouTube title",
+                    "description": "Description",
+                },
+                "status": {"privacyStatus": "private"},
+            }
+        ]
+    }
+
+    videos, unresolved = YouTubeDiscovery(methods).discover_by_video_ids(
+        expected_titles=("067 Manifest title",),
+        video_ids_by_title={"067 Manifest title": "aB3dEfGhI12"},
+    )
+
+    assert [video.video_id for video in videos] == ["aB3dEfGhI12"]
+    assert unresolved == ()
+    methods.videos_list.assert_called_once_with(video_ids=["aB3dEfGhI12"])
+
+
+def test_discover_by_video_ids_rejects_wrong_number_and_missing_id():
+    methods = _create_methods()
+    methods.videos_list.return_value = {
+        "items": [
+            {
+                "id": "aB3dEfGhI12",
+                "snippet": {"title": "068 Wrong number"},
+                "status": {"privacyStatus": "private"},
+            }
+        ]
+    }
+
+    videos, unresolved = YouTubeDiscovery(methods).discover_by_video_ids(
+        expected_titles=("067 Manifest title", "069 No mapping"),
+        video_ids_by_title={"067 Manifest title": "aB3dEfGhI12"},
+    )
+
+    assert videos == ()
+    assert unresolved == ("067 Manifest title", "069 No mapping")
 
 
 def test_build_max_results_strategy():

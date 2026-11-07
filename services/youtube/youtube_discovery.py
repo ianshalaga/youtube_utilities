@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from domain.youtube.youtube_video import PrivacyStatus, YouTubeVideo
@@ -8,6 +9,8 @@ from services.youtube.api.methods import YouTubeMethods
 
 class YouTubeDiscovery:
     """Discover the current album videos uploaded to YouTube."""
+
+    _VIDEO_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{11}$")
 
     def __init__(self, methods: YouTubeMethods) -> None:
         self._methods = methods
@@ -109,11 +112,79 @@ class YouTubeDiscovery:
             )
         ]
 
-        raise RuntimeError(
-            "Not all expected YouTube videos were discovered after "
-            f"{len(max_results_values)} pagination strategies. "
-            f"Missing: {', '.join(missing_titles)}."
+        raise MissingYouTubeVideosError(
+            discovered_videos=tuple(videos),
+            missing_titles=tuple(missing_titles),
+            message=(
+                "Not all expected YouTube videos were discovered after "
+                f"{len(max_results_values)} pagination strategies. "
+                f"Missing: {', '.join(missing_titles)}."
+            ),
         )
+
+    def discover_by_video_ids(
+        self,
+        expected_titles: tuple[str, ...],
+        video_ids_by_title: dict[str, str],
+    ) -> tuple[tuple[YouTubeVideo, ...], tuple[str, ...]]:
+        """Resolve missing manifest videos directly by their configured IDs.
+
+        Numbered videos are accepted only when the numeric prefix returned by
+        YouTube matches the prefix in the manifest title.
+        """
+        expected_ids = {
+            title: video_ids_by_title[title]
+            for title in expected_titles
+            if title in video_ids_by_title
+            and self._VIDEO_ID_PATTERN.fullmatch(
+                video_ids_by_title[title]
+            )
+        }
+        videos_by_id: dict[str, YouTubeVideo] = {}
+        ids = list(dict.fromkeys(expected_ids.values()))
+
+        for start in range(0, len(ids), 50):
+            response = self._methods.videos_list(
+                video_ids=ids[start : start + 50]
+            )
+            for item in response.get("items", []):
+                video_id = item.get("id")
+                snippet = item.get("snippet", {})
+                status = item.get("status", {})
+                if (
+                    not video_id
+                    or status.get("privacyStatus") != PrivacyStatus.PRIVATE.value
+                ):
+                    continue
+                videos_by_id[video_id] = YouTubeVideo(
+                    video_id=video_id,
+                    title=snippet["title"],
+                    description=snippet.get("description"),
+                    privacy_status=PrivacyStatus.PRIVATE,
+                )
+
+        resolved: list[YouTubeVideo] = []
+        unresolved: list[str] = []
+        for title in expected_titles:
+            video_id = expected_ids.get(title)
+            video = videos_by_id.get(video_id) if video_id else None
+            expected_number = self._extract_number_prefix(title)
+            actual_number = (
+                self._extract_number_prefix(video.title)
+                if video is not None
+                else None
+            )
+
+            if video is None or (
+                expected_number is not None
+                and actual_number != expected_number
+            ):
+                unresolved.append(title)
+                continue
+
+            resolved.append(video)
+
+        return tuple(resolved), tuple(unresolved)
 
     @staticmethod
     def _build_max_results_strategy() -> tuple[int, ...]:
@@ -190,3 +261,18 @@ class YouTubeDiscovery:
             description=snippet.get("description"),
             privacy_status=PrivacyStatus(status["privacyStatus"]),
         )
+
+
+class MissingYouTubeVideosError(RuntimeError):
+    """Raised when uploads playlist discovery leaves expected titles missing."""
+
+    def __init__(
+        self,
+        *,
+        discovered_videos: tuple[YouTubeVideo, ...],
+        missing_titles: tuple[str, ...],
+        message: str,
+    ) -> None:
+        super().__init__(message)
+        self.discovered_videos = discovered_videos
+        self.missing_titles = missing_titles

@@ -98,6 +98,14 @@ class ConfigManager:
         )
 
     @property
+    def youtube_video_manager_video_id_overrides_path(self) -> Path:
+        return Path(
+            self._config["apps"]["youtube_video_manager"][
+                "video_id_overrides_path"
+            ]
+        )
+
+    @property
     def youtube_video_manager_max_attempts(self) -> int:
         return self._config["apps"]["youtube_video_manager"]["max_attempts"]
 

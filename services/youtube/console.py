@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
 from domain.youtube.video import Video
 
@@ -31,6 +35,56 @@ class YouTubeConsole:
             "↻ [bold yellow]FAILED JOB · RETRYING[/bold yellow]"
         )
         self._console.print()
+
+    def videos_missing_from_uploads(self, titles: tuple[str, ...]) -> None:
+        table = Table(title="Videos missing from the uploads playlist")
+        table.add_column("#", style="dim", justify="right")
+        table.add_column("Manifest title", style="yellow")
+        for index, title in enumerate(titles, start=1):
+            table.add_row(str(index), title)
+        self._console.print(table)
+
+    def video_id_fallback_started(self, path: Path) -> None:
+        self._console.print(
+            Panel(
+                f"Checking the configured video ID overrides file:\n[cyan]{path}[/cyan]",
+                title="Trying ID fallback",
+                border_style="cyan",
+            )
+        )
+
+    def video_id_fallback_resolved(self, titles: tuple[str, ...]) -> None:
+        if not titles:
+            return
+        table = Table(title="Videos resolved by ID")
+        table.add_column("Manifest title", style="green")
+        for title in titles:
+            table.add_row(title)
+        self._console.print(table)
+
+    def video_id_fallback_error(self, message: str) -> None:
+        self._console.print(
+            Panel(
+                message,
+                title="Invalid video ID overrides",
+                border_style="red",
+            )
+        )
+
+    def video_id_fallback_failed(
+        self,
+        titles: tuple[str, ...],
+        path: Path,
+    ) -> None:
+        table = Table(title="Videos still unresolved", border_style="red")
+        table.add_column("Manifest title", style="red")
+        for title in titles:
+            table.add_row(title)
+        self._console.print(table)
+        self._console.print(
+            f"[yellow]Add each title and its YouTube ID to [bold]{path}[/bold], "
+            "or upload the missing videos, then run the app again.[/yellow]"
+        )
 
     def video_started(self, video: Video, index: int, total: int) -> None:
         """Display the video context before its operations are executed."""

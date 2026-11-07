@@ -49,6 +49,7 @@ from services.youtube.storage.repository import YouTubeJobRepository
 from services.youtube.storage.session import SessionLocal as YouTubeSessionLocal
 from services.youtube.updater import Updater
 from services.youtube.youtube_discovery import YouTubeDiscovery
+from services.youtube.video_id_overrides_reader import VideoIdOverridesReader
 
 # COMPOSITION
 from composition.video_music import VideoMusicProcessorFactory
@@ -261,6 +262,10 @@ def run_youtube_video_manager(config: ConfigManager) -> None:
             job_repository=job_repository,
             failure_action=_ask_youtube_failure_action,
             console=console,
+            video_id_overrides_reader=VideoIdOverridesReader(),
+            video_id_overrides_path=(
+                config.youtube_video_manager_video_id_overrides_path
+            ),
         )
 
         processor.process(
