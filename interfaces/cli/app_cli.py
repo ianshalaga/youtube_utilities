@@ -21,6 +21,7 @@ from core.config_manager import ConfigManager
 from applications.video_music.processor import VideoMusicProcessor
 from applications.video_music.input import VideoMusicInput
 from applications.video_joiner.processor import VideoJoinerProcessor
+from applications.video_joiner.console import VideoJoinerConsole
 from applications.ranking_system.create_db import create_db
 from applications.ranking_system.loaders.load_legacy import (
     run as load_legacy,
@@ -86,6 +87,7 @@ def run_video_joiner(config: ConfigManager) -> None:
     processor = VideoJoinerProcessor(
         mkvmerge_runner=mkvmerge_runner,
         ffprobe_provider=ffprobe_provider,
+        console=VideoJoinerConsole(),
     )
 
     videos_dir = Path(config.video_joiner_default_videos_dir)

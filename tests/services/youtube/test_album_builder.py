@@ -72,9 +72,10 @@ def _compilation(
     *,
     title: str = "Super Battle Sound Attack",
     description: str | None = "Existing compilation description",
+    video_id: str = "video-compilation",
 ) -> YouTubeVideo:
     return YouTubeVideo(
-        video_id="video-compilation",
+        video_id=video_id,
         title=title,
         description=description,
         privacy_status=PrivacyStatus.PRIVATE,
@@ -127,6 +128,96 @@ def test_builder_creates_album_from_manifest_and_youtube():
         "video-3",
         "video-compilation",
     ]
+
+
+def test_builder_supports_multiple_compilations_in_manifest_order():
+    manifest = _create_manifest(
+        videos=[
+            "01 Opening Theme",
+            "02 Battle Theme",
+            "Compilation Part 1",
+            "Compilation Part 2",
+        ]
+    )
+    youtube_videos = (
+        _compilation(
+            title="Compilation Part 2",
+            video_id="video-compilation-2",
+        ),
+        _compilation(
+            title="Compilation Part 1",
+            video_id="video-compilation-1",
+        ),
+        _song(2, title="02 Battle Theme"),
+        _song(1, title="01 Opening Theme"),
+    )
+
+    album = AlbumBuilder().build(manifest, youtube_videos)
+
+    assert [video.position for video in album.videos] == [1, 2, 3, 4]
+    assert [video.video_id for video in album.videos] == [
+        "video-1",
+        "video-2",
+        "video-compilation-1",
+        "video-compilation-2",
+    ]
+    assert [video.video_type for video in album.videos] == [
+        VideoType.SONG,
+        VideoType.SONG,
+        VideoType.COMPILATION,
+        VideoType.COMPILATION,
+    ]
+    assert [video.metadata.title for video in album.videos[-2:]] == [
+        "Compilation Part 1",
+        "Compilation Part 2",
+    ]
+
+
+def test_builder_requires_every_compilation_title_to_match_exactly():
+    manifest = _create_manifest(
+        videos=[
+            "01 Opening Theme",
+            "Compilation Part 1",
+            "Compilation Part 2",
+        ]
+    )
+    youtube_videos = (
+        _song(1, title="01 Opening Theme"),
+        _compilation(
+            title="Compilation Part 1",
+            video_id="video-compilation-1",
+        ),
+        _compilation(
+            title="Compilation Part 2 Extended",
+            video_id="video-compilation-2",
+        ),
+    )
+
+    with pytest.raises(AlbumBuildError) as exc:
+        AlbumBuilder().build(manifest, youtube_videos)
+
+    message = str(exc.value)
+    assert "Compilation Part 2" in message
+    assert "Compilation Part 2 Extended" in message
+
+
+def test_builder_rejects_song_after_compilation_entries():
+    manifest = _create_manifest(
+        videos=[
+            "01 Opening Theme",
+            "Compilation Part 1",
+            "02 Battle Theme",
+        ]
+    )
+
+    with pytest.raises(
+        AlbumBuildError,
+        match="Manifest songs must appear before compilation videos",
+    ):
+        AlbumBuilder().build(
+            manifest,
+            (_song(1, title="01 Opening Theme"),),
+        )
 
 
 def test_builder_creates_album_without_compilation():

@@ -38,8 +38,9 @@ class AlbumBuilder:
         """
         Build an Album from an album manifest and discovered YouTube videos.
 
-        YouTube videos may be returned in reverse upload order. Their logical
-        position is determined by the numeric prefix in their titles.
+        YouTube videos may be returned in a different order from the manifest.
+        Songs are matched by numeric prefix; unnumbered compilations are
+        matched by exact title and emitted in their manifest order.
 
         Raises:
             AlbumBuildError: If the manifest and YouTube videos cannot be matched.
@@ -49,18 +50,18 @@ class AlbumBuilder:
                 "No private YouTube videos were discovered."
             )
 
-        manifest_songs, manifest_compilation = self._parse_manifest(manifest)
+        manifest_songs, manifest_compilations = self._parse_manifest(manifest)
 
-        youtube_songs, youtube_compilation = self._parse_youtube_videos(
+        youtube_songs, youtube_compilations = self._parse_youtube_videos(
             youtube_videos,
-            expect_compilation=manifest_compilation is not None,
+            expect_compilations=bool(manifest_compilations),
         )
 
         missing, extra = self._find_mismatches(
             manifest_songs=manifest_songs,
-            manifest_compilation=manifest_compilation,
+            manifest_compilations=manifest_compilations,
             youtube_songs=youtube_songs,
-            youtube_compilation=youtube_compilation,
+            youtube_compilations=youtube_compilations,
         )
 
         if missing or extra:
@@ -74,8 +75,9 @@ class AlbumBuilder:
         videos = self._build_videos(
             manifest=manifest,
             manifest_songs=manifest_songs,
+            manifest_compilations=manifest_compilations,
             youtube_songs=youtube_songs,
-            youtube_compilation=youtube_compilation,
+            youtube_compilations=youtube_compilations,
         )
 
         return Album(
@@ -92,21 +94,28 @@ class AlbumBuilder:
     def _parse_manifest(
         self,
         manifest: AlbumManifest,
-    ) -> tuple[dict[int, str], str | None]:
+    ) -> tuple[dict[int, str], tuple[str, ...]]:
         songs: dict[int, str] = {}
-        compilation: str | None = None
+        compilations: list[str] = []
+        compilations_started = False
 
         for title in manifest.videos:
             match = self._SONG_TITLE_PATTERN.match(title)
 
             if match is None:
-                if compilation is not None:
+                if title in compilations:
                     raise AlbumBuildError(
-                        "Manifest contains more than one compilation."
+                        f"Manifest contains duplicate compilation title {title!r}."
                     )
 
-                compilation = title
+                compilations_started = True
+                compilations.append(title)
                 continue
+
+            if compilations_started:
+                raise AlbumBuildError(
+                    "Manifest songs must appear before compilation videos."
+                )
 
             position = int(match.group(1))
 
@@ -117,30 +126,31 @@ class AlbumBuilder:
 
             songs[position] = title
 
-        return songs, compilation
+        return songs, tuple(compilations)
 
     def _parse_youtube_videos(
         self,
         youtube_videos: Iterable[YouTubeVideo],
         *,
-        expect_compilation: bool,
-    ) -> tuple[dict[int, YouTubeVideo], YouTubeVideo | None]:
+        expect_compilations: bool,
+    ) -> tuple[dict[int, YouTubeVideo], dict[str, YouTubeVideo]]:
         songs: dict[int, YouTubeVideo] = {}
-        compilation: YouTubeVideo | None = None
+        compilations: dict[str, YouTubeVideo] = {}
 
         for video in youtube_videos:
             match = self._SONG_TITLE_PATTERN.match(video.title)
 
             if match is None:
-                if not expect_compilation:
+                if not expect_compilations:
                     continue
 
-                if compilation is not None:
+                if video.title in compilations:
                     raise AlbumBuildError(
-                        "YouTube discovery contains more than one compilation."
+                        "YouTube discovery contains duplicate compilation title "
+                        f"{video.title!r}."
                     )
 
-                compilation = video
+                compilations[video.title] = video
                 continue
 
             position = int(match.group(1))
@@ -153,15 +163,15 @@ class AlbumBuilder:
 
             songs[position] = video
 
-        return songs, compilation
+        return songs, compilations
     
 
     @staticmethod
     def _find_mismatches(
         manifest_songs: dict[int, str],
-        manifest_compilation: str | None,
+        manifest_compilations: tuple[str, ...],
         youtube_songs: dict[int, YouTubeVideo],
-        youtube_compilation: YouTubeVideo | None,
+        youtube_compilations: dict[str, YouTubeVideo],
     ) -> tuple[list[str], list[str]]:
         missing: list[str] = []
         extra: list[str] = []
@@ -175,13 +185,19 @@ class AlbumBuilder:
         for position in sorted(youtube_positions - manifest_positions):
             extra.append(youtube_songs[position].title)
 
-        if manifest_compilation is None:
-            pass
-        elif youtube_compilation is None:
-            missing.append(manifest_compilation)
-        elif youtube_compilation.title != manifest_compilation:
-            missing.append(manifest_compilation)
-            extra.append(youtube_compilation.title)
+        manifest_compilation_titles = set(manifest_compilations)
+        youtube_compilation_titles = set(youtube_compilations)
+
+        missing.extend(
+            title
+            for title in manifest_compilations
+            if title not in youtube_compilation_titles
+        )
+        extra.extend(
+            title
+            for title in youtube_compilations
+            if title not in manifest_compilation_titles
+        )
 
         return missing, extra
 
@@ -206,8 +222,9 @@ class AlbumBuilder:
         self,
         manifest: AlbumManifest,
         manifest_songs: dict[int, str],
+        manifest_compilations: tuple[str, ...],
         youtube_songs: dict[int, YouTubeVideo],
-        youtube_compilation: YouTubeVideo | None,
+        youtube_compilations: dict[str, YouTubeVideo],
     ) -> list[Video]:
         videos: list[Video] = []
 
@@ -232,7 +249,8 @@ class AlbumBuilder:
                 )
             )
 
-        if youtube_compilation is not None:
+        for compilation_title in manifest_compilations:
+            youtube_compilation = youtube_compilations[compilation_title]
             compilation_position = len(videos) + 1
 
             metadata = self._build_compilation_metadata(

@@ -37,10 +37,10 @@
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "H:/@Downloads/OST/02 In Progress/Fallout/04 Fallout - Brotherhood of Steel - 2004/01 Gamerip Tracks/videos",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Legacy of Kain/02 Legacy of Kain - Soul Reaver - 1999/01 Gamerip Tracks/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Fallout - Brotherhood of Steel - Gamerip Tracks",
-      "default_target_duration": null,
+      "default_video_name": "Legacy of Kain - Soul Reaver - Gamerip Tracks",
+      "default_target_duration": 36000,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
       "default_timestamps_prefix": "",

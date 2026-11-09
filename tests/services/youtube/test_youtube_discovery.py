@@ -364,6 +364,38 @@ def test_discover_matches_compilation_by_exact_title():
     assert [video.video_id for video in result] == ["video-compilation"]
 
 
+def test_discover_matches_multiple_compilations_by_exact_title():
+    methods = _create_methods()
+    methods.playlist_items_list.return_value = {
+        "items": [
+            _create_playlist_item(
+                "video-part-2",
+                "Album Compilation Part 2",
+                None,
+                "private",
+            ),
+            _create_playlist_item(
+                "video-part-1",
+                "Album Compilation Part 1",
+                None,
+                "private",
+            ),
+        ]
+    }
+
+    result = YouTubeDiscovery(methods).discover(
+        expected_video_titles=(
+            "Album Compilation Part 1",
+            "Album Compilation Part 2",
+        )
+    )
+
+    assert [video.video_id for video in result] == [
+        "video-part-2",
+        "video-part-1",
+    ]
+
+
 def test_discover_does_not_match_compilation_by_partial_title():
     methods = _create_methods()
 

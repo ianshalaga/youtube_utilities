@@ -14,8 +14,8 @@ NOTAS DE IMPLEMENTACIÓN PARA EL DESARROLLADOR
 - La posición es independiente del título del vídeo. Las compilaciones también
   tienen posición aunque su título no contenga un número.
 - Las canciones ocupan las primeras posiciones del álbum según el orden
-  definido por el manifest. Las compilaciones ocupan las posiciones siguientes
-  según su orden de subida a YouTube.
+  numérico de sus títulos. Las compilaciones ocupan las posiciones siguientes
+  según el orden en el que aparecen en el manifest.
 - VideoType distingue entre canciones y compilaciones.
 - `video_id` es el identificador del vídeo en YouTube.
 - `metadata` representa el estado que la aplicación pretende

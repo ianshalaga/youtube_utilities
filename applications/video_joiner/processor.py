@@ -29,6 +29,7 @@ from services.media.video.compatibility_validator import VideoCompatibilityValid
 from services.media.video.joiner.partitioner import VideoPartitioner
 from services.media.video.joiner.end_screen_selector import EndScreenSelector
 from services.media.video.joiner.timestamp_file_builder import TimestampFileBuilder
+from applications.video_joiner.progress import VideoJoinerProgressReporter
 
 
 class VideoJoinerProcessor:
@@ -40,11 +41,13 @@ class VideoJoinerProcessor:
         self,
         mkvmerge_runner: MKVMergeRunner,
         ffprobe_provider: FFProbeProvider,
-        max_items_per_dir: int | None = None
+        max_items_per_dir: int | None = None,
+        console: VideoJoinerProgressReporter | None = None,
     ):
         self._config = ConfigManager()
         self._probe_provider = ffprobe_provider
         self._mkvmerge_runner = mkvmerge_runner
+        self._console = console
         self._validator = VideoCompatibilityValidator(self._probe_provider)
         self._partitioner = VideoPartitioner(self._probe_provider)
         self._end_screen_selector = EndScreenSelector()
@@ -62,6 +65,36 @@ class VideoJoinerProcessor:
         )
 
     def process(
+        self,
+        videos_dir: Path,
+        output_dir: Path,
+        base_name: str,
+        *,
+        target_duration: float | None = None,
+        end_screens_dir: Path | None = None,
+        random_end_screen: bool = False,
+        timestamps_prefix: str = "",
+        timestamps_secuence: bool = True,
+        extra_description: str | None = None,
+    ) -> None:
+        try:
+            self._process(
+                videos_dir=videos_dir,
+                output_dir=output_dir,
+                base_name=base_name,
+                target_duration=target_duration,
+                end_screens_dir=end_screens_dir,
+                random_end_screen=random_end_screen,
+                timestamps_prefix=timestamps_prefix,
+                timestamps_secuence=timestamps_secuence,
+                extra_description=extra_description,
+            )
+        except Exception as error:
+            if self._console is not None:
+                self._console.job_failed(error)
+            raise
+
+    def _process(
         self,
         videos_dir: Path,
         output_dir: Path,
@@ -99,6 +132,15 @@ class VideoJoinerProcessor:
         total_parts = len(partitions)
         max_workers = min(self._max_workers, total_parts)
 
+        if self._console is not None:
+            self._console.job_started(
+                videos_dir=videos_dir,
+                output_dir=output_dir,
+                total_videos=len(videos),
+                total_parts=total_parts,
+                target_duration=target_duration,
+            )
+
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
 
@@ -121,6 +163,9 @@ class VideoJoinerProcessor:
 
             for future in as_completed(futures):
                 future.result()
+
+        if self._console is not None:
+            self._console.job_completed(total_parts, output_dir)
 
     def _build_mkvmerge_command(
         self,
@@ -162,10 +207,21 @@ class VideoJoinerProcessor:
             else base_name
         )
 
+        final_output = output_dir / f"{output_name}.mkv"
+        timestamps_path = output_dir / f"{output_name}.txt"
+
+        if self._console is not None:
+            self._console.part_started(
+                index=index + 1,
+                total_parts=total_parts,
+                videos=part_videos,
+                output_path=final_output,
+            )
+
         temp_dir = output_dir / output_name
-        temp_dir.mkdir(exist_ok=True)
 
         try:
+            temp_dir.mkdir(exist_ok=True)
             end_screen = None
             if end_screens_dir is not None:
                 end_screen = self._end_screen_selector.select(
@@ -195,10 +251,8 @@ class VideoJoinerProcessor:
                     f"mkvmerge no generó el archivo esperado: {temp_output}"
                 )
 
-            final_output = output_dir / f"{output_name}.mkv"
             shutil.move(str(temp_output), str(final_output))
 
-            timestamps_path = output_dir / f"{output_name}.txt"
             self._timestamp_builder.build(
                 videos=final_videos,
                 output_path=timestamps_path,
@@ -206,6 +260,24 @@ class VideoJoinerProcessor:
                 secuence=timestamps_secuence,
                 extra_description=extra_description
             )
+
+            if self._console is not None:
+                self._console.part_completed(
+                    index=index + 1,
+                    total_parts=total_parts,
+                    output_path=final_output,
+                    timestamps_path=timestamps_path,
+                )
+
+        except Exception as error:
+            if self._console is not None:
+                self._console.part_failed(
+                    index=index + 1,
+                    total_parts=total_parts,
+                    output_path=final_output,
+                    error=error,
+                )
+            raise
 
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
