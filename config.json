@@ -34,12 +34,11 @@
     ]
   },
   "dry_run": false,
-  "max_workers": 4,
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "D:\\@Seyfer\\Proyectos\\@YouTube\\OST\\02 In Progress\\Super Smash Bros\\03 Super Smash Bros. Brawl - 2008\\03 Originals & Remixes UST",
-      "default_video_path": "D:\\@Seyfer\\Proyectos\\@YouTube\\OST\\02 In Progress\\Super Smash Bros\\03 Super Smash Bros. Brawl - 2008\\03 Originals & Remixes UST\\images\\video.mp4",
+      "default_audios_dir": "D:\\@Seyfer\\Proyectos\\@YouTube\\OST\\02 In Progress\\Super Smash Bros\\03 Super Smash Bros. Brawl - 2008\\04 Harmony of Heroes",
+      "default_video_path": "D:\\@Seyfer\\Proyectos\\@YouTube\\OST\\02 In Progress\\Super Smash Bros\\03 Super Smash Bros. Brawl - 2008\\04 Harmony of Heroes\\images\\video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
