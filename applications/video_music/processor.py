@@ -22,6 +22,7 @@ NOTAS DE IMPLEMENTACIÓN (uso personal)
 
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import shutil
 
 from core.concurrency import calculate_max_workers
 from core.time_utils import seconds_to_hhmmss_ms
@@ -126,7 +127,11 @@ class VideoMusicProcessor:
                 f"{duplicates_description}"
             )
 
-        output_dir.mkdir(parents=True, exist_ok=True)
+        self._prepare_output_dir(
+            output_dir=output_dir,
+            audios_dir=audios_dir,
+            video_path=video_path,
+        )
 
         total_tracks = len(audio_files)
         total_directories = max(
@@ -202,6 +207,36 @@ class VideoMusicProcessor:
             tracks=tuple(track_results),
             total_directories=total_directories,
         )
+
+    @staticmethod
+    def _prepare_output_dir(
+        *,
+        output_dir: Path,
+        audios_dir: Path,
+        video_path: Path,
+    ) -> None:
+        """Create a clean output directory without deleting source media."""
+        resolved_output_dir = output_dir.resolve()
+        resolved_audios_dir = audios_dir.resolve()
+        resolved_video_path = video_path.resolve()
+
+        if resolved_audios_dir.is_relative_to(resolved_output_dir):
+            raise ValueError(
+                "El directorio de salida no puede contener el directorio "
+                "de audios fuente."
+            )
+
+        if resolved_video_path.is_relative_to(resolved_output_dir):
+            raise ValueError(
+                "El directorio de salida no puede contener el vídeo base."
+            )
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        for entry in output_dir.iterdir():
+            if entry.is_dir() and not entry.is_symlink():
+                shutil.rmtree(entry)
+            else:
+                entry.unlink()
 
     def _process_single(
         self,

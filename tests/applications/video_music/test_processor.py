@@ -156,6 +156,51 @@ def test_process_rejects_audio_files_with_duplicate_stems(
     console.job_started.assert_not_called()
 
 
+def test_process_clears_existing_output_before_creating_results(
+    tmp_path: Path,
+    monkeypatch,
+    processor_factory,
+) -> None:
+    processor, _ = processor_factory()
+    input_data = make_input(tmp_path)
+    audio_files = make_audio_files(input_data.audios_dir, ("01-track.mp3",))
+    set_discovered_audio_files(monkeypatch, audio_files)
+
+    stale_directory = input_data.output_dir / "old-partition"
+    stale_directory.mkdir(parents=True)
+    stale_file = input_data.output_dir / "old-result.mkv"
+    stale_file.write_bytes(b"old result")
+    (stale_directory / "old-track.mkv").write_bytes(b"old result")
+
+    result = processor.process(input_data)
+
+    assert not stale_file.exists()
+    assert not stale_directory.exists()
+    assert result.tracks[0].output_path.is_file()
+
+
+def test_process_rejects_output_directory_that_contains_source_audios(
+    tmp_path: Path,
+    monkeypatch,
+    processor_factory,
+) -> None:
+    processor, _ = processor_factory()
+    input_data = make_input(tmp_path)
+    audio_files = make_audio_files(input_data.audios_dir, ("01-track.mp3",))
+    set_discovered_audio_files(monkeypatch, audio_files)
+    input_data = VideoMusicInput(
+        max_items_per_dir=input_data.max_items_per_dir,
+        audios_dir=input_data.audios_dir,
+        video_path=input_data.video_path,
+        output_dir=input_data.audios_dir,
+    )
+
+    with pytest.raises(ValueError, match="audios fuente"):
+        processor.process(input_data)
+
+    assert audio_files[0].exists()
+
+
 def test_process_returns_track_results_and_cleans_temporary_audio(
     tmp_path: Path,
     monkeypatch,
