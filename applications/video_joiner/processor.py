@@ -18,9 +18,9 @@ NOTAS DE IMPLEMENTACIÓN (uso personal)
 from pathlib import Path
 from typing import Iterable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import os
 import shutil
 
+from core.concurrency import calculate_max_workers
 from core.config_manager import ConfigManager
 from services.media.ffprobe_provider import FFProbeProvider
 from services.media.discovery.media_discovery import MediaDiscoveryService
@@ -57,11 +57,6 @@ class VideoJoinerProcessor:
             max_items_per_dir
             if max_items_per_dir is not None
             else self._config.video_joiner_max_items_per_dir
-        )
-
-        self._max_workers = min(
-            max(1, os.cpu_count() - 1),
-            self._max_items_per_dir
         )
 
     def process(
@@ -130,7 +125,10 @@ class VideoJoinerProcessor:
         )
 
         total_parts = len(partitions)
-        max_workers = min(self._max_workers, total_parts)
+        max_workers = calculate_max_workers(
+            total_parts,
+            worker_limit=self._max_items_per_dir,
+        )
 
         if self._console is not None:
             self._console.job_started(

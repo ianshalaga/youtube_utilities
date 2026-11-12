@@ -22,8 +22,8 @@ NOTAS DE IMPLEMENTACIÓN (uso personal)
 
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import os
 
+from core.concurrency import calculate_max_workers
 from core.time_utils import seconds_to_hhmmss_ms
 
 from applications.video_music.console import VideoMusicConsole
@@ -111,8 +111,7 @@ class VideoMusicProcessor:
             (total_tracks + max_items_per_dir - 1) // max_items_per_dir,
         )
 
-        cpu_workers = max(1, (os.cpu_count() or 1) - 1)
-        max_workers = min(cpu_workers, total_tracks)
+        max_workers = calculate_max_workers(total_tracks)
         output_partitioner = OutputDirectoryPartitioner(max_items_per_dir)
 
         self._console.job_started(
