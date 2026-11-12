@@ -134,6 +134,28 @@ def test_process_rejects_empty_audio_discovery(
         processor.process(input_data)
 
 
+def test_process_rejects_audio_files_with_duplicate_stems(
+    tmp_path: Path,
+    monkeypatch,
+    processor_factory,
+) -> None:
+    processor, console = processor_factory()
+    input_data = make_input(tmp_path)
+    audio_files = make_audio_files(
+        input_data.audios_dir,
+        ("theme.mp3", "theme.flac"),
+    )
+    set_discovered_audio_files(monkeypatch, audio_files)
+
+    with pytest.raises(ValueError, match="mismo nombre base") as error:
+        processor.process(input_data)
+
+    assert "theme.mp3" in str(error.value)
+    assert "theme.flac" in str(error.value)
+    assert not input_data.output_dir.exists()
+    console.job_started.assert_not_called()
+
+
 def test_process_returns_track_results_and_cleans_temporary_audio(
     tmp_path: Path,
     monkeypatch,

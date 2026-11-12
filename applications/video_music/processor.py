@@ -81,7 +81,8 @@ class VideoMusicProcessor:
         Procesa un directorio de canciones y devuelve el resultado de cada pista.
 
         Raises:
-            ValueError: Si el límite es inválido o no se encuentran audios.
+            ValueError: Si el límite es inválido, no se encuentran audios o
+                hay pistas con el mismo nombre base.
             FileNotFoundError: Si el video base no existe.
         """
         video_path = input_data.video_path
@@ -102,6 +103,28 @@ class VideoMusicProcessor:
 
         if not audio_files:
             raise ValueError("No se encontraron archivos de audio.")
+
+        audio_files_by_stem: dict[str, list[str]] = {}
+        for audio_path in audio_files:
+            audio_files_by_stem.setdefault(
+                audio_path.stem.casefold(),
+                [],
+            ).append(audio_path.name)
+
+        duplicate_audio_files = [
+            filenames
+            for filenames in audio_files_by_stem.values()
+            if len(filenames) > 1
+        ]
+        if duplicate_audio_files:
+            duplicates_description = "; ".join(
+                ", ".join(filenames)
+                for filenames in duplicate_audio_files
+            )
+            raise ValueError(
+                "Se encontraron pistas con el mismo nombre base: "
+                f"{duplicates_description}"
+            )
 
         output_dir.mkdir(parents=True, exist_ok=True)
 
