@@ -112,7 +112,7 @@ class VideoMusicProcessor:
         )
 
         cpu_workers = max(1, (os.cpu_count() or 1) - 1)
-        max_workers = min(cpu_workers, max_items_per_dir)
+        max_workers = min(cpu_workers, total_tracks)
         output_partitioner = OutputDirectoryPartitioner(max_items_per_dir)
 
         self._console.job_started(
