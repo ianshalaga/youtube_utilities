@@ -9,7 +9,10 @@ from domain.youtube.job import Job, JobStatus
 from domain.youtube.operation import Operation, OperationStatus, OperationType
 from domain.youtube.video import Video, VideoType
 from domain.youtube.video_metadata import VideoMetadata
-from services.youtube.api.methods import YouTubeQuotaExceededError
+from services.youtube.api.methods import (
+    YouTubeQuotaExceededError,
+    YouTubeThumbnailRateLimitExceededError,
+)
 from services.youtube.updater import JobRepository, Updater
 from services.youtube.console import YouTubeConsole
 
@@ -664,6 +667,45 @@ def test_quota_is_not_reported_as_normal_operation_failure(
 
     assert "Operation failed" not in output
     assert "Job failed" not in output
+
+
+def test_thumbnail_rate_limit_defers_thumbnail_and_continues_other_operations(
+    updater: Updater,
+    youtube_methods: MagicMock,
+    job_repository: MagicMock,
+    update_metadata_operation: Operation,
+    thumbnail_operation: Operation,
+    playlist_operation: Operation,
+    console: MagicMock,
+) -> None:
+    youtube_methods.thumbnails_set.side_effect = (
+        YouTubeThumbnailRateLimitExceededError(
+            "thumbnail upload rate limit exceeded"
+        )
+    )
+    job = Job(
+        [
+            update_metadata_operation,
+            thumbnail_operation,
+            playlist_operation,
+        ]
+    )
+
+    updater.update(job)
+
+    assert update_metadata_operation.status is OperationStatus.COMPLETED
+    assert thumbnail_operation.status is OperationStatus.PENDING
+    assert playlist_operation.status is OperationStatus.COMPLETED
+    assert job.status is JobStatus.PENDING
+    assert youtube_methods.videos_update.call_count == 1
+    assert youtube_methods.thumbnails_set.call_count == 1
+    assert youtube_methods.playlist_items_insert.call_count == 1
+    job_repository.save.assert_called_once_with(job)
+    console.thumbnail_rate_limit_deferred.assert_called_once_with(
+        thumbnail_operation.video
+    )
+    console.job_operations_deferred.assert_called_once_with(1)
+    console.job_completed.assert_not_called()
 
 
 def test_resume_running_job_skips_completed_and_continues_pending(

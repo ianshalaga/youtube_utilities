@@ -109,6 +109,19 @@ class YouTubeConsole:
             "⚠ [bold yellow]YOUTUBE QUOTA EXCEEDED · JOB PAUSED[/bold yellow]"
         )
 
+    def thumbnail_rate_limit_deferred(self, video: Video) -> None:
+        self._console.print(
+            "⚠ [bold yellow]THUMBNAIL RATE LIMIT · OPERATION DEFERRED[/bold yellow]"
+        )
+        self._console.print(f"  [bold]{video.metadata.title}[/bold]")
+        self._console.print(f"  ID: [dim]{video.video_id}[/dim]")
+
+    def job_operations_deferred(self, count: int) -> None:
+        label = "operation" if count == 1 else "operations"
+        self._console.print(
+            f"↻ [bold yellow]JOB PENDING · {count} thumbnail {label} deferred[/bold yellow]"
+        )
+
     def job_failed(self) -> None:
         """Report that the Job failed permanently."""
         self._console.print()

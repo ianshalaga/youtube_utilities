@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import Enum, auto
 from pathlib import Path
 
 from domain.youtube.job import Job, JobStatus
@@ -15,7 +16,14 @@ from services.youtube.console import YouTubeConsole
 from services.youtube.api.methods import (
     YouTubeMethods,
     YouTubeQuotaExceededError,
+    YouTubeThumbnailRateLimitExceededError,
 )
+
+
+class _OperationExecutionResult(Enum):
+    COMPLETED = auto()
+    DEFERRED = auto()
+    INTERRUPTED = auto()
 
 
 class Updater:
@@ -47,8 +55,8 @@ class Updater:
         Execute a Job from its current state.
 
         Completed operations are skipped. Pending operations are executed in
-        their existing order until the Job completes, quota is exhausted, or
-        an operation fails definitively.
+        their existing order until the Job completes, shared quota is exhausted,
+        an operation is deferred, or an operation fails definitively.
         """
         if job.status is JobStatus.PENDING:
             job.start()
@@ -58,6 +66,8 @@ class Updater:
             )
 
         video_order: dict[str, int] = {}
+
+        deferred_operations = 0
 
         for operation in job.operations:
             video_id = operation.video.video_id
@@ -85,28 +95,46 @@ class Updater:
                     "during an update."
                 )
 
-            if self._execute_operation(job, operation):
+            result = self._execute_operation(job, operation)
+            if result is _OperationExecutionResult.COMPLETED:
+                continue
+            if result is _OperationExecutionResult.DEFERRED:
+                deferred_operations += 1
                 continue
 
+            return
+
+        if deferred_operations:
+            job.reset()
+            self._job_repository.save(job)
+            self._console.job_operations_deferred(deferred_operations)
             return
 
         job.complete()
         self._job_repository.save(job)
         self._console.job_completed()
 
-    def _execute_operation(self, job: Job, operation: Operation) -> bool:
-        """Execute one pending operation and return whether it completed."""
+    def _execute_operation(
+        self,
+        job: Job,
+        operation: Operation,
+    ) -> _OperationExecutionResult:
+        """Execute one pending operation and report its execution result."""
         operation.start()
 
         for attempt in range(1, self._max_attempts + 1):
             try:
                 self._dispatch(operation)
+            except YouTubeThumbnailRateLimitExceededError:
+                operation.reset()
+                self._console.thumbnail_rate_limit_deferred(operation.video)
+                return _OperationExecutionResult.DEFERRED
             except YouTubeQuotaExceededError:
                 operation.reset()
                 job.reset()
                 self._job_repository.save(job)
                 self._console.job_quota_exceeded()
-                return False
+                return _OperationExecutionResult.INTERRUPTED
             except Exception as error:
                 self._report_operation_failure(operation, attempt, error)
 
@@ -116,14 +144,14 @@ class Updater:
                     self._job_repository.save(job)
                     self._report_job_failure(operation, error)
                     self._console.job_failed()
-                    return False
+                    return _OperationExecutionResult.INTERRUPTED
 
                 # The operation remains RUNNING between normal retry attempts.
                 # The next API call is another attempt of the same operation.
                 continue
             else:
                 operation.complete()
-                return True
+                return _OperationExecutionResult.COMPLETED
 
         raise RuntimeError("Unreachable execution state.")
 

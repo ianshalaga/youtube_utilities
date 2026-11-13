@@ -8,6 +8,7 @@ from services.youtube.api.methods import (
     YouTubeApiError,
     YouTubeMethods,
     YouTubeQuotaExceededError,
+    YouTubeThumbnailRateLimitExceededError,
 )
 
 
@@ -394,6 +395,38 @@ def test_execute_translates_quota_exceeded_error(methods):
 
     assert str(exception.value) == (
         "YouTube API quota has been exceeded."
+    )
+
+
+def test_execute_translates_thumbnail_upload_rate_limit(methods):
+    error = HttpError(
+        resp=MagicMock(status=429),
+        content=(
+            b'{"error": {"errors": '
+            b'[{"reason": "uploadRateLimitExceeded"}]}}'
+        ),
+    )
+    request = MagicMock()
+    request.execute.side_effect = error
+
+    with pytest.raises(YouTubeThumbnailRateLimitExceededError):
+        methods._execute("thumbnails.set", request)
+
+
+def test_thumbnail_upload_rate_limit_is_scoped_to_thumbnail_endpoint(methods):
+    error = HttpError(
+        resp=MagicMock(status=429),
+        content=b'{"reason": "uploadRateLimitExceeded"}',
+    )
+    request = MagicMock()
+    request.execute.side_effect = error
+
+    with pytest.raises(YouTubeApiError) as exception:
+        methods._execute("videos.update", request)
+
+    assert not isinstance(
+        exception.value,
+        YouTubeThumbnailRateLimitExceededError,
     )
 
 

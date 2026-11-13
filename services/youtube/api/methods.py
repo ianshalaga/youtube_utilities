@@ -18,6 +18,10 @@ class YouTubeQuotaExceededError(YouTubeApiError):
     """Raised when YouTube rejects a request because the quota is exhausted."""
 
 
+class YouTubeThumbnailRateLimitExceededError(YouTubeApiError):
+    """Raised when YouTube temporarily limits thumbnail uploads."""
+
+
 class YouTubeMethods:
     """Provide concrete operations against the YouTube Data API."""
 
@@ -172,6 +176,18 @@ class YouTubeMethods:
         try:
             response = request.execute()
         except HttpError as error:
+            if (
+                operation == "thumbnails.set"
+                and self._is_thumbnail_upload_rate_limited(error)
+            ):
+                self._console.print(
+                    f"[yellow][YouTube API][/yellow] "
+                    f"[bold]{operation}[/bold] → uploadRateLimitExceeded"
+                )
+                raise YouTubeThumbnailRateLimitExceededError(
+                    "YouTube temporarily limited thumbnail uploads."
+                ) from error
+
             if self._is_quota_exceeded(error):
                 self._console.print(
                     f"[red][YouTube API][/red] "
@@ -204,3 +220,16 @@ class YouTubeMethods:
             content = content.decode("utf-8", errors="replace")
 
         return "quotaExceeded" in str(content)
+
+    @staticmethod
+    def _is_thumbnail_upload_rate_limited(error: HttpError) -> bool:
+        """Return whether YouTube reports its thumbnail upload rate limit."""
+        content = error.content
+
+        if isinstance(content, bytes):
+            content = content.decode("utf-8", errors="replace")
+
+        return (
+            error.resp.status == 429
+            and "uploadRateLimitExceeded" in str(content)
+        )
