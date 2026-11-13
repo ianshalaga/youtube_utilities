@@ -52,7 +52,7 @@ def processor_factory():
             mkvmerge_runner=FakeMKVMergeRunner(),
             audio_converter=FakeAudioConverter(failing_stems),
             ffprobe_provider=FakeFFProbeProvider(),
-            audio_supported_extensions={".mp3", ".wav", ".flac"},
+            audio_supported_extensions={"mp3", "wav", "flac"},
             paths_mkvmerge="mkvmerge",
             console=console,
         )
@@ -203,7 +203,6 @@ def test_process_rejects_output_directory_that_contains_source_audios(
 
 def test_process_returns_track_results_and_cleans_temporary_audio(
     tmp_path: Path,
-    monkeypatch,
     processor_factory,
 ) -> None:
     processor, console = processor_factory()
@@ -212,7 +211,6 @@ def test_process_returns_track_results_and_cleans_temporary_audio(
         input_data.audios_dir,
         ("01-first.mp3", "02-second.flac"),
     )
-    set_discovered_audio_files(monkeypatch, audio_files)
 
     result = processor.process(input_data)
 

@@ -43,9 +43,9 @@
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/03 Super Smash Bros. Brawl - 2008/03 Originals & Remixes UST/videos",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/03 Super Smash Bros. Brawl - 2008/04 Harmony of Heroes/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Super Smash Bros. Brawl - Originals & Remixes UST",
+      "default_video_name": "Super Smash Bros. Music - Harmony of Heroes",
       "default_target_duration": 36000,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
