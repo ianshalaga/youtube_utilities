@@ -378,10 +378,18 @@ def test_execute_returns_response(methods):
     assert result == {"success": True}
 
 
-def test_execute_translates_quota_exceeded_error(methods):
+@pytest.mark.parametrize(
+    "reason",
+    ["quotaExceeded", "dailyLimitExceeded"],
+)
+def test_execute_translates_quota_exceeded_error(methods, reason):
     error = HttpError(
         resp=MagicMock(status=403),
-        content=b'{"error": {"errors": [{"reason": "quotaExceeded"}]}}',
+        content=(
+            '{"error": {"errors": [{"reason": "'
+            f'{reason}'
+            '"}]}}'
+        ).encode(),
     )
 
     request = MagicMock()
@@ -454,6 +462,7 @@ def test_execute_translates_other_http_error(methods):
     "content",
     [
         b'{"reason": "quotaExceeded"}',
+        b'{"reason": "dailyLimitExceeded"}',
     ],
 )
 def test_is_quota_exceeded_detects_quota_error(methods, content):

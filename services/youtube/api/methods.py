@@ -219,7 +219,11 @@ class YouTubeMethods:
         if isinstance(content, bytes):
             content = content.decode("utf-8", errors="replace")
 
-        return "quotaExceeded" in str(content)
+        content = str(content)
+        return any(
+            reason in content
+            for reason in ("quotaExceeded", "dailyLimitExceeded")
+        )
 
     @staticmethod
     def _is_thumbnail_upload_rate_limited(error: HttpError) -> bool:
