@@ -13,7 +13,6 @@ def test_create_processor_composes_youtube_video_manager_dependencies():
     config.youtube_video_manager_max_attempts = 4
     config.youtube_video_manager_video_id_overrides_path = Path("ids.yaml")
     session = MagicMock()
-    failure_action = MagicMock()
     console = MagicMock()
 
     with (
@@ -33,7 +32,6 @@ def test_create_processor_composes_youtube_video_manager_dependencies():
         result = YouTubeVideoManagerProcessorFactory.create_processor(
             config=config,
             session=session,
-            failure_action=failure_action,
             console=console,
         )
 
@@ -62,7 +60,6 @@ def test_create_processor_composes_youtube_video_manager_dependencies():
         planner=planner.return_value,
         updater=updater.return_value,
         job_repository=repository.return_value,
-        failure_action=failure_action,
         console=console,
         video_id_overrides_reader=overrides_reader.return_value,
         video_id_overrides_path=Path("ids.yaml"),

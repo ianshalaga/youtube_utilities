@@ -1,22 +1,24 @@
 from pathlib import Path
-from unittest.mock import Mock, call
+from unittest.mock import Mock
 
 import pytest
 
-from domain.youtube.job import Job, JobStatus
-from services.youtube.album_builder import AlbumBuilder
-from services.youtube.planner import Planner
-from services.youtube.youtube_discovery import YouTubeDiscovery
-from services.youtube.album_manifest.yaml_reader import YamlReader
 from applications.youtube_video_manager.processor import (
-    JobRepository,
-    Updater,
     YouTubeVideoManagerProcessor,
 )
-from services.youtube.console import YouTubeConsole
-from services.youtube.video_id_overrides_reader import VideoIdOverridesReader
-from services.youtube.youtube_discovery import MissingYouTubeVideosError
+from domain.youtube.job import Job
+from domain.youtube.job_repository import JobRepository
 from domain.youtube.youtube_video import PrivacyStatus, YouTubeVideo
+from services.youtube.album_builder import AlbumBuilder
+from services.youtube.album_manifest.yaml_reader import YamlReader
+from services.youtube.console import YouTubeConsole
+from services.youtube.planner import Planner
+from services.youtube.updater import Updater
+from services.youtube.video_id_overrides_reader import VideoIdOverridesReader
+from services.youtube.youtube_discovery import (
+    MissingYouTubeVideosError,
+    YouTubeDiscovery,
+)
 
 
 @pytest.fixture
@@ -27,464 +29,129 @@ def manifest_path() -> Path:
 @pytest.fixture
 def manifest() -> Mock:
     value = Mock(name="manifest")
-    value.videos = [Mock(name="manifest_video")]
+    value.videos = ("066 Existing title", "067 Manifest title")
     return value
 
 
 @pytest.fixture
-def youtube_videos() -> list:
-    return [Mock(name="youtube_video")]
+def dependencies():
+    return {
+        "manifest_reader": Mock(spec=YamlReader),
+        "youtube_discovery": Mock(spec=YouTubeDiscovery),
+        "album_builder": Mock(spec=AlbumBuilder),
+        "planner": Mock(spec=Planner),
+        "updater": Mock(spec=Updater),
+        "job_repository": Mock(spec=JobRepository),
+        "console": Mock(spec=YouTubeConsole),
+        "video_id_overrides_reader": Mock(spec=VideoIdOverridesReader),
+    }
 
 
 @pytest.fixture
-def album() -> Mock:
-    return Mock(name="album")
-
-
-@pytest.fixture
-def job() -> Mock:
-    value = Mock(spec=Job)
-    value.status = JobStatus.PENDING
-    return value
-
-
-@pytest.fixture
-def pending_job() -> Mock:
-    value = Mock(spec=Job)
-    value.status = JobStatus.PENDING
-    return value
-
-
-@pytest.fixture
-def failed_job() -> Mock:
-    value = Mock(spec=Job)
-    value.status = JobStatus.FAILED
-    return value
-
-
-@pytest.fixture
-def manifest_reader() -> Mock:
-    return Mock(spec=YamlReader)
-
-
-@pytest.fixture
-def youtube_discovery() -> Mock:
-    return Mock(spec=YouTubeDiscovery)
-
-
-@pytest.fixture
-def album_builder() -> Mock:
-    return Mock(spec=AlbumBuilder)
-
-
-@pytest.fixture
-def planner() -> Mock:
-    return Mock(spec=Planner)
-
-
-@pytest.fixture
-def updater() -> Mock:
-    return Mock(spec=Updater)
-
-
-@pytest.fixture
-def job_repository() -> Mock:
-    return Mock(spec=JobRepository)
-
-
-@pytest.fixture
-def failure_action() -> Mock:
-    return Mock(return_value="retry")
-
-
-@pytest.fixture
-def console() -> Mock:
-    return Mock(spec=YouTubeConsole)
-
-
-@pytest.fixture
-def video_id_overrides_reader() -> Mock:
-    return Mock(spec=VideoIdOverridesReader)
-
-
-@pytest.fixture
-def processor(
-    manifest_reader: Mock,
-    youtube_discovery: Mock,
-    album_builder: Mock,
-    planner: Mock,
-    updater: Mock,
-    job_repository: Mock,
-    failure_action: Mock,
-    console: Mock,
-    video_id_overrides_reader: Mock,
-) -> YouTubeVideoManagerProcessor:
+def processor(dependencies) -> YouTubeVideoManagerProcessor:
     return YouTubeVideoManagerProcessor(
-        manifest_reader=manifest_reader,
-        youtube_discovery=youtube_discovery,
-        album_builder=album_builder,
-        planner=planner,
-        updater=updater,
-        job_repository=job_repository,
-        failure_action=failure_action,
-        console=console,
-        video_id_overrides_reader=video_id_overrides_reader,
-        video_id_overrides_path=Path("config/youtube/video_id_overrides.yaml"),
+        **dependencies,
+        video_id_overrides_path=Path(
+            "config/youtube/video_id_overrides.yaml"
+        ),
     )
 
 
-def test_pending_job_is_continued_without_creating_new_job(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    pending_job: Mock,
-    job_repository: Mock,
-    manifest_reader: Mock,
-    youtube_discovery: Mock,
-    album_builder: Mock,
-    planner: Mock,
-    updater: Mock,
-) -> None:
-    job_repository.find_pending.return_value = pending_job
+def test_create_and_save_job_builds_and_persists_job(
+    processor,
+    dependencies,
+    manifest,
+    manifest_path,
+):
+    youtube_videos = [Mock(name="youtube video")]
+    album = Mock(name="album")
+    job = Mock(spec=Job)
+    dependencies["manifest_reader"].read.return_value = manifest
+    dependencies["youtube_discovery"].discover.return_value = youtube_videos
+    dependencies["album_builder"].build.return_value = album
+    dependencies["planner"].plan.return_value = job
 
-    processor.process(manifest_path)
+    result = processor.create_and_save_job(manifest_path)
 
-    updater.update.assert_called_once_with(pending_job)
-    manifest_reader.read.assert_not_called()
-    youtube_discovery.discover.assert_not_called()
-    album_builder.build.assert_not_called()
-    planner.plan.assert_not_called()
-
-
-def test_failed_job_retry_is_retried_and_updated(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    failed_job: Mock,
-    job_repository: Mock,
-    failure_action: Mock,
-    updater: Mock,
-) -> None:
-    job_repository.find_pending.return_value = None
-    job_repository.find_failed.return_value = failed_job
-    failure_action.return_value = "retry"
-
-    processor.process(manifest_path)
-
-    failure_action.assert_called_once_with()
-    failed_job.retry.assert_called_once_with()
-    job_repository.save.assert_not_called()
-    updater.update.assert_called_once_with(failed_job)
-
-
-def test_failed_job_discard_creates_new_job(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    failed_job: Mock,
-    job_repository: Mock,
-    failure_action: Mock,
-    manifest_reader: Mock,
-    youtube_discovery: Mock,
-    album_builder: Mock,
-    planner: Mock,
-    manifest: Mock,
-    youtube_videos: list,
-    album: Mock,
-    updater: Mock,
-) -> None:
-    job_repository.find_pending.return_value = None
-    job_repository.find_failed.return_value = failed_job
-    failure_action.return_value = "discard"
-
-    manifest_reader.read.return_value = manifest
-    youtube_discovery.discover.return_value = youtube_videos
-    album_builder.build.return_value = album
-    new_job = Mock(spec=Job)
-    planner.plan.return_value = new_job
-
-    processor.process(manifest_path)
-
-    failed_job.retry.assert_not_called()
-    job_repository.delete.assert_called_once_with(failed_job)
-    job_repository.save.assert_not_called()
-    manifest_reader.read.assert_called_once_with(manifest_path)
-    youtube_discovery.discover.assert_called_once_with(
-        expected_video_titles=manifest.videos
+    assert result is job
+    dependencies["manifest_reader"].read.assert_called_once_with(manifest_path)
+    dependencies["youtube_discovery"].discover.assert_called_once_with(
+        expected_video_titles=manifest.videos,
     )
-    album_builder.build.assert_called_once_with(manifest, youtube_videos)
-    planner.plan.assert_called_once_with(album)
-    updater.update.assert_called_once_with(new_job)
-
-
-def test_no_existing_job_creates_new_job_from_manifest(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    job_repository: Mock,
-    manifest_reader: Mock,
-    youtube_discovery: Mock,
-    album_builder: Mock,
-    planner: Mock,
-    manifest: Mock,
-    youtube_videos: list,
-    album: Mock,
-    updater: Mock,
-) -> None:
-    job_repository.find_pending.return_value = None
-    job_repository.find_failed.return_value = None
-
-    manifest_reader.read.return_value = manifest
-    youtube_discovery.discover.return_value = youtube_videos
-    album_builder.build.return_value = album
-    new_job = Mock(spec=Job)
-    planner.plan.return_value = new_job
-
-    processor.process(manifest_path)
-
-    manifest_reader.read.assert_called_once_with(manifest_path)
-    youtube_discovery.discover.assert_called_once_with(
-        expected_video_titles=manifest.videos
+    dependencies["album_builder"].build.assert_called_once_with(
+        manifest,
+        youtube_videos,
     )
-    album_builder.build.assert_called_once_with(manifest, youtube_videos)
-    planner.plan.assert_called_once_with(album)
-    updater.update.assert_called_once_with(new_job)
-
-
-def test_pending_job_has_priority_over_failed_job(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    pending_job: Mock,
-    failed_job: Mock,
-    job_repository: Mock,
-    failure_action: Mock,
-    updater: Mock,
-) -> None:
-    job_repository.find_pending.return_value = pending_job
-    job_repository.find_failed.return_value = failed_job
-
-    processor.process(manifest_path)
-
-    job_repository.find_failed.assert_not_called()
-    failure_action.assert_not_called()
-    updater.update.assert_called_once_with(pending_job)
-
-
-def test_completed_job_is_not_retrieved_by_processor(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    job_repository: Mock,
-    manifest_reader: Mock,
-    youtube_discovery: Mock,
-    album_builder: Mock,
-    planner: Mock,
-    updater: Mock,
-    manifest: Mock,
-    youtube_videos: list,
-    album: Mock,
-) -> None:
-    job_repository.find_pending.return_value = None
-    job_repository.find_failed.return_value = None
-
-    manifest_reader.read.return_value = manifest
-    youtube_discovery.discover.return_value = youtube_videos
-    album_builder.build.return_value = album
-    new_job = Mock(spec=Job)
-    planner.plan.return_value = new_job
-
-    processor.process(manifest_path)
-
-    job_repository.find_pending.assert_called_once_with()
-    job_repository.find_failed.assert_called_once_with()
-    updater.update.assert_called_once_with(new_job)
-
-
-def test_running_job_is_not_retrieved_by_processor(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    job_repository: Mock,
-    manifest_reader: Mock,
-    youtube_discovery: Mock,
-    album_builder: Mock,
-    planner: Mock,
-    updater: Mock,
-    manifest: Mock,
-    youtube_videos: list,
-    album: Mock,
-) -> None:
-    job_repository.find_pending.return_value = None
-    job_repository.find_failed.return_value = None
-
-    manifest_reader.read.return_value = manifest
-    youtube_discovery.discover.return_value = youtube_videos
-    album_builder.build.return_value = album
-    new_job = Mock(spec=Job)
-    planner.plan.return_value = new_job
-
-    processor.process(manifest_path)
-
-    job_repository.find_pending.assert_called_once_with()
-    job_repository.find_failed.assert_called_once_with()
-    updater.update.assert_called_once_with(new_job)
-
-
-@pytest.mark.parametrize("action", ["invalid", "", "Retry", "DISCARD", "cancel"])
-def test_invalid_failed_job_action_raises_value_error(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    failed_job: Mock,
-    job_repository: Mock,
-    failure_action: Mock,
-    updater: Mock,
-    action: str,
-) -> None:
-    job_repository.find_pending.return_value = None
-    job_repository.find_failed.return_value = failed_job
-    failure_action.return_value = action
-
-    with pytest.raises(
-        ValueError,
-        match="Invalid action for failed job. Expected 'retry' or 'discard'.",
-    ):
-        processor.process(manifest_path)
-
-    failed_job.retry.assert_not_called()
-    updater.update.assert_not_called()
-
-
-def test_retry_delegates_persistence_to_updater(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    failed_job: Mock,
-    job_repository: Mock,
-    failure_action: Mock,
-    updater: Mock,
-) -> None:
-    job_repository.find_pending.return_value = None
-    job_repository.find_failed.return_value = failed_job
-    failure_action.return_value = "retry"
-
-    calls = Mock()
-    failed_job.retry.side_effect = lambda: calls("retry")
-    updater.update.side_effect = lambda value: calls("update", value)
-
-    processor.process(manifest_path)
-
-    assert calls.call_args_list == [
-        call("retry"),
-        call("update", failed_job),
-    ]
-
-
-def test_new_job_is_not_explicitly_saved_by_processor(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    job_repository: Mock,
-    manifest_reader: Mock,
-    youtube_discovery: Mock,
-    album_builder: Mock,
-    planner: Mock,
-    updater: Mock,
-    manifest: Mock,
-    youtube_videos: list,
-    album: Mock,
-) -> None:
-    job_repository.find_pending.return_value = None
-    job_repository.find_failed.return_value = None
-
-    manifest_reader.read.return_value = manifest
-    youtube_discovery.discover.return_value = youtube_videos
-    album_builder.build.return_value = album
-    new_job = Mock(spec=Job)
-    planner.plan.return_value = new_job
-
-    processor.process(manifest_path)
-
-    job_repository.save.assert_not_called()
-    updater.update.assert_called_once_with(new_job)
-
-
-def test_manifest_path_is_passed_unchanged(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    job_repository: Mock,
-    manifest_reader: Mock,
-    youtube_discovery: Mock,
-    album_builder: Mock,
-    planner: Mock,
-    manifest: Mock,
-    youtube_videos: list,
-    album: Mock,
-    updater: Mock,
-) -> None:
-    job_repository.find_pending.return_value = None
-    job_repository.find_failed.return_value = None
-
-    manifest_reader.read.return_value = manifest
-    youtube_discovery.discover.return_value = youtube_videos
-    album_builder.build.return_value = album
-    new_job = Mock(spec=Job)
-    planner.plan.return_value = new_job
-
-    processor.process(manifest_path)
-
-    assert manifest_reader.read.call_args.args == (manifest_path,)
-    updater.update.assert_called_once_with(new_job)
+    dependencies["planner"].plan.assert_called_once_with(album)
+    dependencies["job_repository"].save.assert_called_once_with(job)
+    dependencies["console"].job_created.assert_called_once_with(job)
 
 
 def test_missing_playlist_videos_are_resolved_from_id_overrides(
-    processor: YouTubeVideoManagerProcessor,
-    manifest_path: Path,
-    job_repository: Mock,
-    manifest_reader: Mock,
-    youtube_discovery: Mock,
-    video_id_overrides_reader: Mock,
-    album_builder: Mock,
-    planner: Mock,
-    updater: Mock,
-    console: Mock,
-    manifest: Mock,
-) -> None:
-    job_repository.find_pending.return_value = None
-    job_repository.find_failed.return_value = None
-    manifest.videos = ("066 Existing title", "067 Manifest title")
-    manifest_reader.read.return_value = manifest
+    processor,
+    dependencies,
+    manifest,
+    manifest_path,
+):
     playlist_video = YouTubeVideo(
         video_id="youtube-id-066",
         title="066 Existing title",
         description=None,
         privacy_status=PrivacyStatus.PRIVATE,
     )
-    youtube_discovery.discover.side_effect = MissingYouTubeVideosError(
-        discovered_videos=(playlist_video,),
-        missing_titles=("067 Manifest title",),
-        message="Missing from uploads playlist",
-    )
-    video_id_overrides_reader.read.return_value = {
-        "067 Manifest title": "youtube-id-067"
-    }
     recovered_video = YouTubeVideo(
         video_id="youtube-id-067",
         title="067 Different YouTube title",
         description=None,
         privacy_status=PrivacyStatus.PRIVATE,
     )
-    youtube_discovery.discover_by_video_ids.return_value = (
+    dependencies["manifest_reader"].read.return_value = manifest
+    dependencies["youtube_discovery"].discover.side_effect = (
+        MissingYouTubeVideosError(
+            discovered_videos=(playlist_video,),
+            missing_titles=("067 Manifest title",),
+            message="Missing from uploads playlist",
+        )
+    )
+    dependencies["video_id_overrides_reader"].read.return_value = {
+        "067 Manifest title": "youtube-id-067"
+    }
+    dependencies["youtube_discovery"].discover_by_video_ids.return_value = (
         (recovered_video,),
         (),
     )
     album = Mock(name="album")
-    album_builder.build.return_value = album
-    new_job = Mock(spec=Job)
-    planner.plan.return_value = new_job
+    job = Mock(spec=Job)
+    dependencies["album_builder"].build.return_value = album
+    dependencies["planner"].plan.return_value = job
 
-    processor.process(manifest_path)
+    result = processor.create_and_save_job(manifest_path)
 
-    console.videos_missing_from_uploads.assert_called_once_with(
+    assert result is job
+    dependencies["console"].videos_missing_from_uploads.assert_called_once_with(
         ("067 Manifest title",)
     )
-    youtube_discovery.discover_by_video_ids.assert_called_once_with(
+    dependencies["youtube_discovery"].discover_by_video_ids.assert_called_once_with(
         expected_titles=("067 Manifest title",),
         video_ids_by_title={"067 Manifest title": "youtube-id-067"},
     )
-    album_builder.build.assert_called_once_with(
+    dependencies["album_builder"].build.assert_called_once_with(
         manifest,
         (playlist_video, recovered_video),
     )
-    updater.update.assert_called_once_with(new_job)
+    dependencies["job_repository"].save.assert_called_once_with(job)
+
+
+def test_creation_failure_is_reported_and_does_not_save_job(
+    processor,
+    dependencies,
+    manifest_path,
+):
+    error = ValueError("Manifest unavailable")
+    dependencies["manifest_reader"].read.side_effect = error
+
+    result = processor.create_and_save_job(manifest_path)
+
+    assert result is None
+    dependencies["job_repository"].save.assert_not_called()
+    dependencies["console"].job_creation_failed.assert_called_once_with(error)

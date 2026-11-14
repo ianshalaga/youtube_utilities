@@ -14,8 +14,11 @@ Este módulo solamente coordina la ejecución.
 import argparse
 from pathlib import Path
 
+from rich.console import Console
+
 # CORE
 from core.config_manager import ConfigManager
+from domain.youtube.job import JobStatus
 
 # APPLICATIONS
 from applications.video_music.processor import VideoMusicProcessor
@@ -50,6 +53,13 @@ from interfaces.cli.presenters.video_music_result_presenter import (
 )
 from interfaces.cli.builders.video_music_input_builder import (
     build_video_music_input,
+)
+from interfaces.cli.menus.youtube_video_manager_menu import (
+    MenuAction,
+    YouTubeVideoManagerMenu,
+)
+from interfaces.cli.menus.youtube_video_manager_prompts import (
+    YouTubeVideoManagerPrompts,
 )
 
 
@@ -162,19 +172,6 @@ def run_ranking(config: ConfigManager) -> None:
     print(query)
 
 
-def _ask_youtube_failure_action() -> str:
-    while True:
-        action = input(
-            "The previous YouTube job failed. "
-            "Choose [retry/discard]: "
-        ).strip().lower()
-
-        if action in {"retry", "discard"}:
-            return action
-
-        print("Invalid action. Please enter 'retry' or 'discard'.")
-
-
 def run_youtube_video_manager(config: ConfigManager) -> None:
     """
     Ejecuta el caso de uso de gestión de vídeos de YouTube.
@@ -183,19 +180,62 @@ def run_youtube_video_manager(config: ConfigManager) -> None:
     youtube_session = YouTubeSessionLocal()
 
     try:
-        console = YouTubeConsole()
+        terminal = Console()
+        console = YouTubeConsole(terminal)
         processor = YouTubeVideoManagerProcessorFactory.create_processor(
             config=config,
             session=youtube_session,
-            failure_action=_ask_youtube_failure_action,
             console=console,
         )
 
-        processor.process(
-            Path(
-                config.youtube_video_manager_album_manifest_path,
-            ),
+        manifest_path = Path(
+            config.youtube_video_manager_album_manifest_path,
         )
+        menu = YouTubeVideoManagerMenu(console=terminal)
+        prompts = YouTubeVideoManagerPrompts(console=terminal)
+
+        try:
+            while True:
+                selection = menu.select(processor.list_jobs())
+                if selection is None:
+                    return
+
+                if selection.action is MenuAction.CREATE_JOB:
+                    processor.create_and_save_job(manifest_path)
+                    continue
+
+                if selection.job_id is None:
+                    continue
+
+                job = processor.get_job(selection.job_id)
+                if job is None:
+                    console.job_not_found(selection.job_id)
+                    continue
+
+                try:
+                    if job.status is JobStatus.CREATED:
+                        publication = prompts.ask_created_job_publication(job)
+                        if publication is not None:
+                            processor.start_created_job(job, publication)
+                    elif job.status is JobStatus.PENDING:
+                        processor.continue_pending_job(job)
+                    elif job.status is JobStatus.FAILED:
+                        action = prompts.ask_failed_job_action()
+                        if action == "retry":
+                            processor.retry_failed_job(job)
+                        elif action == "delete":
+                            processor.delete_job(job)
+                    elif job.status is JobStatus.RUNNING:
+                        console.running_job_recovery_warning(job)
+                        action = prompts.ask_running_job_action()
+                        if action == "resume":
+                            processor.recover_running_job(job)
+                        elif action == "delete":
+                            processor.delete_job(job)
+                except Exception as error:
+                    console.job_action_failed(error)
+        except KeyboardInterrupt:
+            return
     finally:
         youtube_session.close()
 

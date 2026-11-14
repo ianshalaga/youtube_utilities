@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Callable
 
 from sqlalchemy.orm import Session
 
@@ -28,7 +27,6 @@ class YouTubeVideoManagerProcessorFactory:
     def create_processor(
         config: ConfigManager,
         session: Session,
-        failure_action: Callable[[], str],
         console: YouTubeConsole | None = None,
     ) -> YouTubeVideoManagerProcessor:
         youtube_client = YouTubeClient(
@@ -62,7 +60,6 @@ class YouTubeVideoManagerProcessorFactory:
             planner=planner,
             updater=updater,
             job_repository=job_repository,
-            failure_action=failure_action,
             console=console,
             video_id_overrides_reader=VideoIdOverridesReader(),
             video_id_overrides_path=(

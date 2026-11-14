@@ -210,6 +210,41 @@ def test_retry_updates_existing_job_without_inserting_duplicate(
     )
 
 
+def test_interrupted_api_call_leaves_recoverable_running_job(
+    repository,
+    session,
+):
+    job = create_job(status=JobStatus.CREATED)
+    repository.save(job)
+    youtube_methods = MagicMock()
+    youtube_methods.thumbnails_set.side_effect = KeyboardInterrupt
+    updater = Updater(
+        youtube_methods=youtube_methods,
+        job_repository=repository,
+        console=MagicMock(spec=YouTubeConsole),
+    )
+
+    with pytest.raises(KeyboardInterrupt):
+        updater.update(job)
+
+    interrupted_job = repository.find_by_id(job.id)
+    assert interrupted_job is not None
+    assert interrupted_job.status is JobStatus.RUNNING
+    assert [operation.status for operation in interrupted_job.operations] == [
+        OperationStatus.COMPLETED,
+        OperationStatus.PENDING,
+        OperationStatus.PENDING,
+    ]
+    youtube_methods.videos_update.assert_called_once()
+
+    interrupted_job.recover_interrupted()
+    repository.save(interrupted_job)
+
+    recovered_job = repository.find_by_id(job.id)
+    assert recovered_job is not None
+    assert recovered_job.status is JobStatus.PENDING
+
+
 def test_save_inserts_new_job(repository, session):
     job = create_job()
 

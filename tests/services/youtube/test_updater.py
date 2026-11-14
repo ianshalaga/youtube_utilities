@@ -161,7 +161,7 @@ def test_update_executes_update_metadata_and_completes_job(
     assert job.status is JobStatus.COMPLETED
     assert update_metadata_operation.status is OperationStatus.COMPLETED
     youtube_methods.videos_update.assert_called_once()
-    job_repository.save.assert_called_once_with(job)
+    job_repository.save.assert_has_calls([call(job), call(job)])
 
 
 def test_update_starts_pending_job(
@@ -317,7 +317,7 @@ def test_set_thumbnail_dispatches_thumbnail_path(
     youtube_methods.playlist_items_insert.assert_not_called()
     assert thumbnail_operation.status is OperationStatus.COMPLETED
     assert job.status is JobStatus.COMPLETED
-    job_repository.save.assert_called_once_with(job)
+    job_repository.save.assert_has_calls([call(job), call(job)])
 
 
 def test_add_to_playlist_dispatches_playlist_id(
@@ -537,7 +537,7 @@ def test_final_normal_error_marks_operation_and_job_failed(
     assert youtube_methods.videos_update.call_count == 3
     assert update_metadata_operation.status is OperationStatus.FAILED
     assert job.status is JobStatus.FAILED
-    job_repository.save.assert_called_once_with(job)
+    job_repository.save.assert_has_calls([call(job), call(job)])
 
     output = capsys.readouterr().out
     assert "Operation failed" in output
@@ -601,7 +601,7 @@ def test_quota_exhaustion_resets_current_operation_and_job(
 
     assert update_metadata_operation.status is OperationStatus.PENDING
     assert job.status is JobStatus.PENDING
-    job_repository.save.assert_called_once_with(job)
+    job_repository.save.assert_has_calls([call(job), call(job)])
     assert youtube_methods.videos_update.call_count == 1
 
 
@@ -630,7 +630,7 @@ def test_quota_exhaustion_preserves_completed_operations_and_pending_operations(
     assert update_metadata_operation.status is OperationStatus.PENDING
     assert thumbnail_operation.status is OperationStatus.PENDING
     assert job.status is JobStatus.PENDING
-    job_repository.save.assert_called_once_with(job)
+    job_repository.save.assert_has_calls([call(job), call(job)])
     youtube_methods.thumbnails_set.assert_not_called()
 
 
@@ -700,7 +700,7 @@ def test_thumbnail_rate_limit_defers_thumbnail_and_continues_other_operations(
     assert youtube_methods.videos_update.call_count == 1
     assert youtube_methods.thumbnails_set.call_count == 1
     assert youtube_methods.playlist_items_insert.call_count == 1
-    job_repository.save.assert_called_once_with(job)
+    job_repository.save.assert_has_calls([call(job), call(job)])
     console.thumbnail_rate_limit_deferred.assert_called_once_with(
         thumbnail_operation.video
     )
@@ -726,7 +726,7 @@ def test_resume_running_job_skips_completed_and_continues_pending(
     youtube_methods.thumbnails_set.assert_called_once()
 
 
-def test_successful_update_persists_only_after_job_completion(
+def test_successful_update_checkpoints_each_operation_and_completes_job(
     updater: Updater,
     youtube_methods: MagicMock,
     job_repository: MagicMock,
@@ -734,11 +734,27 @@ def test_successful_update_persists_only_after_job_completion(
     thumbnail_operation: Operation,
 ) -> None:
     job = Job([update_metadata_operation, thumbnail_operation])
+    persisted_snapshots = []
+
+    def capture_checkpoint(saved_job):
+        persisted_snapshots.append(
+            (
+                saved_job.status,
+                tuple(operation.status for operation in saved_job.operations),
+            )
+        )
+
+    job_repository.save.side_effect = capture_checkpoint
 
     updater.update(job)
 
-    assert job_repository.save.call_count == 1
-    assert job_repository.save.call_args == call(job)
+    assert job_repository.save.call_count == 4
+    assert persisted_snapshots == [
+        (JobStatus.RUNNING, (OperationStatus.PENDING, OperationStatus.PENDING)),
+        (JobStatus.RUNNING, (OperationStatus.COMPLETED, OperationStatus.PENDING)),
+        (JobStatus.RUNNING, (OperationStatus.COMPLETED, OperationStatus.COMPLETED)),
+        (JobStatus.COMPLETED, (OperationStatus.COMPLETED, OperationStatus.COMPLETED)),
+    ]
     assert job.status is JobStatus.COMPLETED
 
 
@@ -750,11 +766,15 @@ def test_operation_failure_persists_failed_job(
 ) -> None:
     youtube_methods.videos_update.side_effect = RuntimeError("error")
     job = Job([update_metadata_operation])
+    persisted_statuses = []
+    job_repository.save.side_effect = lambda saved_job: persisted_statuses.append(
+        saved_job.status
+    )
 
     updater.update(job)
 
-    assert job_repository.save.call_count == 1
-    assert job_repository.save.call_args == call(job)
+    assert job_repository.save.call_count == 2
+    assert persisted_statuses == [JobStatus.RUNNING, JobStatus.FAILED]
     assert job.status is JobStatus.FAILED
 
 
@@ -768,11 +788,15 @@ def test_quota_interruption_persists_pending_job(
         "quota exceeded"
     )
     job = Job([update_metadata_operation])
+    persisted_statuses = []
+    job_repository.save.side_effect = lambda saved_job: persisted_statuses.append(
+        saved_job.status
+    )
 
     updater.update(job)
 
-    assert job_repository.save.call_count == 1
-    assert job_repository.save.call_args == call(job)
+    assert job_repository.save.call_count == 2
+    assert persisted_statuses == [JobStatus.RUNNING, JobStatus.PENDING]
     assert job.status is JobStatus.PENDING
 
 

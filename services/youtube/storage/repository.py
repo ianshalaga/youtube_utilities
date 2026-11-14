@@ -60,18 +60,26 @@ class YouTubeJobRepository(JobRepository):
         return self._mapper.to_domain(job_model) if job_model else None
 
     def save(self, job: Job) -> None:
-        if job.id is not None:
-            job_model = self._session.get(JobModel, job.id)
-            if job_model is None:
-                raise ValueError(f"Job with ID {job.id} does not exist.")
-            self._mapper.update_model(job_model, job)
-        else:
-            job_model = self._mapper.to_model(job)
-            self._session.add(job_model)
-            self._session.flush()
-            job.assign_id(job_model.id)
+        new_job_id = None
+        try:
+            if job.id is not None:
+                job_model = self._session.get(JobModel, job.id)
+                if job_model is None:
+                    raise ValueError(f"Job with ID {job.id} does not exist.")
+                self._mapper.update_model(job_model, job)
+            else:
+                job_model = self._mapper.to_model(job)
+                self._session.add(job_model)
+                self._session.flush()
+                new_job_id = job_model.id
 
-        self._session.commit()
+            self._session.commit()
+        except Exception:
+            self._session.rollback()
+            raise
+
+        if new_job_id is not None:
+            job.assign_id(new_job_id)
 
     def delete(self, job: Job) -> None:
         if job.id is None:
@@ -81,5 +89,9 @@ class YouTubeJobRepository(JobRepository):
         job_model = self._session.get(JobModel, job.id)
         if job_model is None:
             raise ValueError(f"Job with ID {job.id} does not exist.")
-        self._session.delete(job_model)
-        self._session.commit()
+        try:
+            self._session.delete(job_model)
+            self._session.commit()
+        except Exception:
+            self._session.rollback()
+            raise

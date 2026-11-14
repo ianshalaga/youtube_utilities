@@ -48,13 +48,22 @@ def test_run_youtube_video_manager_delegates_composition_and_closes_session(
     )
     session = Mock()
     processor = Mock()
+    processor.list_jobs.return_value = []
     create_processor = Mock(return_value=processor)
+    menu = Mock()
+    menu.select.return_value = None
+    menu_factory = Mock(return_value=menu)
     monkeypatch.setattr(
         app_cli,
         "YouTubeSessionLocal",
         Mock(return_value=session),
     )
     monkeypatch.setattr(app_cli, "YouTubeConsole", Mock())
+    monkeypatch.setattr(
+        app_cli,
+        "YouTubeVideoManagerMenu",
+        menu_factory,
+    )
     monkeypatch.setattr(
         app_cli.YouTubeVideoManagerProcessorFactory,
         "create_processor",
@@ -66,8 +75,9 @@ def test_run_youtube_video_manager_delegates_composition_and_closes_session(
     create_processor.assert_called_once_with(
         config=config,
         session=session,
-        failure_action=app_cli._ask_youtube_failure_action,
         console=app_cli.YouTubeConsole.return_value,
     )
-    processor.process.assert_called_once_with(Path("manifests/album.yaml"))
+    processor.process.assert_not_called()
+    processor.list_jobs.assert_called_once_with()
+    menu.select.assert_called_once_with([])
     session.close.assert_called_once_with()

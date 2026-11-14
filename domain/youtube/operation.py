@@ -94,6 +94,12 @@ class Operation:
 
         self._status = OperationStatus.PENDING
 
+    def replace_data(self, data: OperationData) -> None:
+        if self._status is not OperationStatus.PENDING:
+            raise ValueError("Only pending operations can have their data changed.")
+        self._validate_data(self._operation_type, data)
+        self._data = data
+
     @staticmethod
     def _validate_data(
         operation_type: OperationType,

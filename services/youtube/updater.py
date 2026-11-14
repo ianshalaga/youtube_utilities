@@ -60,6 +60,7 @@ class Updater:
         """
         if job.status in {JobStatus.CREATED, JobStatus.PENDING}:
             job.start()
+            self._job_repository.save(job)
         elif job.status is not JobStatus.RUNNING:
             raise ValueError(
                 "Only pending or running jobs can be updated."
@@ -97,9 +98,11 @@ class Updater:
 
             result = self._execute_operation(job, operation)
             if result is _OperationExecutionResult.COMPLETED:
+                self._job_repository.save(job)
                 continue
             if result is _OperationExecutionResult.DEFERRED:
                 deferred_operations += 1
+                self._job_repository.save(job)
                 continue
 
             return

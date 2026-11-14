@@ -1,8 +1,8 @@
 from pathlib import Path
-from typing import Callable
 
-from domain.youtube.job import Job
+from domain.youtube.job import Job, JobStatus
 from domain.youtube.job_repository import JobRepository
+from domain.youtube.publication_settings import PublicationSettings
 from services.youtube.album_builder import AlbumBuilder
 from services.youtube.planner import Planner
 from services.youtube.youtube_discovery import (
@@ -27,7 +27,6 @@ class YouTubeVideoManagerProcessor:
         planner: Planner,
         updater: Updater,
         job_repository: JobRepository,
-        failure_action: Callable[[], str],
         console: YouTubeConsole,
         video_id_overrides_reader: VideoIdOverridesReader,
         video_id_overrides_path: Path,
@@ -38,43 +37,64 @@ class YouTubeVideoManagerProcessor:
         self._planner = planner
         self._updater = updater
         self._job_repository = job_repository
-        self._failure_action = failure_action
         self._console = console
         self._video_id_overrides_reader = video_id_overrides_reader
         self._video_id_overrides_path = video_id_overrides_path
 
-    def process(self, manifest_path: Path) -> None:
-        job = self._job_repository.find_pending()
+    def list_jobs(self) -> list[Job]:
+        return self._job_repository.find_selectable()
 
-        if job is not None:
-            self._console.existing_job()
-            self._updater.update(job)
-            return
+    def get_job(self, job_id: int) -> Job | None:
+        return self._job_repository.find_by_id(job_id)
 
-        job = self._job_repository.find_failed()
-
-        if job is not None:
-            action = self._failure_action()
-
-            if action == "retry":
-                self._console.retrying_job()
-                job.retry()
-                self._updater.update(job)
-                return
-
-            if action == "discard":
-                self._job_repository.delete(job)
-                job = None
-            else:
-                raise ValueError(
-                    "Invalid action for failed job. Expected 'retry' or 'discard'."
-                )
-
-        if job is None:
+    def create_and_save_job(self, manifest_path: Path) -> Job | None:
+        try:
             job = self._create_job(manifest_path)
-            self._console.new_job()
+            self._job_repository.save(job)
+        except Exception as error:
+            self._console.job_creation_failed(error)
+            return None
 
+        self._console.job_created(job)
+        return job
+
+    def start_created_job(
+        self,
+        job: Job,
+        publication: PublicationSettings,
+    ) -> None:
+        if job.status is not JobStatus.CREATED:
+            raise ValueError("Only created jobs can be started here.")
+        job.update_publication(publication)
+        self._job_repository.save(job)
+        self._console.publication_updated(job)
+        self._console.created_job_starting(job)
         self._updater.update(job)
+
+    def continue_pending_job(self, job: Job) -> None:
+        if job.status is not JobStatus.PENDING:
+            raise ValueError("Only pending jobs can be continued.")
+        self._console.existing_job()
+        self._updater.update(job)
+
+    def retry_failed_job(self, job: Job) -> None:
+        if job.status is not JobStatus.FAILED:
+            raise ValueError("Only failed jobs can be retried.")
+        self._console.retrying_job()
+        job.retry()
+        self._updater.update(job)
+
+    def recover_running_job(self, job: Job) -> None:
+        if job.status is not JobStatus.RUNNING:
+            raise ValueError("Only running jobs can be recovered.")
+        job.recover_interrupted()
+        self._job_repository.save(job)
+        self._console.running_job_recovery_started(job)
+        self._updater.update(job)
+
+    def delete_job(self, job: Job) -> None:
+        self._job_repository.delete(job)
+        self._console.job_deleted(job)
 
     def _create_job(self, manifest_path: Path) -> Job:
         manifest = self._manifest_reader.read(manifest_path)

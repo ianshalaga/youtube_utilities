@@ -6,6 +6,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from domain.youtube.job import Job
 from domain.youtube.video import Video
 
 
@@ -15,12 +16,76 @@ class YouTubeConsole:
     def __init__(self, console: Console | None = None) -> None:
         self._console = console or Console()
 
-    def new_job(self) -> None:
-        """Report that a new Job has been created for execution."""
+    def job_created(self, job: Job) -> None:
+        name = job.name or "(sin nombre)"
         self._console.print(
-            "▶ [bold green]NEW JOB[/bold green]"
+            f"✓ [bold green]JOB CREATED[/bold green] · "
+            f"[bold]{name}[/bold] · ID [dim]{job.id}[/dim]"
         )
-        self._console.print()
+
+    def created_job_starting(self, job: Job) -> None:
+        self._console.print(
+            f"▶ [bold cyan]STARTING CREATED JOB[/bold cyan] · "
+            f"[bold]{job.name or '(sin nombre)'}[/bold]"
+        )
+
+    def publication_updated(self, job: Job) -> None:
+        publication = job.publication
+        if publication is None:
+            return
+        self._console.print(
+            "✓ [green]Programación actualizada[/green] · "
+            f"{publication.first_publish_at.isoformat()} · "
+            f"cada {publication.interval_days} días · "
+            f"{publication.timezone.key}"
+        )
+
+    def running_job_recovery_started(self, job: Job) -> None:
+        self._console.print(
+            f"↻ [bold yellow]RECOVERING RUNNING JOB[/bold yellow] · "
+            f"[bold]{job.name or '(sin nombre)'}[/bold]"
+        )
+
+    def job_creation_failed(self, error: Exception) -> None:
+        self._console.print(
+            Panel(
+                str(error),
+                title="Job creation failed",
+                border_style="red",
+            )
+        )
+
+    def job_deleted(self, job: Job) -> None:
+        name = job.name or "(sin nombre)"
+        self._console.print(
+            f"✓ [bold yellow]JOB DELETED[/bold yellow] · "
+            f"[bold]{name}[/bold] · ID [dim]{job.id}[/dim]"
+        )
+
+    def job_not_found(self, job_id: int) -> None:
+        self._console.print(
+            f"[bold red]Job #{job_id} no longer exists.[/bold red]"
+        )
+
+    def job_action_failed(self, error: Exception) -> None:
+        self._console.print(
+            Panel(
+                str(error),
+                title="Job action failed",
+                border_style="red",
+            )
+        )
+
+    def running_job_recovery_warning(self, job: Job) -> None:
+        self._console.print(
+            Panel(
+                "The interrupted operation may already have reached YouTube. "
+                "Resuming can repeat its effect; a playlist insertion may "
+                "create a duplicate.",
+                title=f"Recovering RUNNING job · {job.name or '(sin nombre)'}",
+                border_style="yellow",
+            )
+        )
 
     def existing_job(self) -> None:
         """Report that an existing pending Job is being resumed."""
