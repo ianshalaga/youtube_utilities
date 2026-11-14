@@ -3,6 +3,7 @@ from pathlib import Path
 
 from domain.youtube.job import Job, JobStatus
 from domain.youtube.operation import Operation, OperationStatus, OperationType
+from domain.youtube.publication_settings import PublicationSettings
 from domain.youtube.video import Video, VideoType
 from domain.youtube.video_metadata import VideoMetadata
 
@@ -71,22 +72,31 @@ def create_add_to_playlist_operation() -> Operation:
     )
 
 
-def test_to_model_maps_pending_job():
+def test_to_model_maps_created_job_and_publication_settings():
     mapper = JobMapper()
     operation = create_update_metadata_operation()
-    job = Job([operation])
+    publication = PublicationSettings(
+        first_publish_at=datetime(2026, 9, 17, 18, 0),
+        timezone="Europe/Paris",
+        interval_days=3,
+    )
+    job = Job([operation], publication=publication, name="Test Album")
 
     model = mapper.to_model(job)
 
     assert isinstance(model, JobModel)
-    assert model.status == JobStatus.PENDING.value
+    assert model.status == JobStatus.CREATED.value
+    assert model.name == "Test Album"
+    assert model.first_publish_at == "2026-09-17T18:00:00"
+    assert model.interval_days == 3
+    assert model.timezone == "Europe/Paris"
     assert len(model.operations) == 1
 
 
 def test_to_model_maps_operation():
     mapper = JobMapper()
     operation = create_update_metadata_operation()
-    job = Job([operation])
+    job = Job([operation], status=JobStatus.PENDING)
 
     model = mapper.to_model(job)
     operation_model = model.operations[0]
@@ -381,7 +391,7 @@ def test_update_model_updates_existing_job():
     mapper = JobMapper()
 
     operation = create_update_metadata_operation()
-    job = Job([operation])
+    job = Job([operation], status=JobStatus.CREATED, name="Updated Album")
 
     job_model = JobModel(
         id=42,
@@ -391,7 +401,8 @@ def test_update_model_updates_existing_job():
     mapper.update_model(job_model, job)
 
     assert job_model.id == 42
-    assert job_model.status == JobStatus.PENDING.value
+    assert job_model.status == JobStatus.CREATED.value
+    assert job_model.name == "Updated Album"
     assert len(job_model.operations) == 1
 
     operation_model = job_model.operations[0]

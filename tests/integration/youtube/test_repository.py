@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from domain.youtube.job import Job, JobStatus
 from domain.youtube.operation import Operation, OperationStatus, OperationType
+from domain.youtube.publication_settings import PublicationSettings
 from domain.youtube.video import Video, VideoType
 from domain.youtube.video_metadata import VideoMetadata
 
@@ -71,7 +72,12 @@ def create_video(
     )
 
 
-def create_job(title: str = "01 - Test Song") -> Job:
+def create_job(
+    title: str = "01 - Test Song",
+    publication: PublicationSettings | None = None,
+    status: JobStatus = JobStatus.PENDING,
+    name: str | None = None,
+) -> Job:
     video = create_video(metadata=create_metadata(title=title))
 
     operations = [
@@ -92,7 +98,12 @@ def create_job(title: str = "01 - Test Song") -> Job:
         ),
     ]
 
-    return Job(operations)
+    return Job(
+        operations,
+        publication=publication,
+        status=status,
+        name=name,
+    )
 
 
 def test_find_pending_returns_pending_job(repository, session):
@@ -127,6 +138,30 @@ def test_find_pending_returns_none_when_no_pending_job(repository):
 
 def test_find_failed_returns_none_when_no_failed_job(repository):
     assert repository.find_failed() is None
+
+
+def test_find_selectable_returns_job_identifiers_and_publication(repository):
+    job = create_job(
+        publication=PublicationSettings(
+            first_publish_at=datetime(2026, 9, 17, 18, 0),
+            timezone="Europe/Paris",
+            interval_days=2,
+        ),
+        status=JobStatus.CREATED,
+        name="Test Album",
+    )
+    repository.save(job)
+
+    jobs = repository.find_selectable()
+
+    assert len(jobs) == 1
+    assert jobs[0].id == job.id
+    assert jobs[0].status is JobStatus.CREATED
+    assert jobs[0].name == "Test Album"
+    assert jobs[0].publication is not None
+    assert jobs[0].publication.interval_days == 2
+    assert jobs[0].publication.timezone.key == "Europe/Paris"
+    assert repository.find_by_id(job.id) is not None
 
 
 def test_delete_removes_loaded_failed_job(repository, session):

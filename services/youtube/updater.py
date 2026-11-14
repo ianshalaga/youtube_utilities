@@ -58,7 +58,7 @@ class Updater:
         their existing order until the Job completes, shared quota is exhausted,
         an operation is deferred, or an operation fails definitively.
         """
-        if job.status is JobStatus.PENDING:
+        if job.status in {JobStatus.CREATED, JobStatus.PENDING}:
             job.start()
         elif job.status is not JobStatus.RUNNING:
             raise ValueError(

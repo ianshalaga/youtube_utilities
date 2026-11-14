@@ -11,6 +11,11 @@ class JobModel(Base):
 
     status = Column(String(20), nullable=False)
 
+    name = Column(String(255), nullable=True)
+    first_publish_at = Column(String(50), nullable=True)
+    interval_days = Column(Integer, nullable=True)
+    timezone = Column(String(100), nullable=True)
+
     operations = relationship(
         "OperationModel",
         back_populates="job",

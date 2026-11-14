@@ -63,6 +63,7 @@ def completed_operation(
 
 
 def test_job_statuses() -> None:
+    assert JobStatus.CREATED.value == "created"
     assert JobStatus.PENDING.value == "pending"
     assert JobStatus.RUNNING.value == "running"
     assert JobStatus.COMPLETED.value == "completed"
@@ -77,10 +78,10 @@ def test_job_requires_at_least_one_operation() -> None:
         Job([])
 
 
-def test_job_is_created_as_pending(operation: Operation) -> None:
+def test_job_is_created_as_created(operation: Operation) -> None:
     job = Job([operation])
 
-    assert job.status is JobStatus.PENDING
+    assert job.status is JobStatus.CREATED
 
 
 def test_job_exposes_operations(operation: Operation) -> None:
@@ -216,7 +217,7 @@ def test_start_rejects_non_pending_status(
 
     with pytest.raises(
         ValueError,
-        match="Only pending jobs can be started.",
+        match="Only created or pending jobs can be started.",
     ):
         job.start()
 

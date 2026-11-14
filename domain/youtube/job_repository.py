@@ -4,6 +4,12 @@ from domain.youtube.job import Job
 
 
 class JobRepository(Protocol):
+    def find_selectable(self) -> list[Job]:
+        ...
+
+    def find_by_id(self, job_id: int) -> Job | None:
+        ...
+
     def find_pending(self) -> Job | None:
         ...
 

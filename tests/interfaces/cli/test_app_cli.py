@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import Mock
 
 from interfaces.cli import app_cli
@@ -36,3 +37,37 @@ def test_run_video_music_builds_input_processes_and_displays_result(
     processor.process.assert_called_once_with(input_data)
     presenter_factory.assert_called_once_with()
     presenter.display.assert_called_once_with(result)
+
+
+def test_run_youtube_video_manager_delegates_composition_and_closes_session(
+    monkeypatch,
+) -> None:
+    config = Mock()
+    config.youtube_video_manager_album_manifest_path = Path(
+        "manifests/album.yaml"
+    )
+    session = Mock()
+    processor = Mock()
+    create_processor = Mock(return_value=processor)
+    monkeypatch.setattr(
+        app_cli,
+        "YouTubeSessionLocal",
+        Mock(return_value=session),
+    )
+    monkeypatch.setattr(app_cli, "YouTubeConsole", Mock())
+    monkeypatch.setattr(
+        app_cli.YouTubeVideoManagerProcessorFactory,
+        "create_processor",
+        create_processor,
+    )
+
+    app_cli.run_youtube_video_manager(config)
+
+    create_processor.assert_called_once_with(
+        config=config,
+        session=session,
+        failure_action=app_cli._ask_youtube_failure_action,
+        console=app_cli.YouTubeConsole.return_value,
+    )
+    processor.process.assert_called_once_with(Path("manifests/album.yaml"))
+    session.close.assert_called_once_with()

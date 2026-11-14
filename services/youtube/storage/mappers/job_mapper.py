@@ -9,6 +9,7 @@ from domain.youtube.operation import (
     OperationStatus,
     OperationType,
 )
+from domain.youtube.publication_settings import PublicationSettings
 from domain.youtube.video import Video, VideoType
 from domain.youtube.video_metadata import VideoMetadata
 
@@ -22,7 +23,9 @@ class JobMapper:
     def to_model(self, job: Job) -> JobModel:
         job_model = JobModel(
             status=job.status.value,
+            name=job.name,
         )
+        self._publication_to_model(job_model, job)
 
         videos_by_id: dict[str, VideoModel] = {}
 
@@ -35,6 +38,8 @@ class JobMapper:
 
     def update_model(self, job_model: JobModel, job: Job) -> None:
         job_model.status = job.status.value
+        job_model.name = job.name
+        self._publication_to_model(job_model, job)
 
         videos_by_id: dict[str, VideoModel] = {
             operation.video.video_id: operation.video
@@ -53,18 +58,42 @@ class JobMapper:
             for operation_model in job_model.operations
         ]
 
-        job = Job(operations)
+        publication = None
+        if (
+            job_model.first_publish_at is not None
+            and job_model.interval_days is not None
+            and job_model.timezone is not None
+        ):
+            publication = PublicationSettings(
+                first_publish_at=datetime.fromisoformat(
+                    job_model.first_publish_at
+                ).replace(tzinfo=None),
+                timezone=job_model.timezone,
+                interval_days=job_model.interval_days,
+            )
 
-        if job_model.status == JobStatus.RUNNING.value:
-            job.start()
-        elif job_model.status == JobStatus.COMPLETED.value:
-            job.start()
-            job.complete()
-        elif job_model.status == JobStatus.FAILED.value:
-            job.start()
-            job.fail()
+        return Job(
+            operations,
+            publication=publication,
+            job_id=job_model.id,
+            status=JobStatus(job_model.status),
+            name=job_model.name,
+        )
 
-        return job
+    @staticmethod
+    def _publication_to_model(job_model: JobModel, job: Job) -> None:
+        publication = job.publication
+        if publication is None:
+            job_model.first_publish_at = None
+            job_model.interval_days = None
+            job_model.timezone = None
+            return
+
+        job_model.first_publish_at = publication.first_publish_at.replace(
+            tzinfo=None
+        ).isoformat()
+        job_model.interval_days = publication.interval_days
+        job_model.timezone = publication.timezone.key
 
     def _operation_to_model(
         self,

@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 
 from services.youtube.storage.base import Base
 from services.youtube.storage import models  # noqa: F401
+from services.youtube.storage.migrations import upgrade_schema
 
 db_engine_name = "sqlite"
 db_name = "yvm.db"  # YouTube Video Manager
@@ -16,6 +17,7 @@ engine = create_engine(
 )
 
 Base.metadata.create_all(engine)
+upgrade_schema(engine)
 
 SessionLocal = sessionmaker(
     bind=engine,

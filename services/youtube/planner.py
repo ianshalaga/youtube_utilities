@@ -13,9 +13,9 @@ class Planner:
     decomposes that desired state into concrete operations, while the
     Planner groups those operations into a Job without executing them.
 
-    A newly planned Job starts in PENDING. The Updater changes it to RUNNING
-    when execution begins. If YouTube quota is exhausted, the Updater returns
-    the Job to PENDING so it can be resumed on a later execution.
+    A newly planned Job starts in CREATED and retains its publication settings.
+    The Updater changes it to RUNNING when execution begins. If YouTube quota
+    is exhausted, the Updater returns the Job to PENDING for later resumption.
     """
 
     def __init__(self, operations_builder: OperationsBuilder) -> None:
@@ -23,4 +23,8 @@ class Planner:
 
     def plan(self, album: Album) -> Job:
         operations = self._operations_builder.build(album)
-        return Job(operations)
+        return Job(
+            operations,
+            publication=album.publication,
+            name=album.name,
+        )

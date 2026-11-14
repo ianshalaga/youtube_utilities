@@ -170,7 +170,7 @@ def test_update_starts_pending_job(
 ) -> None:
     job = Job([update_metadata_operation])
 
-    assert job.status is JobStatus.PENDING
+    assert job.status is JobStatus.CREATED
 
     updater.update(job)
 

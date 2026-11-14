@@ -54,7 +54,9 @@ def test_planner_builds_job_from_album_operations():
 
     assert isinstance(job, Job)
     assert job.operations == tuple(operations)
-    assert job.status is JobStatus.PENDING
+    assert job.status is JobStatus.CREATED
+    assert job.publication is album.publication
+    assert job.name is album.name
 
 
 def test_planner_delegates_operation_creation_to_operations_builder():
