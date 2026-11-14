@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from domain.youtube.job import Job
+from domain.youtube.job import Job, JobStatus
 from domain.youtube.job_repository import JobRepository
 
 from services.youtube.storage.mappers.job_mapper import JobMapper
@@ -54,5 +54,16 @@ class YouTubeJobRepository(JobRepository):
             self._current_job_model = self._mapper.to_model(job)
             self._session.add(self._current_job_model)
 
+        self._session.commit()
+        self._current_job_model = None
+
+    def delete(self, job: Job) -> None:
+        if self._current_job_model is None:
+            raise ValueError("No loaded job is available to delete.")
+
+        if job.status is not JobStatus.FAILED:
+            raise ValueError("Only a failed job can be deleted.")
+
+        self._session.delete(self._current_job_model)
         self._session.commit()
         self._current_job_model = None

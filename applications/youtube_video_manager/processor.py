@@ -59,11 +59,11 @@ class YouTubeVideoManagerProcessor:
             if action == "retry":
                 self._console.retrying_job()
                 job.retry()
-                self._job_repository.save(job)
                 self._updater.update(job)
                 return
 
             if action == "discard":
+                self._job_repository.delete(job)
                 job = None
             else:
                 raise ValueError(

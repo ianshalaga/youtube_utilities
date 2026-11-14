@@ -12,3 +12,6 @@ class JobRepository(Protocol):
 
     def save(self, job: Job) -> None:
         ...
+
+    def delete(self, job: Job) -> None:
+        ...

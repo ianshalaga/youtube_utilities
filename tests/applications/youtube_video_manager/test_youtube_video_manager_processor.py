@@ -171,7 +171,7 @@ def test_failed_job_retry_is_retried_and_updated(
 
     failure_action.assert_called_once_with()
     failed_job.retry.assert_called_once_with()
-    job_repository.save.assert_called_once_with(failed_job)
+    job_repository.save.assert_not_called()
     updater.update.assert_called_once_with(failed_job)
 
 
@@ -203,6 +203,8 @@ def test_failed_job_discard_creates_new_job(
     processor.process(manifest_path)
 
     failed_job.retry.assert_not_called()
+    job_repository.delete.assert_called_once_with(failed_job)
+    job_repository.save.assert_not_called()
     manifest_reader.read.assert_called_once_with(manifest_path)
     youtube_discovery.discover.assert_called_once_with(
         expected_video_titles=manifest.videos
@@ -346,7 +348,7 @@ def test_invalid_failed_job_action_raises_value_error(
     updater.update.assert_not_called()
 
 
-def test_retry_saves_job_before_updating(
+def test_retry_delegates_persistence_to_updater(
     processor: YouTubeVideoManagerProcessor,
     manifest_path: Path,
     failed_job: Mock,
@@ -360,14 +362,12 @@ def test_retry_saves_job_before_updating(
 
     calls = Mock()
     failed_job.retry.side_effect = lambda: calls("retry")
-    job_repository.save.side_effect = lambda value: calls("save", value)
     updater.update.side_effect = lambda value: calls("update", value)
 
     processor.process(manifest_path)
 
     assert calls.call_args_list == [
         call("retry"),
-        call("save", failed_job),
         call("update", failed_job),
     ]
 

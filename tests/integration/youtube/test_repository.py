@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy import create_engine
@@ -14,6 +15,8 @@ from services.youtube.storage.base import Base
 from services.youtube.storage.mappers.job_mapper import JobMapper
 from services.youtube.storage.models import JobModel, OperationModel
 from services.youtube.storage.repository import YouTubeJobRepository
+from services.youtube.console import YouTubeConsole
+from services.youtube.updater import Updater
 
 pytestmark = pytest.mark.integration
 
@@ -124,6 +127,52 @@ def test_find_pending_returns_none_when_no_pending_job(repository):
 
 def test_find_failed_returns_none_when_no_failed_job(repository):
     assert repository.find_failed() is None
+
+
+def test_delete_removes_loaded_failed_job(repository, session):
+    job = create_job()
+    job.start()
+    job.fail()
+    repository.save(job)
+
+    loaded_job = repository.find_failed()
+    assert loaded_job is not None
+
+    repository.delete(loaded_job)
+
+    assert session.query(JobModel).count() == 0
+    assert repository.find_failed() is None
+
+
+def test_retry_updates_existing_job_without_inserting_duplicate(
+    repository,
+    session,
+):
+    job = create_job()
+    job.start()
+    job.operations[0].start()
+    job.operations[0].fail()
+    job.fail()
+    repository.save(job)
+
+    failed_job = repository.find_failed()
+    assert failed_job is not None
+    failed_job.retry()
+
+    updater = Updater(
+        youtube_methods=MagicMock(),
+        job_repository=repository,
+        console=MagicMock(spec=YouTubeConsole),
+    )
+    updater.update(failed_job)
+
+    job_models = session.query(JobModel).all()
+    assert len(job_models) == 1
+    assert job_models[0].status == JobStatus.COMPLETED.value
+    assert all(
+        operation.status == OperationStatus.COMPLETED.value
+        for operation in job_models[0].operations
+    )
 
 
 def test_save_inserts_new_job(repository, session):
