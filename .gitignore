@@ -198,3 +198,4 @@ token.json
 
 # Database
 *.db
+yvm.db
