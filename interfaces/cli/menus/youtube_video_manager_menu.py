@@ -16,6 +16,7 @@ from domain.youtube.operation import OperationStatus, OperationType
 class MenuAction(Enum):
     CREATE_JOB = "create_job"
     SELECT_JOB = "select_job"
+    EXIT = "exit"
 
 
 @dataclass(frozen=True)
@@ -82,6 +83,12 @@ class YouTubeVideoManagerMenu:
                 value=MenuSelection(MenuAction.SELECT_JOB, job.id),
             )
             for job in active_jobs
+        )
+        choices.append(
+            Choice(
+                title="Salir",
+                value=MenuSelection(MenuAction.EXIT),
+            )
         )
 
         return questionary.select(

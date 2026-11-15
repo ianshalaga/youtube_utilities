@@ -131,3 +131,34 @@ def test_cli_creates_job_and_returns_to_menu(monkeypatch):
     processor.create_and_save_job.assert_called_once_with(Path("manifest.yaml"))
     assert menu.select.call_count == 2
     session.close.assert_called_once_with()
+
+
+def test_cli_exits_when_exit_option_is_selected(monkeypatch):
+    config = Mock()
+    config.youtube_video_manager_album_manifest_path = Path("manifest.yaml")
+    session = Mock()
+    processor = Mock()
+    menu = Mock()
+    menu.select.return_value = MenuSelection(MenuAction.EXIT)
+    monkeypatch.setattr(
+        app_cli,
+        "YouTubeSessionLocal",
+        Mock(return_value=session),
+    )
+    monkeypatch.setattr(app_cli, "YouTubeConsole", Mock())
+    monkeypatch.setattr(
+        app_cli.YouTubeVideoManagerProcessorFactory,
+        "create_processor",
+        Mock(return_value=processor),
+    )
+    monkeypatch.setattr(
+        app_cli,
+        "YouTubeVideoManagerMenu",
+        Mock(return_value=menu),
+    )
+
+    app_cli.run_youtube_video_manager(config)
+
+    menu.select.assert_called_once_with(processor.list_jobs.return_value)
+    processor.create_and_save_job.assert_not_called()
+    session.close.assert_called_once_with()

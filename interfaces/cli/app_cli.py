@@ -199,6 +199,8 @@ def run_youtube_video_manager(config: ConfigManager) -> None:
                 selection = menu.select(processor.list_jobs())
                 if selection is None:
                     return
+                if selection.action is MenuAction.EXIT:
+                    return
 
                 if selection.action is MenuAction.CREATE_JOB:
                     processor.create_and_save_job(manifest_path)

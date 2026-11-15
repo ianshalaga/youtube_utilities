@@ -143,7 +143,7 @@ def test_select_lists_jobs_by_status_and_returns_selected_job(monkeypatch):
     assert choices[2].value == MenuSelection(MenuAction.SELECT_JOB, 25)
 
 
-def test_select_without_jobs_offers_only_create(monkeypatch):
+def test_select_without_jobs_offers_create_and_exit(monkeypatch):
     menu = YouTubeVideoManagerMenu(
         console=Console(file=StringIO(), color_system=None),
     )
@@ -156,5 +156,7 @@ def test_select_without_jobs_offers_only_create(monkeypatch):
 
     assert result == MenuSelection(MenuAction.CREATE_JOB)
     choices = select.call_args.kwargs["choices"]
-    assert len(choices) == 1
+    assert len(choices) == 2
     assert choices[0].value.action is MenuAction.CREATE_JOB
+    assert choices[1].value == MenuSelection(MenuAction.EXIT)
+    assert choices[1].title == "Salir"
