@@ -37,15 +37,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Saint Seiya/01 Saint Seiya 1986/01 Saint Seiya - 30CC-1349",
-      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Saint Seiya/01 Saint Seiya 1986/01 Saint Seiya - 30CC-1349/images/video.mp4",
+      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/01 SUPER SMASH BROS FOR NINTENDO 3DS⁄Wii U ♪ —A SMASHING SOUNDTRACK—/Disc 2",
+      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/01 SUPER SMASH BROS FOR NINTENDO 3DS⁄Wii U ♪ —A SMASHING SOUNDTRACK—/images/video2.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Saint Seiya/01 Saint Seiya 1986/01 Saint Seiya - 30CC-1349/videos",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/01 SUPER SMASH BROS FOR NINTENDO 3DS⁄Wii U ♪ —A SMASHING SOUNDTRACK—/@",
       "default_output_dir": "compilation",
-      "default_video_name": "Saint Seiya - 30CC-1349",
+      "default_video_name": "Super Smash Bros. - Nintendo - 3DS - Wii U - ♪ —A Smashing Soundtrack—",
       "default_target_duration": 36000,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
