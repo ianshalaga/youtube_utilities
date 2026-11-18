@@ -142,6 +142,34 @@ def test_retry_failed_job_retries_only_from_failed_operation():
     updater.update.assert_called_once_with(job)
 
 
+def test_update_failed_thumbnail_path_and_retry():
+    processor, repository, updater, console = create_processor()
+    template = create_job()
+    thumbnail_operation = Operation(
+        video=template.operations[0].video,
+        operation_type=OperationType.SET_THUMBNAIL,
+        data=Path("old-thumbnail.jpg"),
+    )
+    thumbnail_operation.start()
+    thumbnail_operation.fail()
+    job = Job(
+        [thumbnail_operation],
+        job_id=16,
+        status=JobStatus.FAILED,
+        name="Failed thumbnail",
+    )
+    new_path = Path("new-thumbnail.jpg")
+
+    processor.update_failed_thumbnail_and_retry(job, new_path)
+
+    assert job.status is JobStatus.PENDING
+    assert thumbnail_operation.status is OperationStatus.PENDING
+    assert thumbnail_operation.data == new_path
+    console.retrying_job.assert_called_once_with()
+    updater.update.assert_called_once_with(job)
+    repository.save.assert_not_called()
+
+
 def test_recover_running_job_resets_interrupted_operation_and_saves_pending():
     processor, repository, updater, _ = create_processor()
     job = create_job(JobStatus.RUNNING, OperationStatus.RUNNING)

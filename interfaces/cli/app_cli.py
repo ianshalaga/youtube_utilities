@@ -222,9 +222,16 @@ def run_youtube_video_manager(config: ConfigManager) -> None:
                     elif job.status is JobStatus.PENDING:
                         processor.continue_pending_job(job)
                     elif job.status is JobStatus.FAILED:
-                        action = prompts.ask_failed_job_action()
+                        action = prompts.ask_failed_job_action(job)
                         if action == "retry":
                             processor.retry_failed_job(job)
+                        elif action == "update_thumbnail":
+                            thumbnail_path = prompts.ask_thumbnail_path()
+                            if thumbnail_path is not None:
+                                processor.update_failed_thumbnail_and_retry(
+                                    job,
+                                    thumbnail_path,
+                                )
                         elif action == "delete":
                             processor.delete_job(job)
                     elif job.status is JobStatus.RUNNING:

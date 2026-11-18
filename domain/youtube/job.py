@@ -5,6 +5,7 @@ from enum import Enum
 
 from domain.youtube.operation import (
     Operation,
+    OperationData,
     OperationStatus,
     OperationType,
 )
@@ -170,6 +171,21 @@ class Job:
         if self._status is not JobStatus.FAILED:
             raise ValueError("Only failed jobs can be retried.")
 
+        failed_operation = self._failed_operation_for_retry()
+        failed_operation.retry()
+        self._status = JobStatus.PENDING
+
+    def retry_with_data(self, data: OperationData) -> None:
+        """Retry the failed operation after replacing its input data."""
+        if self._status is not JobStatus.FAILED:
+            raise ValueError("Only failed jobs can be retried.")
+
+        failed_operation = self._failed_operation_for_retry()
+        failed_operation.retry()
+        failed_operation.replace_data(data)
+        self._status = JobStatus.PENDING
+
+    def _failed_operation_for_retry(self) -> Operation:
         failed_operations = [
             operation
             for operation in self._operations
@@ -180,6 +196,4 @@ class Job:
             raise ValueError(
                 "A failed job must contain exactly one failed operation to be retried."
             )
-
-        failed_operations[0].retry()
-        self._status = JobStatus.PENDING
+        return failed_operations[0]

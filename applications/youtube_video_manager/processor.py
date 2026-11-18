@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from domain.youtube.job import Job, JobStatus
+from domain.youtube.operation import OperationStatus, OperationType
 from domain.youtube.job_repository import JobRepository
 from domain.youtube.publication_settings import PublicationSettings
 from services.youtube.album_builder import AlbumBuilder
@@ -42,6 +43,7 @@ class YouTubeVideoManagerProcessor:
         self._video_id_overrides_path = video_id_overrides_path
 
     def list_jobs(self) -> list[Job]:
+        self._job_repository.delete_completed()
         return self._job_repository.find_selectable()
 
     def get_job(self, job_id: int) -> Job | None:
@@ -82,6 +84,32 @@ class YouTubeVideoManagerProcessor:
             raise ValueError("Only failed jobs can be retried.")
         self._console.retrying_job()
         job.retry()
+        self._updater.update(job)
+
+    def update_failed_thumbnail_and_retry(
+        self,
+        job: Job,
+        thumbnail_path: Path,
+    ) -> None:
+        if job.status is not JobStatus.FAILED:
+            raise ValueError("Only failed jobs can update a thumbnail path.")
+
+        failed_operations = [
+            operation
+            for operation in job.operations
+            if operation.status is OperationStatus.FAILED
+        ]
+        if (
+            len(failed_operations) != 1
+            or failed_operations[0].operation_type
+            is not OperationType.SET_THUMBNAIL
+        ):
+            raise ValueError(
+                "The failed job must have exactly one failed thumbnail operation."
+            )
+
+        job.retry_with_data(thumbnail_path)
+        self._console.retrying_job()
         self._updater.update(job)
 
     def recover_running_job(self, job: Job) -> None:

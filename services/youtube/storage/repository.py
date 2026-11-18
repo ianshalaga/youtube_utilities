@@ -59,6 +59,22 @@ class YouTubeJobRepository(JobRepository):
         job_model = self._session.scalars(statement).first()
         return self._mapper.to_domain(job_model) if job_model else None
 
+    def delete_completed(self) -> None:
+        """Remove completed jobs, including any left by an older run."""
+        statement = select(JobModel).where(
+            JobModel.status == JobStatus.COMPLETED.value
+        )
+        completed_jobs = self._session.scalars(statement).all()
+        if not completed_jobs:
+            return
+        try:
+            for job_model in completed_jobs:
+                self._session.delete(job_model)
+            self._session.commit()
+        except Exception:
+            self._session.rollback()
+            raise
+
     def save(self, job: Job) -> None:
         new_job_id = None
         try:
@@ -67,11 +83,20 @@ class YouTubeJobRepository(JobRepository):
                 if job_model is None:
                     raise ValueError(f"Job with ID {job.id} does not exist.")
                 self._mapper.update_model(job_model, job)
+            elif job.status is JobStatus.COMPLETED:
+                job_model = None
             else:
                 job_model = self._mapper.to_model(job)
                 self._session.add(job_model)
                 self._session.flush()
                 new_job_id = job_model.id
+
+            if job.status is JobStatus.COMPLETED:
+                statement = select(JobModel).where(
+                    JobModel.status == JobStatus.COMPLETED.value
+                )
+                for completed_job in self._session.scalars(statement).all():
+                    self._session.delete(completed_job)
 
             self._session.commit()
         except Exception:

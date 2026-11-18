@@ -95,6 +95,49 @@ def test_cli_dispatches_selected_job_by_its_state(
         processor.start_created_job.assert_called_once_with(job, publication)
     else:
         getattr(processor, processor_method).assert_called_once_with(job)
+    if status is JobStatus.FAILED:
+        prompts.ask_failed_job_action.assert_called_once_with(job)
+    session.close.assert_called_once_with()
+
+
+def test_cli_updates_failed_thumbnail_path_and_retries(monkeypatch):
+    config = Mock()
+    config.youtube_video_manager_album_manifest_path = Path("manifest.yaml")
+    session = Mock()
+    processor = Mock()
+    job = Mock()
+    job.status = JobStatus.FAILED
+    job.id = 9
+    processor.list_jobs.return_value = [job]
+    processor.get_job.return_value = job
+    menu = Mock()
+    menu.select.side_effect = [
+        MenuSelection(MenuAction.SELECT_JOB, 9),
+        None,
+    ]
+    prompts = Mock()
+    prompts.ask_failed_job_action.return_value = "update_thumbnail"
+    prompts.ask_thumbnail_path.return_value = Path("new-thumbnail.jpg")
+    monkeypatch.setattr(app_cli, "YouTubeSessionLocal", Mock(return_value=session))
+    monkeypatch.setattr(app_cli, "YouTubeConsole", Mock())
+    monkeypatch.setattr(
+        app_cli.YouTubeVideoManagerProcessorFactory,
+        "create_processor",
+        Mock(return_value=processor),
+    )
+    monkeypatch.setattr(app_cli, "YouTubeVideoManagerMenu", Mock(return_value=menu))
+    monkeypatch.setattr(
+        app_cli,
+        "YouTubeVideoManagerPrompts",
+        Mock(return_value=prompts),
+    )
+
+    app_cli.run_youtube_video_manager(config)
+
+    processor.update_failed_thumbnail_and_retry.assert_called_once_with(
+        job,
+        Path("new-thumbnail.jpg"),
+    )
     session.close.assert_called_once_with()
 
 

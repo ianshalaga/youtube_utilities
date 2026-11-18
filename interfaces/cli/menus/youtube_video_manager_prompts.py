@@ -1,10 +1,12 @@
 from datetime import datetime
+from pathlib import Path
 
 import questionary
 from questionary import Choice
 from rich.console import Console
 
 from domain.youtube.job import Job
+from domain.youtube.operation import OperationStatus, OperationType
 from domain.youtube.publication_settings import PublicationSettings
 
 
@@ -79,19 +81,53 @@ class YouTubeVideoManagerPrompts:
             self._console.print(f"[red]{error}[/red]")
             return None
 
-    def ask_failed_job_action(self) -> str | None:
+    def ask_failed_job_action(self, job: Job) -> str | None:
+        choices = [
+            Choice(
+                "Reintentar desde la operación fallida",
+                value="retry",
+            ),
+        ]
+        if any(
+            operation.status is OperationStatus.FAILED
+            and operation.operation_type is OperationType.SET_THUMBNAIL
+            for operation in job.operations
+        ):
+            choices.append(
+                Choice(
+                    "Actualizar el path de la miniatura y reintentar",
+                    value="update_thumbnail",
+                )
+            )
+        choices.append(Choice("Eliminar el job", value="delete"))
         return questionary.select(
             "El job falló. ¿Qué quieres hacer?",
-            choices=[
-                Choice(
-                    "Reintentar desde la operación fallida",
-                    value="retry",
-                ),
-                Choice("Eliminar el job", value="delete"),
-            ],
+            choices=choices,
             use_arrow_keys=True,
             use_shortcuts=False,
         ).ask()
+
+    def ask_thumbnail_path(self) -> Path | None:
+        while True:
+            value = questionary.path(
+                "Nuevo path del archivo de miniatura",
+                file_filter=lambda candidate: Path(candidate).is_file(),
+            ).ask()
+            if value is None:
+                return None
+            value = value.strip()
+            if (
+                len(value) >= 2
+                and value[0] == value[-1]
+                and value[0] in {"'", '"'}
+            ):
+                value = value[1:-1]
+            path = Path(value).expanduser()
+            if path.is_file():
+                return path
+            self._console.print(
+                f"[red]No se encontró un archivo en: {path}[/red]"
+            )
 
     def ask_running_job_action(self) -> str | None:
         return questionary.select(

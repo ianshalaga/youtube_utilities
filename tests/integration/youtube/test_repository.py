@@ -179,6 +179,37 @@ def test_delete_removes_loaded_failed_job(repository, session):
     assert repository.find_failed() is None
 
 
+def test_delete_completed_removes_completed_jobs_and_preserves_other_jobs(
+    repository,
+    session,
+):
+    pending_job = create_job(status=JobStatus.PENDING)
+    repository.save(pending_job)
+    session.add(JobModel(status=JobStatus.COMPLETED.value))
+    session.commit()
+
+    repository.delete_completed()
+
+    persisted_jobs = session.query(JobModel).all()
+    assert len(persisted_jobs) == 1
+    assert persisted_jobs[0].status == JobStatus.PENDING.value
+
+
+def test_saving_completed_job_removes_it_from_persistence(repository, session):
+    job = create_job(status=JobStatus.CREATED)
+    repository.save(job)
+    job.start()
+    for operation in job.operations:
+        operation.start()
+        operation.complete()
+    job.complete()
+
+    repository.save(job)
+
+    assert session.query(JobModel).count() == 0
+    assert repository.find_by_id(job.id) is None
+
+
 def test_retry_updates_existing_job_without_inserting_duplicate(
     repository,
     session,
@@ -201,13 +232,8 @@ def test_retry_updates_existing_job_without_inserting_duplicate(
     )
     updater.update(failed_job)
 
-    job_models = session.query(JobModel).all()
-    assert len(job_models) == 1
-    assert job_models[0].status == JobStatus.COMPLETED.value
-    assert all(
-        operation.status == OperationStatus.COMPLETED.value
-        for operation in job_models[0].operations
-    )
+    assert session.query(JobModel).count() == 0
+    assert repository.find_by_id(failed_job.id) is None
 
 
 def test_interrupted_api_call_leaves_recoverable_running_job(

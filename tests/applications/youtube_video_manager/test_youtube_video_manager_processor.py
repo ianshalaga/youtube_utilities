@@ -57,6 +57,20 @@ def processor(dependencies) -> YouTubeVideoManagerProcessor:
     )
 
 
+def test_list_jobs_cleans_completed_jobs_before_listing(
+    processor,
+    dependencies,
+):
+    jobs = [Mock(spec=Job)]
+    dependencies["job_repository"].find_selectable.return_value = jobs
+
+    result = processor.list_jobs()
+
+    assert result == jobs
+    dependencies["job_repository"].delete_completed.assert_called_once_with()
+    dependencies["job_repository"].find_selectable.assert_called_once_with()
+
+
 def test_create_and_save_job_builds_and_persists_job(
     processor,
     dependencies,

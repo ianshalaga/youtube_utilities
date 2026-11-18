@@ -1,11 +1,15 @@
 from datetime import datetime
 from io import StringIO
+from pathlib import Path
 from unittest.mock import Mock
 
 from rich.console import Console
 
-from domain.youtube.job import Job
-from domain.youtube.operation import Operation, OperationType
+from domain.youtube.job import Job, JobStatus
+from domain.youtube.operation import (
+    Operation,
+    OperationType,
+)
 from domain.youtube.publication_settings import PublicationSettings
 from domain.youtube.video import Video, VideoType
 from domain.youtube.video_metadata import VideoMetadata
@@ -99,3 +103,52 @@ def test_created_job_prompt_updates_date_interval_and_timezone(monkeypatch):
     assert result.interval_days == 4
     assert result.timezone.key == "America/Toronto"
     assert text.call_count == 3
+
+
+def test_failed_thumbnail_job_offers_thumbnail_path_update(monkeypatch):
+    job = create_job()
+    thumbnail_operation = Operation(
+        video=job.operations[0].video,
+        operation_type=OperationType.SET_THUMBNAIL,
+        data=Path("old-thumbnail.jpg"),
+    )
+    thumbnail_operation.start()
+    thumbnail_operation.fail()
+    job = Job([thumbnail_operation], status=JobStatus.FAILED)
+    prompt = Mock()
+    prompt.ask.return_value = "update_thumbnail"
+    select = Mock(return_value=prompt)
+    monkeypatch.setattr(prompts_module.questionary, "select", select)
+    prompts = YouTubeVideoManagerPrompts(
+        console=Console(file=StringIO(), color_system=None),
+    )
+
+    result = prompts.ask_failed_job_action(job)
+
+    assert result == "update_thumbnail"
+    choices = select.call_args.kwargs["choices"]
+    assert [choice.value for choice in choices] == [
+        "retry",
+        "update_thumbnail",
+        "delete",
+    ]
+
+
+def test_thumbnail_path_prompt_returns_existing_file(monkeypatch, tmp_path):
+    thumbnail = tmp_path / "thumbnail.jpg"
+    thumbnail.write_bytes(b"thumbnail")
+    prompt = Mock()
+    prompt.ask.return_value = f'"{thumbnail}"'
+    path_prompt = Mock(return_value=prompt)
+    monkeypatch.setattr(
+        prompts_module.questionary,
+        "path",
+        path_prompt,
+    )
+    prompts = YouTubeVideoManagerPrompts(
+        console=Console(file=StringIO(), color_system=None),
+    )
+
+    result = prompts.ask_thumbnail_path()
+
+    assert result == thumbnail

@@ -37,8 +37,8 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/01 SUPER SMASH BROS FOR NINTENDO 3DS⁄Wii U ♪ —A SMASHING SOUNDTRACK—/Disc 2",
-      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/01 SUPER SMASH BROS FOR NINTENDO 3DS⁄Wii U ♪ —A SMASHING SOUNDTRACK—/images/video2.mp4",
+      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/02 Originals & Remixes UST",
+      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/02 Originals & Remixes UST/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
