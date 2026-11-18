@@ -1,6 +1,7 @@
-from pathlib import Path
-import subprocess
 import json
+import subprocess
+from fractions import Fraction
+from pathlib import Path
 
 from core.config_manager import ConfigManager
 from domain.media.base import MediaProvider
@@ -106,6 +107,31 @@ class FFProbeProvider(MediaProvider):
         """
         data = self._ffprobe(path)
         return float(data["format"]["duration"])
+
+    def video_duration(self, path: Path) -> float:
+        """Return the duration of the primary video stream in seconds."""
+        video = self._video_stream(path)
+
+        stream_duration = video.get("duration")
+        if stream_duration is not None:
+            try:
+                return float(stream_duration)
+            except (TypeError, ValueError):
+                pass
+
+        duration_ts = video.get("duration_ts")
+        time_base = video.get("time_base")
+        if duration_ts is not None and time_base is not None:
+            try:
+                return float(
+                    Fraction(str(duration_ts)) * Fraction(str(time_base))
+                )
+            except (TypeError, ValueError, ZeroDivisionError):
+                pass
+
+        raise ValueError(
+            f"No se pudo determinar la duración del flujo de vídeo: {path}"
+        )
 
     def video_signature(self, path: Path) -> VideoSignature:
         """

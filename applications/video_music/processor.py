@@ -23,6 +23,7 @@ NOTAS DE IMPLEMENTACIÓN (uso personal)
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import shutil
+import tempfile
 
 from core.concurrency import calculate_max_workers
 from core.time_utils import seconds_to_hhmmss_ms
@@ -83,7 +84,8 @@ class VideoMusicProcessor:
 
         Raises:
             ValueError: Si el límite es inválido, no se encuentran audios o
-                hay pistas con el mismo nombre base.
+                hay pistas con el mismo nombre base, más largas que el vídeo
+                o cuya duración no se puede medir.
             FileNotFoundError: Si el video base no existe.
         """
         video_path = input_data.video_path
@@ -127,13 +129,21 @@ class VideoMusicProcessor:
                 f"{duplicates_description}"
             )
 
+        video_duration_seconds = self._ffprobe_provider.video_duration(
+            video_path
+        )
+        total_tracks = len(audio_files)
+        self._validate_audio_durations(
+            audio_files=audio_files,
+            video_duration_seconds=video_duration_seconds,
+        )
+
         self._prepare_output_dir(
             output_dir=output_dir,
             audios_dir=audios_dir,
             video_path=video_path,
         )
 
-        total_tracks = len(audio_files)
         total_directories = max(
             1,
             (total_tracks + max_items_per_dir - 1) // max_items_per_dir,
@@ -186,6 +196,7 @@ class VideoMusicProcessor:
                     track_output_dir,
                     index + 1,
                     total_tracks,
+                    video_duration_seconds,
                 )
                 futures[future] = index
 
@@ -207,6 +218,59 @@ class VideoMusicProcessor:
             tracks=tuple(track_results),
             total_directories=total_directories,
         )
+
+    def _validate_audio_durations(
+        self,
+        *,
+        audio_files: list[Path],
+        video_duration_seconds: float,
+    ) -> None:
+        """Validate all source audio durations before starting the job."""
+        durations: dict[Path, float] = {}
+        probe_errors: dict[Path, Exception] = {}
+
+        with ThreadPoolExecutor(
+            max_workers=calculate_max_workers(len(audio_files))
+        ) as executor:
+            futures = {
+                executor.submit(
+                    self._ffprobe_provider.duration,
+                    audio_path,
+                ): audio_path
+                for audio_path in audio_files
+            }
+
+            for future in as_completed(futures):
+                audio_path = futures[future]
+                try:
+                    durations[audio_path] = future.result()
+                except Exception as error:
+                    probe_errors[audio_path] = error
+
+        issues = []
+        for audio_path in audio_files:
+            if audio_path in probe_errors:
+                issues.append(
+                    f"{audio_path.name}: no se pudo medir la duración "
+                    f"({probe_errors[audio_path]})"
+                )
+                continue
+
+            audio_duration_seconds = durations[audio_path]
+            if audio_duration_seconds > video_duration_seconds:
+                issues.append(
+                    f"{audio_path.name}: audio "
+                    f"{audio_duration_seconds:.3f} s > vídeo base "
+                    f"{video_duration_seconds:.3f} s"
+                )
+
+        if issues:
+            details = "\n".join(f"- {issue}" for issue in issues)
+            raise ValueError(
+                "La validación de duración ha fallado. No se inició el "
+                "procesamiento de ninguna pista:\n"
+                f"{details}"
+            )
 
     @staticmethod
     def _prepare_output_dir(
@@ -245,6 +309,7 @@ class VideoMusicProcessor:
         output_dir: Path,
         index: int,
         total: int,
+        video_duration_seconds: float,
     ) -> VideoMusicTrackResult:
         """
         Procesa una pista y devuelve su resultado individual.
@@ -265,42 +330,59 @@ class VideoMusicProcessor:
         processing_error: Exception | None = None
 
         try:
-            tmp_audio_path = self._audio_converter.convert(
-                src=audio_path,
-                dst_dir=output_dir,
-            )
+            with tempfile.TemporaryDirectory(
+                prefix=".video_music-",
+                dir=output_dir,
+            ) as workspace_name:
+                workspace_dir = Path(workspace_name)
+                tmp_audio_path = self._audio_converter.convert(
+                    src=audio_path,
+                    dst_dir=workspace_dir,
+                )
 
-            self._console.audio_converted(audio_path, tmp_audio_path)
+                self._console.audio_converted(audio_path, tmp_audio_path)
 
-            duration_seconds = self._ffprobe_provider.duration(tmp_audio_path)
-            duration = seconds_to_hhmmss_ms(duration_seconds)
+                duration_seconds = self._ffprobe_provider.duration(
+                    tmp_audio_path
+                )
+                duration = seconds_to_hhmmss_ms(duration_seconds)
 
-            self._console.duration_detected(audio_path, duration)
+                self._console.duration_detected(audio_path, duration)
 
-            cmd = [
-                self._paths_mkvmerge,
-                "-o", str(output_path),
-                "--split", f"parts:00:00:00-{duration}",
-                "--no-audio",
-                "--no-subtitles",
-                str(video_path),
-                "--audio-tracks", "0",
-                str(tmp_audio_path),
-            ]
+                if duration_seconds > video_duration_seconds:
+                    raise ValueError(
+                        "La duración del audio supera la del vídeo base "
+                        f"(audio: {duration_seconds:.3f} s; "
+                        f"vídeo: {video_duration_seconds:.3f} s)."
+                    )
 
-            self._mkvmerge_runner.run(cmd)
+                intermediate_output_path = workspace_dir / "muxed.mkv"
+                cmd = [
+                    self._paths_mkvmerge,
+                    "-o", str(intermediate_output_path),
+                    "--split", f"parts:00:00:00-{duration}",
+                    "--no-audio",
+                    "--no-subtitles",
+                    str(video_path),
+                    "--audio-tracks", "0",
+                    str(tmp_audio_path),
+                ]
 
-            self._cleanup_segments(output_dir, audio_path.stem)
+                self._mkvmerge_runner.run(cmd)
+                self._move_primary_output(
+                    workspace_dir=workspace_dir,
+                    intermediate_output_path=intermediate_output_path,
+                    final_output_path=output_path,
+                )
 
-            self._console.video_created(audio_path, output_path)
+                self._console.video_created(audio_path, output_path)
 
         except Exception as error:
             processing_error = error
 
         finally:
-            if tmp_audio_path is not None and tmp_audio_path.exists():
+            if tmp_audio_path is not None:
                 try:
-                    tmp_audio_path.unlink()
                     self._console.temporary_files_cleaned(audio_path)
                 except Exception as cleanup_error:
                     if processing_error is None:
@@ -331,33 +413,24 @@ class VideoMusicProcessor:
             duration_seconds=duration_seconds,
         )
 
-    def _cleanup_segments(
-        self,
-        output_dir: Path,
-        base_name: str
+    @staticmethod
+    def _move_primary_output(
+        *,
+        workspace_dir: Path,
+        intermediate_output_path: Path,
+        final_output_path: Path,
     ) -> None:
-        """
-        Elimina segmentos sobrantes generados por mkvmerge y
-        conserva únicamente el archivo principal.
-
-        Args:
-            output_dir:
-                Directorio donde se encuentran los segmentos.
-            base_name:
-                Nombre base del archivo.
-        """
-        files = sorted(
-            output_dir.glob(f"{base_name}-*.mkv")
+        """Move the first muxed segment from an isolated workspace."""
+        split_outputs = sorted(workspace_dir.glob("muxed-*.mkv"))
+        source_path = (
+            split_outputs[0]
+            if split_outputs
+            else intermediate_output_path
         )
 
-        if not files:
-            return
+        if not source_path.is_file():
+            raise FileNotFoundError(
+                f"mkvmerge no generó el archivo esperado: {source_path}"
+            )
 
-        main_file = files[0]
-
-        final_path = output_dir / f"{base_name}.mkv"
-
-        main_file.rename(final_path)
-
-        for f in files[1:]:
-            f.unlink()
+        source_path.replace(final_output_path)
