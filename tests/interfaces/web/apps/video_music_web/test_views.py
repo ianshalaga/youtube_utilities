@@ -191,6 +191,41 @@ def test_job_progress_returns_page_for_existing_job(
     assert b"queued" in response.content
 
 
+def test_job_failure_preserves_multiline_validation_details(
+    request_factory,
+    tmp_path,
+    isolated_registry,
+):
+    job_id = isolated_registry.create_job(
+        video_path=tmp_path / "base.mkv",
+        audios_dir=tmp_path / "audio",
+        output_dir=tmp_path / "output",
+        max_items_per_dir=10,
+    )
+    isolated_registry.job_failed(
+        job_id,
+        ValueError(
+            "La validación de duración ha fallado:\n"
+            "- tema-01.flac: audio 12.5 s > vídeo base 10.0 s\n"
+            "- tema-02.flac: audio 14.0 s > vídeo base 10.0 s"
+        ),
+    )
+
+    request = request_factory.get(f"/video-music/?job_id={job_id}")
+    response = IndexView.as_view()(request)
+
+    assert response.status_code == 200
+    assert b"whitespace-pre-wrap break-words" in response.content
+    assert (
+        "tema-01.flac: audio 12.5 s &gt; vídeo base 10.0 s".encode()
+        in response.content
+    )
+    assert (
+        "tema-02.flac: audio 14.0 s &gt; vídeo base 10.0 s".encode()
+        in response.content
+    )
+
+
 def test_job_progress_returns_404_for_unknown_job(request_factory):
     request = request_factory.get("/video-music/jobs/unknown/")
 

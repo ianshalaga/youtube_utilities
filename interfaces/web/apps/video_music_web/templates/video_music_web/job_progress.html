@@ -27,7 +27,8 @@
                 <div id="job-error"
                      role="alert"
                      class="rounded-lg border border-red-500/40 bg-red-950/30 p-4 text-red-200">
-                    ⚠️ <strong>Error:</strong> {{ job.error_message }}
+                    ⚠️ <strong>Error:</strong>
+                    <p class="whitespace-pre-wrap break-words">{{ job.error_message }}</p>
                 </div>
             {% endif %}
         </section>

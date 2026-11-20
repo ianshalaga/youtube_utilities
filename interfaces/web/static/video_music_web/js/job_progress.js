@@ -17,7 +17,12 @@
   };
 
   const terminalStatuses = new Set(["completed", "failed"]);
+  const pollIntervalMs = 1000;
+  const maxRetryDelayMs = 15000;
+  const requestTimeoutMs = 10000;
   let timerId = null;
+  let pollingStopped = false;
+  let retryDelayMs = pollIntervalMs;
 
   function setText(element, value) {
     if (element) {
@@ -80,6 +85,7 @@
       if (!elements.error) {
         const error = document.createElement("p");
         error.id = "job-error";
+        error.className = "whitespace-pre-wrap break-words";
         const label = document.createElement("strong");
         label.textContent = "Error:";
         error.append(label, document.createTextNode(" "));
@@ -108,17 +114,26 @@
   }
 
   function stopPolling() {
+    pollingStopped = true;
+
     if (timerId !== null) {
-      window.clearInterval(timerId);
+      window.clearTimeout(timerId);
       timerId = null;
     }
   }
 
   async function refreshProgress() {
+    const controller = new AbortController();
+    const requestTimeoutId = window.setTimeout(
+      () => controller.abort(),
+      requestTimeoutMs,
+    );
+
     try {
       const response = await fetch(statusUrl, {
         headers: { Accept: "application/json" },
         cache: "no-store",
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -126,16 +141,25 @@
       }
 
       const data = await response.json();
+      retryDelayMs = pollIntervalMs;
       updatePage(data.job);
     } catch (error) {
       setText(
         elements.message,
-        "No se pudo actualizar el progreso. Se volverá a intentar.",
+        error.name === "AbortError"
+          ? "La consulta de progreso tardó demasiado. Se volverá a intentar."
+          : "No se pudo actualizar el progreso. Se volverá a intentar.",
       );
       console.error(error);
+      retryDelayMs = Math.min(retryDelayMs * 2, maxRetryDelayMs);
+    } finally {
+      window.clearTimeout(requestTimeoutId);
+
+      if (!pollingStopped) {
+        timerId = window.setTimeout(refreshProgress, retryDelayMs);
+      }
     }
   }
 
   refreshProgress();
-  timerId = window.setInterval(refreshProgress, 1000);
 })();

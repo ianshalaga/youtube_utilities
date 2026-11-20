@@ -281,9 +281,12 @@ class VideoMusicJobRegistry:
             job.total_tracks = total_tracks
             job.output_dir = str(output_dir)
             job.status = "completed"
-            job.message = "Procesamiento finalizado"
-
             self._update_counts(job)
+            job.message = (
+                "Procesamiento finalizado con errores"
+                if job.failed_tracks
+                else "Procesamiento finalizado"
+            )
             self._touch(job)
 
     def job_failed(self, job_id: str, error: Exception) -> None:

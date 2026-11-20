@@ -51,6 +51,9 @@ def test_create_job_allows_new_job_after_previous_job_finishes(tmp_path):
         total_tracks=0,
         output_dir=tmp_path / "output",
     )
+    first_job = registry.get_job(first_job_id)
+    assert first_job is not None
+    assert first_job.message == "Procesamiento finalizado"
 
     second_job_id = create_job(registry, tmp_path)
 
@@ -222,6 +225,7 @@ def test_job_completed_preserves_failed_track_count(tmp_path):
     assert job.status == "completed"
     assert job.completed_tracks == 0
     assert job.failed_tracks == 1
+    assert job.message == "Procesamiento finalizado con errores"
 
 
 def test_job_level_failure_is_recorded(tmp_path):
