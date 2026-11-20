@@ -11,6 +11,7 @@ from applications.video_music.input import VideoMusicInput
 from core.config_manager import ConfigManager
 
 from .forms import VideoMusicForm
+from .progress.job_progress import ActiveVideoMusicJobError
 from .progress.job_runner import run_video_music_job
 from .progress.runtime import job_registry
 
@@ -67,14 +68,6 @@ class IndexView(View):
         config = ConfigManager()
         cleaned_data = form.cleaned_data
 
-        # Persist the submitted values before starting the job.
-        config.update_video_music_defaults(
-            max_items_per_dir=cleaned_data["max_items_per_dir"],
-            default_audios_dir=cleaned_data["audios_dir"],
-            default_video_path=cleaned_data["video_path"],
-            default_output_dir=cleaned_data["output_dir"],
-        )
-
         audios_dir = Path(cleaned_data["audios_dir"])
         output_dir = Path(cleaned_data["output_dir"])
 
@@ -90,25 +83,49 @@ class IndexView(View):
         )
 
         # Register the job before starting its execution.
-        job_id = job_registry.create_job(
-            video_path=input_data.video_path,
-            audios_dir=input_data.audios_dir,
-            output_dir=input_data.output_dir,
-            max_items_per_dir=input_data.max_items_per_dir,
-        )
+        try:
+            job_id = job_registry.create_job(
+                video_path=input_data.video_path,
+                audios_dir=input_data.audios_dir,
+                output_dir=input_data.output_dir,
+                max_items_per_dir=input_data.max_items_per_dir,
+            )
+        except ActiveVideoMusicJobError as error:
+            form.add_error(
+                None,
+                "Ya hay un trabajo activo. "
+                f"Espera a que termine antes de iniciar otro ({error.job_id}).",
+            )
+            return render(
+                request,
+                self.template_name,
+                {"form": form},
+            )
 
-        # Execute the job outside the HTTP request.
-        thread = Thread(
-            target=run_video_music_job,
-            args=(job_id, input_data),
-            daemon=True,
-        )
-        thread.start()
+        try:
+            config.update_video_music_defaults(
+                max_items_per_dir=cleaned_data["max_items_per_dir"],
+                default_audios_dir=cleaned_data["audios_dir"],
+                default_video_path=cleaned_data["video_path"],
+                default_output_dir=cleaned_data["output_dir"],
+            )
 
-        messages.success(
-            request,
-            "El trabajo se ha iniciado correctamente.",
-        )
+            # Execute the job outside the HTTP request.
+            thread = Thread(
+                target=run_video_music_job,
+                args=(job_id, input_data),
+                daemon=True,
+            )
+            thread.start()
+        except Exception as error:
+            job_registry.job_failed(job_id, error)
+
+            return redirect(
+                "video_music:job_progress",
+                job_id=job_id,
+            )
+
+        messages.success(request, "El trabajo se ha iniciado correctamente.")
 
         return redirect(
             "video_music:job_progress",

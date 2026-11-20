@@ -2,7 +2,10 @@
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import pytest
+
 from interfaces.web.apps.video_music_web.progress.job_progress import (
+    ActiveVideoMusicJobError,
     VideoMusicJobRegistry,
 )
 
@@ -28,6 +31,47 @@ def test_create_job_initializes_queued_state(tmp_path):
     assert job.message == "Trabajo en espera"
     assert job.total_tracks == 0
     assert job.tracks == []
+
+
+def test_create_job_rejects_another_queued_job(tmp_path):
+    registry = VideoMusicJobRegistry()
+    active_job_id = create_job(registry, tmp_path)
+
+    with pytest.raises(ActiveVideoMusicJobError) as error:
+        create_job(registry, tmp_path)
+
+    assert error.value.job_id == active_job_id
+
+
+def test_create_job_allows_new_job_after_previous_job_finishes(tmp_path):
+    registry = VideoMusicJobRegistry()
+    first_job_id = create_job(registry, tmp_path)
+    registry.job_completed(
+        first_job_id,
+        total_tracks=0,
+        output_dir=tmp_path / "output",
+    )
+
+    second_job_id = create_job(registry, tmp_path)
+
+    assert second_job_id != first_job_id
+
+
+def test_concurrent_job_submissions_only_admit_one_job(tmp_path):
+    registry = VideoMusicJobRegistry()
+
+    def submit_job(_index):
+        try:
+            create_job(registry, tmp_path)
+        except ActiveVideoMusicJobError:
+            return "rejected"
+        return "accepted"
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        outcomes = list(executor.map(submit_job, range(8)))
+
+    assert outcomes.count("accepted") == 1
+    assert outcomes.count("rejected") == 7
 
 
 def test_job_started_initializes_tracks_and_directories(tmp_path):

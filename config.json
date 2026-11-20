@@ -37,15 +37,15 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/02 Originals & Remixes UST",
-      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/02 Originals & Remixes UST/images/video.mp4",
+      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/01 Super Smash Bros - 1999/03 Originals & Remixes UST",
+      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/01 Super Smash Bros - 1999/03 Originals & Remixes UST/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/02 Originals & Remixes UST/videos",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/01 Super Smash Bros - 1999/03 Originals & Remixes UST/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Super Smash Bros. for Nintendo 3DS - Wii U - Originals & Remixes UST",
+      "default_video_name": "Super Smash Bros. - Originals & Remixes UST",
       "default_target_duration": 36000,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,

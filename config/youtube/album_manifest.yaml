@@ -1,241 +1,80 @@
-album: Super Smash Bros. | Nintendo | 3DS | Wii U | Originals & Remixes UST
+album: Super Smash Bros. | Nintendo 64 | Originals & Remixes UST
 
-name_prefix: Super Smash Bros. - 3DS - Wii U OST
+name_prefix: Super Smash Bros. OST
 
 videos:
-  - "001 Opening | Super Smash Bros. for Wii U"
-  - "002 Opening | Super Smash Bros. for Wii U | Announcer"
-  - "003 Menu | Super Smash Bros. for 3DS"
-  - "004 Menu | Super Smash Bros. for Wii U"
-  - "005 Results Screen | Super Smash Bros. for 3DS | Wii U"
-  - "006 Battlefield | Super Smash Bros. Melee | for 3DS | Wii U"
-  - "007 Battlefield | Super Smash Bros. for 3DS | Wii U"
-  - "008 Final Destination | Super Smash Bros. for 3DS | Wii U"
-  - "009 Final Destination Ver. 2"
-  - "010 Multi-Man Smash"
-  - "011 Credits | Super Smash Bros. | for 3DS | Wii U"
-  - "012 Credits | Super Smash Bros. for 3DS | Wii U"
-  - "013 Classic Map"
-  - "014 Classic Map | 3DS"
-  - "015 Classic V.s"
-  - "016 Classic V.s | 3DS"
-  - "017 Classic Results Screen"
-  - "018 Classic Final Results"
-  - "019 Classic Fail"
-  - "020 Game Over | 3DS | Wii U"
-  - "021 Master Hand | Super Smash Bros. for 3DS | Wii U"
-  - "022 Master Core"
-  - "023 Master Fortress First Wave"
-  - "024 Master Fortress Second Wave"
-  - "025 Master Orders Ticket Selection"
-  - "026 Master Orders Reward"
-  - "027 Master Orders Defeat"
-  - "028 Crazy Orders Stage Select"
-  - "029 Crazy Orders Final Battle Victory"
-  - "030 Crazy Orders Final Battle Defeat"
-  - "031 Target Blast"
-  - "032 Trophy Rush"
-  - "033 Trophy Rush | Fever"
-  - "034 Trophy Shop"
-  - "035 GalleryHoard"
-  - "036 ReplayAlbumRecords"
-  - "037 All-Star Rest Area | Super Smash Bros. for 3DS | Wii U"
-  - "038 Online Practice Stage | Super Smash Bros. for 3DS | Wii U"
-  - "039 StreetSmash"
-  - "040 Tournament Entry"
-  - "041 Tournament Spectator"
-  - "042 Tournament Final Results"
-  - "043 Events"
-  - "044 Smash Tour Map"
-  - "045 Smash Tour Map | 5 Turns Left"
-  - "046 Smash Tour Battle"
-  - "047 Orne Jingle"
-  - "048 Reaper Jingle"
-  - "049 Ground Theme | Super Mario Series"
-  - "050 Ground Theme | Underground Theme | Super Mario Bros."
-  - "051 Super Mario Bros. Medley"
-  - "052 Super Mario Bros. The Lost Levels Medley"
-  - "053 Super Mario Bros. 3 Medley"
-  - "054 Super Mario World Medley"
-  - "055 Fortress Boss | Super Mario World"
-  - "056 Main Theme | Super Mario 64"
-  - "057 Egg Planet"
-  - "058 Rosalina in the Observatory | Luma's Theme"
-  - "059 Ground Theme | Super Mario 3D Land"
-  - "060 Ground Theme | Underwater Theme | Super Mario 3D Land"
-  - "061 Underwater Theme | Super Mario 3D Land"
-  - "062 Athletic Theme | New Super Mario Bros. 2"
-  - "063 Title Theme | Super Mario Maker"
-  - "064 Paper Mario Medley"
-  - "065 Blue Skies, White Clouds"
-  - "066 Rogueport"
-  - "067 Battleship"
-  - "068 Try, Try Again"
-  - "069 Luigi's Mansion Series Medley"
-  - "070 Chill | for 3DS | Wii U"
-  - "071 Mario Paint Medley"
-  - "072 Circuit | Mario Kart 7"
-  - "073 Rainbow Road Medley"
-  - "074 Cloudtop Cruise | Mario Kart 8"
-  - "075 Donkey Kong Country Returns | Vocals"
-  - "076 Jungle Level | 64 | No Intro"
-  - "077 Jungle Level Ver. 2 | Brawl | Short"
-  - "078 Jungle Level Jazz Style | for 3DS | Wii U"
-  - "079 Jungle Level Tribal Style | for 3DS | Wii U"
-  - "080 DK Rap | Short"
-  - "081 Gear Getaway"
-  - "082 Overworld & Underworld | The Legend of Zelda | for 3DS | Wii U"
-  - "083 The Legend of Zelda Medley"
-  - "084 Dark World | for 3DS | Wii U"
-  - "085 Saria's Song | Middle Boss Battle"
-  - "086 Gerudo Valley"
-  - "087 The Great Sea | Menu Select"
-  - "088 Full Steam Ahead"
-  - "089 Ballad of the Goddess"
-  - "090 Title Theme | Metroid"
-  - "091 Brinstar | Samus Appearance Jingle | Title | Short"
-  - "092 Escape"
-  - "093 Yoshi's Island | for 3DS | Wii U"
-  - "094 Main Theme | Yoshi's Woolly World"
-  - "095 Green Greens | for 3DS | Wii U"
-  - "096 King Dedede's Theme | for 3DS | Wii U"
-  - "097 Ice Cream Island"
-  - "098 Butter Building | for 3DS | Wii U"
-  - "099 The Great Cave Offensive"
-  - "100 ForestNature Area"
-  - "101 Star Wolf's Theme | Sector Z | for 3DS | Wii U"
-  - "102 Theme from Area 6 | Missile Slipstream"
-  - "103 Battle! | Wild Pokémon | Pokémon Diamond | Pokémon Pearl"
-  - "104 Battle! | Champion | Champion Cynthia"
-  - "105 Route 10 | Pokémon Black | Pokémon White"
-  - "106 N's Castle"
-  - "107 Battle! | ReshiramZekrom"
-  - "108 Route 23 | Pokémon Black 2 | Pokémon White 2"
-  - "109 Battle! | Trainer Battle | Pokémon X | Pokémon Y"
-  - "110 Battle! | Team Flare"
-  - "111 Mute City | for 3DS | Wii U"
-  - "112 Pollyanna | I Believe in You | Short"
-  - "113 Magicant | for 3DS | Wii U"
-  - "114 Onett Theme | Winters Theme"
-  - "115 Smiles and Tears"
-  - "116 Coliseum Series Medley"
-  - "117 Fight 1 | Fire Emblem Gaiden"
-  - "118 Fire Emblem Mystery of the Emblem Medley"
-  - "119 Meeting Theme Series Medley"
-  - "120 Lost in Thoughts All Alone | for 3DS | Wii U"
-  - "121 In the Space-Pirate Ship"
-  - "122 Wrath of the Reset Bomb"
-  - "123 Lightning Chariot Base"
-  - "124 Destroyed Skyworld"
-  - "125 Ashley's Song | JP | for 3DS | Wii U"
-  - "126 Stage Select | Pikmin 2"
-  - "127 Mission Mode | Pikmin 3"
-  - "128 Plaza | Title Theme | Animal Crossing City Folk | Animal Crossing Wild World"
-  - "129 Outdoors at 7 p.m. | Sunny | Main Street | Animal Crossing New Leaf"
-  - "130 Kapp'n's Song"
-  - "131 Tour | Animal Crossing New Leaf"
-  - "132 Tortimer Island Medley"
-  - "133 Bubblegum K.K."
-  - "134 Super Hoop"
-  - "135 Skateboard Arena | Free Mode"
-  - "136 Wii Fit Plus Medley"
-  - "137 Minor Circuit"
-  - "138 Jogging | Countdown"
-  - "139 Xenoblade Chronicles Medley"
-  - "140 Cut Man Stage"
-  - "141 Mega Man 2 Medley"
-  - "142 Air Man Stage"
-  - "143 Quick Man Stage"
-  - "144 Spark Man Stage"
-  - "145 Shadow Man Stage"
-  - "146 Mega Man Retro Medley"
-  - "147 Mega Man 2 Retro Medley"
-  - "148 Mega Man 3 Retro Medley"
-  - "149 Mega Man 4-6 Retro Medley"
-  - "150 PAC-MAN"
-  - "151 PAC-MAN | Club Mix"
-  - "152 PAC-MAN'S PARK | BLOCK TOWN"
-  - "153 Libble Rabble Retro Medley"
-  - "154 Metro-Cross Retro Medley"
-  - "155 Sky Kid Retro Medley"
-  - "156 Yokai Dochuki Retro Medley"
-  - "157 Bravoman Retro Medley"
-  - "158 Namco Arcade '80s Retro Medley 1"
-  - "159 Namco Arcade '80s Retro Medley 2"
-  - "160 Ryu Stage"
-  - "161 Ken Stage"
-  - "162 Theme of Bayonetta | Mysterious Destiny | Instrumental"
-  - "163 Tomorrow is Mine | Bayonetta 2 Theme | Instrumental"
-  - "164 Duck Hunt Medley | for 3DS | Wii U"
-  - "165 Balloon Fight Medley"
-  - "166 Balloon Trip | for 3DS | Wii U"
-  - "167 Wrecking Crew Medley | for 3DS | Wii U"
-  - "168 Wrecking Crew Retro Medley"
-  - "169 Famicom Medley"
-  - "170 The Mysterious Murasame Castle Medley"
-  - "171 Light Plane | for 3DS | Wii U"
-  - "172 Light Plane | Vocal Mix | for 3DS | Wii U"
-  - "173 Turbo Jet"
-  - "174 Pedal Glider"
-  - "175 Culdcept"
-  - "176 Bathtime Theme | for 3DS | Wii U"
-  - "177 Bathtime Theme | Vocal Mix | for 3DS | Wii U"
-  - "178 The Valedictory Elegy"
-  - "179 Wii Shop Channel"
-  - "180 Mii Plaza"
-  - "181 Wii Sports Series Medley"
-  - "182 Wii Sports Resort"
-  - "183 Wii Sports Resort Ver. 2"
-  - "184 Glory of Heracles"
-  - "185 Afternoon on the Island | for 3DS | Wii U"
-  - "186 Save the World, Heroes!"
-  - "187 Dark Lord"
-  - "188 Freakyforms Your Creations, Alive! Medley"
-  - "189 Boss 1 | Sakura Samurai Art of the Sword"
-  - "190 Style Savvy Trendsetters"
-  - "191 Nintendo Land Medley"
-  - "192 Classic Mode Clear"
-  - "193 Target Blast Results"
-  - "194 Victory Mii Fighters"
-  - "195 Victory Super Mario Bros. Villains"
-  - "196 Victory Super Mario Galaxy Rosalina & Luma"
-  - "197 Victory Kid Icarus Uprising | Dark Pit"
-  - "198 Victory Animal Crossing | for 3DS & Wii U"
-  - "199 Victory Wii Fit"
-  - "200 Victory Punch-Out!!"
-  - "201 Victory Xenoblade Chronicles | for 3DS & Wii U"
-  - "202 Victory Mega Man"
-  - "203 Victory PAC-MAN"
-  - "204 Victory Street Fighter"
-  - "205 Victory Final Fantasy VII"
-  - "206 Victory Final Fantasy VII | Tournament"
-  - "207 Victory Bayonetta"
-  - "208 Victory Duck Hunt | for 3DS & Wii U"
-  - "209 Main Theme | E3 2018 Version"
-  - "Super Smash Bros. | Nintendo | 3DS | Wii U | Originals & Remixes UST"
+  - "01 Opening | Super Smash Bros."
+  - "02 How to Play | Super Smash Bros."
+  - "03 Character Data"
+  - "04 Menu | Super Smash Bros."
+  - "05 Fighter Selection | Super Smash Bros."
+  - "06 1P Game | Vs. Challenger"
+  - "07 Overworld Theme | The Legend of Zelda | 64"
+  - "08 Yoshi's Story | 64"
+  - "09 Main Theme | Star Fox 64 | 64"
+  - "10 Ground Theme | Super Mario Bros. | 64"
+  - "11 Main Theme | Pokémon Red & Pokémon Blue | 64"
+  - "12 Jungle Level | 64"
+  - "13 Gourmet Race | 64"
+  - "14 Brinstar | 64"
+  - "15 1P Game | Stage Results"
+  - "16 Meta Crystal"
+  - "17 Bonus Game | Super Smash Bros."
+  - "18 Bonus | Results"
+  - "19 Bonus Game | Fail"
+  - "20 Duel Zone"
+  - "21 1P Game | Vs. Master Hand"
+  - "22 Final Destination | Master Hand Approaches"
+  - "23 Final Destination | Super Smash Bros."
+  - "24 1P Game | Final Results"
+  - "25 1P Game | Ending"
+  - "26 Credits | Super Smash Bros."
+  - "27 Unlock"
+  - "28 Training Mode"
+  - "29 New Challenger Approaching!"
+  - "30 Victory | Super Mario Bros. | 64"
+  - "31 Victory | Yoshi | 64"
+  - "32 Victory | Donkey Kong | 64"
+  - "33 Victory | The Legend of Zelda | 64"
+  - "34 Victory | Metroid | 64"
+  - "35 Victory | Kirby | 64"
+  - "36 Victory | Star Fox | 64"
+  - "37 Victory | Pokémon | 64"
+  - "38 Victory | F-Zero | 64"
+  - "39 Victory | EarthBound | 64"
+  - "40 Vs. Results"
+  - "41 Continue"
+  - "42 Game Over"
+  - "43 Star Power"
+  - "44 Hammer | Super Smash Bros."
+  - "45 Fanfare | Unused"
+  - "46 Opening | Super Smash Bros. | Announcer"
+  - "47 Final Destination | Super Smash Bros. | No Intro"
+  - "Super Smash Bros. | Originals & Remixes UST"
 
 description: |
   🎮 SUPER SMASH BROS. | 1999
 
-  📀 Super Smash Bros. OST: Disc 1 | https://www.youtube.com/playlist?list=PL90QAKwVH1t7_uekEQi-ZJPf4xKb5QEmT
-  📀 Super Smash Bros. OST: Disc 2 | https://www.youtube.com/playlist?list=PL90QAKwVH1t59U-dMzmaKw-xUKJ0fpTTa
-  📀 Super Smash Bros. OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t4PP1PcXiRvpNIW0R6sKaw9
-  📀 Super Smash Bros. OST: Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t7VLGiT8jD4hSgzzCl6tqJq
-  📀 Super Smash Bros. Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t7_ReZq1nHr9ihqV69sXa5R
+  📀 OST - Disc 1 | https://www.youtube.com/playlist?list=PL90QAKwVH1t7_uekEQi-ZJPf4xKb5QEmT
+  📀 OST - Disc 2 | https://www.youtube.com/playlist?list=PL90QAKwVH1t59U-dMzmaKw-xUKJ0fpTTa
+  📀 OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t4PP1PcXiRvpNIW0R6sKaw9
+  📀 Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t7VLGiT8jD4hSgzzCl6tqJq
+  📀 Originals & Remixes UST | https://www.youtube.com/playlist?list=PLTp_xagVL_mg
+  📀 Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t7_ReZq1nHr9ihqV69sXa5R
 
   🎮 SUPER SMASH BROS. MELEE | 2001
 
-  📀 Super Smash Bros. Melee Smashing…Live! Live Orchestra Music | https://www.youtube.com/playlist?list=PL90QAKwVH1t73TIlig1YCkvq4IhqlFx5w
-  📀 Super Smash Bros. Melee Smashing…Live! | https://www.youtube.com/playlist?list=PLAmCrfj--0FQ
-  📀 Super Smash Bros. Melee: Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t4MHYzfjWaH16J-h0sDNIhp
-  📀 Super Smash Bros. Melee Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t4rHPc-lWJX4RfXlhzmxgoW
+  📀 Smashing…Live! Live Orchestra Music | https://www.youtube.com/playlist?list=PL90QAKwVH1t73TIlig1YCkvq4IhqlFx5w
+  📀 Smashing…Live! | https://www.youtube.com/playlist?list=PLAmCrfj--0FQ
+  📀 Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t4MHYzfjWaH16J-h0sDNIhp
+  📀 Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t4rHPc-lWJX4RfXlhzmxgoW
 
   🎮 SUPER SMASH BROS. BRAWL | 2008
 
-  📀 Super Smash Bros. Brawl - Gamerip Tracks | https://www.youtube.com/playlist?list=PLeAbPc3Q8igA
-  📀 Super Smash Bros. Brawl - Lost Tracks | https://www.youtube.com/playlist?list=PLbxJ2UdQK-ro
-  📀 Super Smash Bros. Brawl - Originals & Remixes UST | https://www.youtube.com/playlist?list=PLUay9-VbazOg
-  📀 Super Smash Bros. Brawl Complete OST | https://www.youtube.com/playlist?list=PLabJqUVi3mpE
+  📀 Gamerip Tracks | https://www.youtube.com/playlist?list=PLeAbPc3Q8igA
+  📀 Lost Tracks | https://www.youtube.com/playlist?list=PLbxJ2UdQK-ro
+  📀 Originals & Remixes UST | https://www.youtube.com/playlist?list=PLUay9-VbazOg
+  📀 Complete OST | https://www.youtube.com/playlist?list=PLabJqUVi3mpE
 
   📀 Super Smash Bros. - Harmony of Heroes | https://www.youtube.com/playlist?list=PLeV165xwRXx8
 
@@ -247,12 +86,11 @@ description: |
   📀 Originals & Remixes UST | https://www.youtube.com/playlist?list=PLabRd0AVLAQc
   📀 Complete OST | https://www.youtube.com/playlist?list=PLOw4WNnCHjic
 
-
-thumbnail: "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/02 Originals & Remixes UST/images/miniatura1.png"
+thumbnail: "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/01 Super Smash Bros - 1999/03 Originals & Remixes UST/images/miniatura1.png"
 
 playlists:
-  - PLabRd0AVLAQc # Originals & Remixes UST
-  - PLOw4WNnCHjic # Complete OST
+  - PLTp_xagVL_mg # Originals & Remixes UST
+  - PL90QAKwVH1t7_ReZq1nHr9ihqV69sXa5R # Complete OST
 
 made_for_kids: false
 contains_synthetic_media: false
@@ -264,6 +102,6 @@ game: game # not used
 
 publication:
   # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS
-  first_publish_at: "2026-11-19T22:00:00"
+  first_publish_at: "2026-11-19T22:00:00" # PENDING
   timezone: "Europe/Paris"
   interval_days: 1

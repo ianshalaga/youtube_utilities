@@ -6,8 +6,9 @@ import json
 from django.http import Http404
 from django.test import RequestFactory
 
-from interfaces.web.apps.video_music_web.progress.runtime import (
-    job_registry,
+from interfaces.web.apps.video_music_web.progress.job_progress import (
+    ActiveVideoMusicJobError,
+    VideoMusicJobRegistry,
 )
 from interfaces.web.apps.video_music_web.progress.job_runner import (
     run_video_music_job,
@@ -24,8 +25,18 @@ def request_factory():
     return RequestFactory()
 
 
-def test_job_status_returns_json(request_factory, tmp_path):
-    job_id = job_registry.create_job(
+@pytest.fixture
+def isolated_registry(monkeypatch):
+    registry = VideoMusicJobRegistry()
+    monkeypatch.setattr(
+        "interfaces.web.apps.video_music_web.views.job_registry",
+        registry,
+    )
+    return registry
+
+
+def test_job_status_returns_json(request_factory, tmp_path, isolated_registry):
+    job_id = isolated_registry.create_job(
         video_path=tmp_path / "base.mkv",
         audios_dir=tmp_path / "audio",
         output_dir=tmp_path / "output",
@@ -118,11 +129,47 @@ def test_index_post_starts_background_job(
     assert args[1].max_items_per_dir == 10
 
 
-def test_job_progress_returns_page_for_existing_job(
+@patch("interfaces.web.apps.video_music_web.views.Thread")
+@patch("interfaces.web.apps.video_music_web.views.job_registry")
+@patch("interfaces.web.apps.video_music_web.views.ConfigManager")
+def test_index_post_rejects_submission_while_another_job_is_active(
+    config_manager_class,
+    registry,
+    thread_class,
     request_factory,
     tmp_path,
 ):
-    job_id = job_registry.create_job(
+    audios_dir = tmp_path / "audio"
+    audios_dir.mkdir()
+    video_path = tmp_path / "base.mkv"
+    video_path.touch()
+    registry.create_job.side_effect = ActiveVideoMusicJobError("job-active")
+
+    request = request_factory.post(
+        "/video-music/",
+        {
+            "max_items_per_dir": "10",
+            "audios_dir": str(audios_dir),
+            "video_path": str(video_path),
+            "output_dir": "output",
+        },
+    )
+
+    response = IndexView.as_view()(request)
+
+    assert response.status_code == 200
+    assert b"Ya hay un trabajo activo" in response.content
+    assert b"job-active" in response.content
+    config_manager_class.return_value.update_video_music_defaults.assert_not_called()
+    thread_class.assert_not_called()
+
+
+def test_job_progress_returns_page_for_existing_job(
+    request_factory,
+    tmp_path,
+    isolated_registry,
+):
+    job_id = isolated_registry.create_job(
         video_path=tmp_path / "base.mkv",
         audios_dir=tmp_path / "audio",
         output_dir=tmp_path / "output",
@@ -156,8 +203,9 @@ def test_index_get_displays_existing_job_results(
     config_manager_class,
     request_factory,
     tmp_path,
+    isolated_registry,
 ):
-    job_id = job_registry.create_job(
+    job_id = isolated_registry.create_job(
         video_path=tmp_path / "base.mkv",
         audios_dir=tmp_path / "audio",
         output_dir=tmp_path / "output",

@@ -11,6 +11,14 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+class ActiveVideoMusicJobError(Exception):
+    """Raised when a new job is submitted while another one is active."""
+
+    def __init__(self, job_id: str) -> None:
+        self.job_id = job_id
+        super().__init__(f"Ya hay un trabajo activo: {job_id}")
+
+
 @dataclass
 class TrackProgress:
     index: int
@@ -75,6 +83,18 @@ class VideoMusicJobRegistry:
         )
 
         with self._lock:
+            active_job = next(
+                (
+                    existing_job
+                    for existing_job in self._jobs.values()
+                    if existing_job.status in {"queued", "running"}
+                ),
+                None,
+            )
+
+            if active_job is not None:
+                raise ActiveVideoMusicJobError(active_job.job_id)
+
             self._jobs[job_id] = job
 
         return job_id

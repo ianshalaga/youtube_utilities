@@ -24,13 +24,20 @@ class MediaDiscoveryService:
             directory:
                 Directorio a inspeccionar.
             supported_extensions:
-                Conjunto de extensiones permitidas (sin punto).
+                Extensiones permitidas. Se aceptan con o sin punto inicial,
+                y se normalizan ignorando mayúsculas y espacios externos.
 
         Returns:
             Lista ordenada de rutas válidas.
         """
+        normalized_extensions = {
+            extension.strip().lower().lstrip(".")
+            for extension in supported_extensions
+            if extension.strip().lstrip(".")
+        }
+
         return sorted(
             p for p in directory.iterdir()
             if p.is_file()
-            and p.suffix.lower().lstrip(".") in supported_extensions
+            and p.suffix.lower().lstrip(".") in normalized_extensions
         )
