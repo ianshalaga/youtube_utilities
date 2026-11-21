@@ -18,8 +18,17 @@
             <p class="text-gray-300">
                 <strong class="text-gray-200">Estado:</strong>
                 <span id="job-status"
-                      class="ml-1 inline-flex rounded-full border border-indigo-500/40 bg-indigo-950/50 px-3 py-1 text-sm font-bold text-indigo-300">
-                    {{ job.status }}
+                      class="ml-1 inline-flex rounded-full border px-3 py-1 text-sm font-bold
+                             {% if job.status == 'queued' %}border-gray-500/40 bg-gray-950/50 text-gray-300
+                             {% elif job.status == 'running' %}border-blue-500/40 bg-blue-950/50 text-blue-300
+                             {% elif job.status == 'completed' %}border-green-500/40 bg-green-950/50 text-green-300
+                             {% elif job.status == 'failed' %}border-red-500/40 bg-red-950/50 text-red-300
+                             {% else %}border-gray-500/40 bg-gray-950/50 text-gray-300{% endif %}">
+                    {% if job.status == "queued" %}⏳ En espera
+                    {% elif job.status == "running" %}🔄 En procesamiento
+                    {% elif job.status == "completed" %}✅ Completado
+                    {% elif job.status == "failed" %}❌ Fallido
+                    {% else %}ℹ️ Estado desconocido{% endif %}
                 </span>
             </p>
             <p id="job-message" class="leading-relaxed text-gray-300">{{ job.message }}</p>
@@ -67,16 +76,34 @@
                 <ul id="track-list" class="space-y-3">
                     {% for track in job.tracks %}
                         <li class="rounded-lg border border-white/10 bg-slate-800/70 p-4">
-                            <strong class="text-white">{{ track.name|default:"Pista"|escape }}</strong>
-                            <p class="mt-1 text-sm text-gray-400">
-                                Estado: {{ track.status }} — {{ track.message }}
-                                {% if track.duration %}
-                                    <span class="text-indigo-300">({{ track.duration }})</span>
+                                <div class="flex flex-wrap items-center gap-2 text-sm font-semibold
+                                      {% if track.status == 'pending' %}text-gray-400
+                                      {% elif track.status == 'running' %}text-blue-300
+                                      {% elif track.status == 'completed' %}text-green-300
+                                      {% elif track.status == 'failed' %}text-red-300
+                                      {% else %}text-gray-400{% endif %}">
+                                    {% if track.status == "pending" %}⏳ Pendiente
+                                    {% elif track.status == "running" %}🔄 En procesamiento
+                                    {% elif track.status == "completed" %}✅ Completada
+                                    {% elif track.status == "failed" %}❌ Fallida
+                                    {% else %}ℹ️ Estado desconocido{% endif %}
+                                    <span class="text-gray-500">|</span>
+                                    <strong class="text-white">{{ track.name|default:"Pista"|escape }}</strong>
+                                </div>
+                                {% if track.message != "Pendiente" and track.message != "Procesando" and track.message != "Completada" and track.message != "Fallida" %}
+                                    {% if not track.duration %}
+                                        <p class="mt-1 text-sm text-gray-400">{{ track.message }}</p>
+                                    {% elif track.message|slice:":19" != "Duración detectada:" %}
+                                        <p class="mt-1 text-sm text-gray-400">{{ track.message }}</p>
+                                    {% endif %}
                                 {% endif %}
-                            </p>
-                            {% if track.error_message %}
-                                <p role="alert" class="mt-2 text-sm text-red-400">⚠️ {{ track.error_message }}</p>
-                            {% endif %}
+                                {% if track.duration %}
+                                    <span class="text-indigo-300">|</span>
+                                    <span class="text-indigo-300">{{ track.duration }}</span>
+                                {% endif %}
+                                {% if track.error_message %}
+                                    <p role="alert" class="mt-2 text-sm text-red-400">⚠️ {{ track.error_message }}</p>
+                                {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
@@ -87,15 +114,9 @@
                 </p>
             {% endif %}
         </section>
-        <div>
-            <a href="{% url 'video_music:index' %}"
-               class="inline-flex items-center gap-2 rounded-lg border border-green-500/40 bg-green-950/30 px-4 py-3 font-bold text-green-300 transition-colors duration-200 hover:border-green-400 hover:bg-green-900/50 hover:text-green-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-green-500">
-                <span aria-hidden="true">←</span>
-                Volver a Video Music
-            </a>
-        </div>
     </section>
     <div id="job-progress-config"
-         data-status-url="{% url 'video_music:job_status' job_id=job.job_id %}"></div>
-    <script src="{% static 'video_music_web/js/job_progress.js' %}" defer></script>
+         data-status-url="{% url 'video_music:job_status' job_id=job.job_id %}"
+         data-result-url="{% url 'video_music:job_result' job_id=job.job_id %}"></div>
+    <script src="{% static 'video_music_web/js/job_progress.js' %}?v=2" defer></script>
 {% endblock %}

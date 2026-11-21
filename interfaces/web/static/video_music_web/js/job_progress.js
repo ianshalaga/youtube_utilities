@@ -1,6 +1,7 @@
 (() => {
   const config = document.getElementById("job-progress-config");
   const statusUrl = config.dataset.statusUrl;
+  const resultUrl = config.dataset.resultUrl;
 
   const elements = {
     status: document.getElementById("job-status"),
@@ -17,6 +18,44 @@
   };
 
   const terminalStatuses = new Set(["completed", "failed"]);
+  const jobStatusPresentation = {
+    queued: {
+      label: "En espera",
+      emoji: "⏳",
+      color: "border-gray-500/40 bg-gray-950/50 text-gray-300",
+    },
+    running: {
+      label: "En procesamiento",
+      emoji: "🔄",
+      color: "border-blue-500/40 bg-blue-950/50 text-blue-300",
+    },
+    completed: {
+      label: "Completado",
+      emoji: "✅",
+      color: "border-green-500/40 bg-green-950/50 text-green-300",
+    },
+    failed: {
+      label: "Fallido",
+      emoji: "❌",
+      color: "border-red-500/40 bg-red-950/50 text-red-300",
+    },
+  };
+  const trackStatusPresentation = {
+    pending: { label: "Pendiente", emoji: "⏳", color: "text-gray-400" },
+    running: {
+      label: "En procesamiento",
+      emoji: "🔄",
+      color: "text-blue-300",
+    },
+    completed: { label: "Completada", emoji: "✅", color: "text-green-300" },
+    failed: { label: "Fallida", emoji: "❌", color: "text-red-300" },
+  };
+  const defaultTrackMessages = {
+    pending: "Pendiente",
+    running: "Procesando",
+    completed: "Completada",
+    failed: "Fallida",
+  };
   const pollIntervalMs = 1000;
   const maxRetryDelayMs = 15000;
   const requestTimeoutMs = 10000;
@@ -44,23 +83,57 @@
     }
 
     const fragment = document.createDocumentFragment();
+    const orderedTracks = [...tracks].sort(
+      (left, right) =>
+        Number(left.status === "completed") -
+        Number(right.status === "completed"),
+    );
 
-    for (const track of tracks) {
+    for (const track of orderedTracks) {
       const item = document.createElement("li");
       const name = document.createElement("strong");
+      const presentation = trackStatusPresentation[track.status] || {
+        label: "Estado desconocido",
+        emoji: "ℹ️",
+        color: "text-gray-400",
+      };
+      const status = document.createElement("div");
 
       name.textContent = track.name || "Pista";
-      item.append(name);
-      item.append(
-        document.createTextNode(` — ${track.status} — ${track.message}`),
+      name.className = "text-white";
+      status.className =
+        `flex flex-wrap items-center gap-2 text-sm font-semibold ${presentation.color}`;
+      status.textContent = `${presentation.emoji} ${presentation.label}`;
+      status.append(
+        document.createTextNode(" | "),
+        name,
       );
+      item.append(status);
+
+      if (
+        track.message &&
+        track.message !== defaultTrackMessages[track.status] &&
+        (!track.duration || !track.message.startsWith("Duración detectada:"))
+      ) {
+        const activity = document.createElement("p");
+        activity.className = "mt-1 text-sm text-gray-400";
+        activity.textContent = track.message;
+        item.append(activity);
+      }
 
       if (track.duration) {
-        item.append(document.createTextNode(` (${track.duration})`));
+        status.append(
+          document.createTextNode(" | "),
+          Object.assign(document.createElement("span"), {
+            className: "text-indigo-300",
+            textContent: track.duration,
+          }),
+        );
       }
 
       if (track.error_message) {
         const error = document.createElement("p");
+        error.className = "mt-1 text-sm text-red-400";
         error.textContent = `Error: ${track.error_message}`;
         item.append(error);
       }
@@ -72,7 +145,14 @@
   }
 
   function updatePage(job) {
-    setText(elements.status, job.status);
+    const status = jobStatusPresentation[job.status] || {
+      label: "Estado desconocido",
+      emoji: "ℹ️",
+      color: "border-gray-500/40 bg-gray-950/50 text-gray-300",
+    };
+    setText(elements.status, `${status.emoji} ${status.label}`);
+    elements.status.className =
+      `ml-1 inline-flex rounded-full border px-3 py-1 text-sm font-bold ${status.color}`;
     setText(elements.message, job.message);
     setText(elements.currentDirectory, job.current_directory);
     setText(elements.totalDirectories, job.total_directories);
@@ -107,9 +187,7 @@
 
     if (terminalStatuses.has(job.status)) {
       stopPolling();
-      const resultsUrl = new URL("/video-music/", window.location.origin);
-      resultsUrl.searchParams.set("job_id", job.job_id);
-      window.location.assign(resultsUrl.toString());
+      window.location.assign(resultUrl);
     }
   }
 

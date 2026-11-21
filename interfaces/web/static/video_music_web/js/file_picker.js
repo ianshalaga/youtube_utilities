@@ -18,12 +18,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openBrowser(fieldName) {
     const target = allowedTargets[fieldName];
+    const fieldContainer = document.querySelector(
+      `[data-file-picker-container="${fieldName}"]`,
+    );
 
-    if (!target) {
+    if (!target || !fieldContainer) {
       return;
     }
 
     activeField = fieldName;
+    fieldContainer.insertAdjacentElement("afterend", browserPanel);
 
     description.textContent =
       target === "audios"

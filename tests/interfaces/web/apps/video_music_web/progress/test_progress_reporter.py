@@ -38,6 +38,7 @@ def test_reporter_forwards_job_and_track_events(tmp_path):
         video_path=video_path,
         audios_dir=audios_dir,
         output_dir=output_dir,
+        audio_files=[audio_path],
         total_tracks=1,
         max_items_per_dir=2,
     )
@@ -96,6 +97,7 @@ def test_reporter_forwards_track_failure(tmp_path):
         video_path=tmp_path / "base.mkv",
         audios_dir=tmp_path / "audio",
         output_dir=output_dir,
+        audio_files=[audio_path],
         total_tracks=1,
         max_items_per_dir=2,
     )

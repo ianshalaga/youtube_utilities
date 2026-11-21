@@ -115,6 +115,7 @@ class VideoMusicJobRegistry:
         video_path: Path,
         audios_dir: Path,
         output_dir: Path,
+        audio_files: list[Path],
         total_tracks: int,
         max_items_per_dir: int | None,
     ) -> None:
@@ -136,8 +137,12 @@ class VideoMusicJobRegistry:
                 )
 
             job.tracks = [
-                TrackProgress(index=index)
-                for index in range(1, total_tracks + 1)
+                TrackProgress(
+                    index=index,
+                    source_path=str(audio_path),
+                    name=audio_path.stem,
+                )
+                for index, audio_path in enumerate(audio_files, start=1)
             ]
 
             job.message = "Procesamiento iniciado"

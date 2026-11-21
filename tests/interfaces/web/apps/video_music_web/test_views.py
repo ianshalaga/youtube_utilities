@@ -16,6 +16,7 @@ from interfaces.web.apps.video_music_web.progress.job_runner import (
 from interfaces.web.apps.video_music_web.views import (
     IndexView,
     JobProgressView,
+    JobResultView,
     JobStatusView,
 )
 
@@ -72,7 +73,25 @@ def test_job_status_returns_404_for_unknown_job(request_factory):
         )
 
 
-@patch("interfaces.web.apps.video_music_web.views.messages.success")
+@patch("interfaces.web.apps.video_music_web.views.ConfigManager")
+def test_index_form_submits_in_the_current_tab(
+    config_manager_class,
+    request_factory,
+):
+    request = request_factory.get("/video-music/")
+
+    response = IndexView.as_view()(request)
+
+    assert response.status_code == 200
+    assert b'<form method="post"' in response.content
+    assert b'target="_self"' in response.content
+    assert b'data-file-picker-container="audios_dir"' in response.content
+    assert b'data-file-picker-container="video_path"' in response.content
+    assert b"file_picker.js?v=2" in response.content
+    assert "🎬 Generar vídeos".encode() in response.content
+    assert b"Guardar valores predeterminados" not in response.content
+
+
 @patch("interfaces.web.apps.video_music_web.views.Thread")
 @patch("interfaces.web.apps.video_music_web.views.job_registry")
 @patch("interfaces.web.apps.video_music_web.views.ConfigManager")
@@ -80,7 +99,6 @@ def test_index_post_starts_background_job(
     config_manager_class,
     registry,
     thread_class,
-    messages_success,
     request_factory,
     tmp_path,
 ):
@@ -188,7 +206,91 @@ def test_job_progress_returns_page_for_existing_job(
     assert b"Progreso de Video Music" in response.content
     assert job_id.encode() in response.content
     assert b"Informaci\xc3\xb3n del trabajo" in response.content
-    assert b"queued" in response.content
+    assert "⏳ En espera".encode() in response.content
+    assert b"queued" not in response.content
+    assert (
+        f'data-result-url="/video-music/jobs/{job_id}/results/"'.encode()
+        in response.content
+    )
+    assert b"job_progress.js?v=2" in response.content
+    assert b"Volver a Video Music" not in response.content
+    assert b'href="/"' not in response.content
+
+
+def test_job_progress_localizes_track_states_and_places_completed_last(
+    request_factory,
+    tmp_path,
+    isolated_registry,
+):
+    job_id = isolated_registry.create_job(
+        video_path=tmp_path / "base.mkv",
+        audios_dir=tmp_path / "audio",
+        output_dir=tmp_path / "output",
+        max_items_per_dir=5,
+    )
+    isolated_registry.job_started(
+        job_id,
+        video_path=tmp_path / "base.mkv",
+        audios_dir=tmp_path / "audio",
+        output_dir=tmp_path / "output",
+        audio_files=[
+            tmp_path / "audio" / "01-active.flac",
+            tmp_path / "audio" / "02-completed.flac",
+            tmp_path / "audio" / "03-failed.flac",
+        ],
+        total_tracks=3,
+        max_items_per_dir=5,
+    )
+
+    active_audio = tmp_path / "audio" / "01-active.flac"
+    completed_audio = tmp_path / "audio" / "02-completed.flac"
+    failed_audio = tmp_path / "audio" / "03-failed.flac"
+
+    isolated_registry.track_started(
+        job_id,
+        index=1,
+        total=3,
+        audio_path=active_audio,
+        output_dir=tmp_path / "output",
+    )
+    isolated_registry.track_started(
+        job_id,
+        index=2,
+        total=3,
+        audio_path=completed_audio,
+        output_dir=tmp_path / "output",
+    )
+    isolated_registry.track_completed(
+        job_id,
+        index=2,
+        total=3,
+        audio_path=completed_audio,
+    )
+    isolated_registry.track_started(
+        job_id,
+        index=3,
+        total=3,
+        audio_path=failed_audio,
+        output_dir=tmp_path / "output",
+    )
+    isolated_registry.track_failed(
+        job_id,
+        index=3,
+        total=3,
+        audio_path=failed_audio,
+        error=RuntimeError("Error de prueba"),
+    )
+
+    request = request_factory.get(f"/video-music/jobs/{job_id}/")
+    response = JobProgressView.as_view()(request, job_id=job_id)
+    content = response.content
+
+    assert content.index(b"01-active") < content.index(b"03-failed")
+    assert content.index(b"03-failed") < content.index(b"02-completed")
+    assert b"|</span>" in content
+    assert "🔄 En procesamiento".encode() in content
+    assert "✅ Completada".encode() in content
+    assert "❌ Fallida".encode() in content
 
 
 def test_job_failure_preserves_multiline_validation_details(
@@ -211,8 +313,10 @@ def test_job_failure_preserves_multiline_validation_details(
         ),
     )
 
-    request = request_factory.get(f"/video-music/?job_id={job_id}")
-    response = IndexView.as_view()(request)
+    request = request_factory.get(
+        f"/video-music/jobs/{job_id}/results/"
+    )
+    response = JobResultView.as_view()(request, job_id=job_id)
 
     assert response.status_code == 200
     assert b"whitespace-pre-wrap break-words" in response.content
@@ -234,8 +338,93 @@ def test_job_progress_returns_404_for_unknown_job(request_factory):
 
 
 @patch("interfaces.web.apps.video_music_web.views.ConfigManager")
-def test_index_get_displays_existing_job_results(
+def test_index_does_not_render_job_results(
     config_manager_class,
+    request_factory,
+    tmp_path,
+    isolated_registry,
+):
+    job_id = isolated_registry.create_job(
+        video_path=tmp_path / "base.mkv",
+        audios_dir=tmp_path / "audio",
+        output_dir=tmp_path / "output",
+        max_items_per_dir=10,
+    )
+    isolated_registry.job_completed(
+        job_id,
+        total_tracks=0,
+        output_dir=tmp_path / "output",
+    )
+
+    request = request_factory.get(f"/video-music/?job_id={job_id}")
+
+    response = IndexView.as_view()(request)
+
+    assert response.status_code == 200
+    assert b"Resultado del procesamiento" not in response.content
+    assert b"job-results" not in response.content
+
+
+@patch("interfaces.web.apps.video_music_web.views.ConfigManager")
+def test_job_result_returns_page_for_completed_job(
+    config_manager_class,
+    request_factory,
+    tmp_path,
+    isolated_registry,
+):
+    job_id = isolated_registry.create_job(
+        video_path=tmp_path / "base.mkv",
+        audios_dir=tmp_path / "audio",
+        output_dir=tmp_path / "output",
+        max_items_per_dir=10,
+    )
+    audio_path = tmp_path / "audio" / "01-theme.flac"
+    isolated_registry.job_started(
+        job_id,
+        video_path=tmp_path / "base.mkv",
+        audios_dir=tmp_path / "audio",
+        output_dir=tmp_path / "output",
+        audio_files=[tmp_path / "audio" / "01-theme.flac"],
+        total_tracks=1,
+        max_items_per_dir=10,
+    )
+    isolated_registry.track_started(
+        job_id,
+        index=1,
+        total=1,
+        audio_path=audio_path,
+        output_dir=tmp_path / "output",
+    )
+    isolated_registry.track_completed(
+        job_id,
+        index=1,
+        total=1,
+        audio_path=audio_path,
+    )
+    isolated_registry.job_completed(
+        job_id,
+        total_tracks=1,
+        output_dir=tmp_path / "output",
+    )
+
+    request = request_factory.get(
+        f"/video-music/jobs/{job_id}/results/"
+    )
+    response = JobResultView.as_view()(request, job_id=job_id)
+
+    assert response.status_code == 200
+    assert b"Resultados de Video Music" in response.content
+    assert "✅ Completada".encode() in response.content
+    assert b"completed" not in response.content
+    assert b"Volver a Video Music" in response.content
+    assert b"video-music-form" not in response.content
+    assert (
+        response.content.index(b"Volver a Video Music")
+        < response.content.index(b"Detalle de las pistas")
+    )
+
+
+def test_job_result_redirects_to_progress_while_job_is_active(
     request_factory,
     tmp_path,
     isolated_registry,
@@ -248,23 +437,18 @@ def test_index_get_displays_existing_job_results(
     )
 
     request = request_factory.get(
-        f"/video-music/?job_id={job_id}"
+        f"/video-music/jobs/{job_id}/results/"
     )
+    response = JobResultView.as_view()(request, job_id=job_id)
 
-    response = IndexView.as_view()(request)
-
-    assert response.status_code == 200
-    assert b"Progreso de Video Music" not in response.content
+    assert response.status_code == 302
+    assert response.url == f"/video-music/jobs/{job_id}/"
 
 
-@patch("interfaces.web.apps.video_music_web.views.ConfigManager")
-def test_index_get_returns_404_for_unknown_job(
-    config_manager_class,
-    request_factory,
-):
+def test_job_result_returns_404_for_unknown_job(request_factory):
     request = request_factory.get(
-        "/video-music/?job_id=unknown"
+        "/video-music/jobs/unknown/results/"
     )
 
     with pytest.raises(Http404):
-        IndexView.as_view()(request)
+        JobResultView.as_view()(request, job_id="unknown")

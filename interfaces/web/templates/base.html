@@ -15,10 +15,16 @@
     <body class="flex min-h-screen flex-col bg-gray-950 font-sans text-gray-100 antialiased">
         <header class="border-b border-indigo-500/30 bg-gray-900">
             <div class="mx-auto flex w-full max-w-7xl items-center px-4 py-4 sm:px-6 lg:px-8">
-                <a href="{% url 'home:index' %}"
-                   class="font-display text-lg font-semibold tracking-tight text-white transition-colors duration-200 hover:text-indigo-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-green-500 sm:text-xl">
+                {% if hide_home_navigation %}
+                    <span class="font-display text-lg font-semibold tracking-tight text-white sm:text-xl">
+                        ⚙️ YouTube Utilities
+                    </span>
+                {% else %}
+                    <a href="{% url 'home:index' %}"
+                       class="font-display text-lg font-semibold tracking-tight text-white transition-colors duration-200 hover:text-indigo-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-green-500 sm:text-xl">
                     ⚙️ YouTube Utilities
-                </a>
+                    </a>
+                {% endif %}
             </div>
         </header>
         <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">

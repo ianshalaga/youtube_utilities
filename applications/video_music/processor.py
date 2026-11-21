@@ -156,6 +156,7 @@ class VideoMusicProcessor:
             video_path=video_path,
             audios_dir=audios_dir,
             output_dir=output_dir,
+            audio_files=audio_files,
             total_tracks=total_tracks,
             max_items_per_dir=max_items_per_dir,
         )

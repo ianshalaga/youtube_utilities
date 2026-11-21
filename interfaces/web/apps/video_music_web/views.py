@@ -2,7 +2,6 @@ from dataclasses import asdict
 from pathlib import Path
 from threading import Thread
 
-from django.contrib import messages
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.views import View
@@ -31,24 +30,10 @@ class IndexView(View):
             }
         )
 
-        context = {"form": form}
-
-        job_id = request.GET.get("job_id")
-
-        if job_id:
-            job = job_registry.get_job(job_id)
-
-            if job is None:
-                raise Http404(
-                    "No existe un trabajo con ese identificador."
-                )
-
-            context["job"] = job
-
         return render(
             request,
             self.template_name,
-            context,
+            {"form": form},
         )
 
     def post(self, request, *args, **kwargs):
@@ -125,8 +110,6 @@ class IndexView(View):
                 job_id=job_id,
             )
 
-        messages.success(request, "El trabajo se ha iniciado correctamente.")
-
         return redirect(
             "video_music:job_progress",
             job_id=job_id,
@@ -143,6 +126,35 @@ class JobProgressView(View):
 
         if job is None:
             raise Http404("No existe un trabajo con ese identificador.")
+
+        job.tracks.sort(key=lambda track: track.status == "completed")
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "job": job,
+                "hide_home_navigation": True,
+            },
+        )
+
+
+class JobResultView(View):
+    """Render the final results for a completed Video Music job."""
+
+    template_name = "video_music_web/job_result.html"
+
+    def get(self, request, job_id, *args, **kwargs):
+        job = job_registry.get_job(job_id)
+
+        if job is None:
+            raise Http404("No existe un trabajo con ese identificador.")
+
+        if job.status not in {"completed", "failed"}:
+            return redirect(
+                "video_music:job_progress",
+                job_id=job_id,
+            )
 
         return render(
             request,

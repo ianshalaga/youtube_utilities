@@ -11,6 +11,7 @@ class VideoMusicProgressReporter(Protocol):
         video_path: Path,
         audios_dir: Path,
         output_dir: Path,
+        audio_files: list[Path],
         total_tracks: int,
         max_items_per_dir: int | None,
     ) -> None: ...

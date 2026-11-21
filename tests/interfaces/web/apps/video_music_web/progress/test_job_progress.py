@@ -86,6 +86,10 @@ def test_job_started_initializes_tracks_and_directories(tmp_path):
         video_path=tmp_path / "base.mkv",
         audios_dir=tmp_path / "audio",
         output_dir=tmp_path / "output",
+        audio_files=[
+            tmp_path / "audio" / f"{index}.flac"
+            for index in range(5)
+        ],
         total_tracks=5,
         max_items_per_dir=2,
     )
@@ -98,6 +102,10 @@ def test_job_started_initializes_tracks_and_directories(tmp_path):
     assert job.total_directories == 3
     assert len(job.tracks) == 5
     assert all(track.status == "pending" for track in job.tracks)
+    assert [track.name for track in job.tracks] == [
+        "0", "1", "2", "3", "4"
+    ]
+    assert all(track.source_path for track in job.tracks)
 
 
 def test_track_lifecycle_updates_counts_and_details(tmp_path):
@@ -109,6 +117,10 @@ def test_track_lifecycle_updates_counts_and_details(tmp_path):
         video_path=tmp_path / "base.mkv",
         audios_dir=tmp_path / "audio",
         output_dir=tmp_path / "output",
+        audio_files=[
+            tmp_path / "audio" / "01-theme.flac",
+            tmp_path / "audio" / "02-theme.flac",
+        ],
         total_tracks=2,
         max_items_per_dir=2,
     )
@@ -193,6 +205,7 @@ def test_job_completed_preserves_failed_track_count(tmp_path):
         video_path=tmp_path / "base.mkv",
         audios_dir=tmp_path / "audio",
         output_dir=tmp_path / "output",
+        audio_files=[tmp_path / "audio" / "theme.flac"],
         total_tracks=1,
         max_items_per_dir=2,
     )
@@ -277,6 +290,10 @@ def test_concurrent_track_updates_keep_counts_consistent(tmp_path):
         video_path=tmp_path / "base.mkv",
         audios_dir=tmp_path / "audio",
         output_dir=tmp_path / "output",
+        audio_files=[
+            tmp_path / "audio" / f"{index:02d}.flac"
+            for index in range(1, total_tracks + 1)
+        ],
         total_tracks=total_tracks,
         max_items_per_dir=5,
     )

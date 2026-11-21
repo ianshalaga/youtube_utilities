@@ -44,6 +44,7 @@ class VideoMusicConsole:
         video_path: Path,
         audios_dir: Path,
         output_dir: Path,
+        audio_files: list[Path],
         total_tracks: int,
         max_items_per_dir: int | None,
     ) -> None:
@@ -64,8 +65,14 @@ class VideoMusicConsole:
             else:
                 self._total_directories = 1
 
-            self._statuses.clear()
-            self._track_names.clear()
+            self._statuses = {
+                index: "pending"
+                for index in range(1, total_tracks + 1)
+            }
+            self._track_names = {
+                index: audio_path.stem
+                for index, audio_path in enumerate(audio_files, start=1)
+            }
             self._durations.clear()
             self._errors.clear()
 
@@ -279,13 +286,19 @@ class VideoMusicConsole:
         table.add_column(ratio=1)
         table.add_column(width=12)
 
-        visible = sorted(self._statuses.items())[-12:]
+        visible = sorted(
+            self._statuses.items(),
+            key=lambda track: track[1] == "completed",
+        )
 
         for index, status in visible:
             name = self._track_names.get(index, "")
             duration = self._durations.get(index, "")
 
-            if status == "completed":
+            if status == "pending":
+                icon = "[dim]⏳[/dim]"
+                state = "[dim]PENDING[/dim]"
+            elif status == "completed":
                 icon = "[green]✓[/green]"
                 state = "[green]DONE[/green]"
             elif status == "failed":

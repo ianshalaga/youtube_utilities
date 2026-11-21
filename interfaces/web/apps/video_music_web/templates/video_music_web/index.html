@@ -21,7 +21,9 @@
         {% endif %}
         <section class="rounded-xl border-2 border-red-500/40 bg-gray-900 p-5 sm:p-7">
             <h2 class="mb-6 font-display text-xl font-semibold text-white">⚙️ Parámetros de generación</h2>
-            <form method="post" class="video-music-form space-y-6">
+            <form method="post"
+                  target="_self"
+                  class="video-music-form space-y-6">
                 {% csrf_token %}
                 {% if form.non_field_errors %}
                     <div role="alert"
@@ -30,7 +32,10 @@
                     </div>
                 {% endif %}
                 {% for field in form %}
-                    <div class="space-y-2">
+                    <div class="space-y-2"
+                         {% if field.name == "audios_dir" or field.name == "video_path" %}
+                             data-file-picker-container="{{ field.name }}"
+                         {% endif %}>
                         <div class="font-bold text-gray-200">{{ field.label_tag }}</div>
                         {% if field.name == "max_items_per_dir" %}
                             {{ field }}
@@ -57,7 +62,7 @@
                 <div class="border-t border-white/10 pt-5">
                     <button type="submit"
                             class="rounded-lg border border-green-500/50 bg-green-900/40 px-5 py-3 font-bold text-green-100 transition-all duration-200 hover:border-green-400 hover:bg-green-800/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-green-500">
-                        💾 Guardar valores predeterminados
+                        🎬 Generar vídeos
                     </button>
                 </div>
             </form>
@@ -134,112 +139,10 @@
                 </button>
             </div>
         </section>
-        {% if job %}
-            <section id="job-results"
-                     class="space-y-5 rounded-xl border-2 border-indigo-500/40 bg-gray-900 p-5 sm:p-7">
-                <h2 class="font-display text-2xl font-semibold text-white">📊 Resultado del procesamiento</h2>
-                <div class="space-y-2 text-gray-300">
-                    <p><strong class="text-indigo-300">Estado:</strong> {{ job.status }}</p>
-                    <p>{{ job.message }}</p>
-                </div>
-                {% if job.error_message %}
-                    <div role="alert"
-                         class="rounded-lg border border-red-500/40 bg-red-950/30 p-4 text-red-200">
-                        ⚠️ <strong>Error:</strong>
-                        <p class="whitespace-pre-wrap break-words">{{ job.error_message }}</p>
-                    </div>
-                {% endif %}
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <div class="rounded-lg border border-indigo-500/30 bg-slate-800 p-4">
-                        <p class="text-sm text-gray-400">📁 Directorio de salida</p>
-                        <p class="mt-1 break-words text-gray-100">{{ job.output_dir }}</p>
-                    </div>
-                    <div class="rounded-lg border border-indigo-500/30 bg-slate-800 p-4">
-                        <p class="text-sm text-gray-400">🎵 Total de pistas</p>
-                        <p class="mt-1 text-2xl font-bold text-indigo-300">{{ job.total_tracks }}</p>
-                    </div>
-                    <div class="rounded-lg border border-green-500/30 bg-slate-800 p-4">
-                        <p class="text-sm text-gray-400">✅ Pistas completadas</p>
-                        <p class="mt-1 text-2xl font-bold text-green-300">{{ job.completed_tracks }}</p>
-                    </div>
-                    <div class="rounded-lg border border-red-500/30 bg-slate-800 p-4">
-                        <p class="text-sm text-gray-400">❌ Pistas fallidas</p>
-                        <p class="mt-1 text-2xl font-bold text-red-300">{{ job.failed_tracks }}</p>
-                    </div>
-                </div>
-                <h3 class="font-display text-lg font-semibold text-white">🎼 Detalle de las pistas</h3>
-                {% if job.tracks %}
-                    <ul class="space-y-3">
-                        {% for track in job.tracks %}
-                            <li class="rounded-lg border border-white/10 bg-slate-800/70 p-4">
-                                <p class="font-bold text-white">{{ track.name|default:"Pista"|escape }}</p>
-                                <p class="mt-1 text-sm text-gray-400">Estado: {{ track.status }} — {{ track.message }}</p>
-                                {% if track.output_path %}
-                                    <p class="mt-2 break-words text-sm text-indigo-300">📁 Archivo generado: {{ track.output_path }}</p>
-                                {% endif %}
-                                {% if track.error_message %}
-                                    <p role="alert" class="mt-2 text-sm text-red-400">⚠️ {{ track.error_message }}</p>
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-gray-400">Todavía no hay pistas registradas.</p>
-                {% endif %}
-            </section>
-        {% endif %}
-        {% if processing_error %}
-            <section class="rounded-xl border-2 border-red-500/40 bg-gray-900 p-5 sm:p-7">
-                <h2 class="font-display text-xl font-semibold text-red-300">⚠️ Error durante el procesamiento</h2>
-                <p role="alert" class="mt-3 text-gray-300">{{ processing_error }}</p>
-            </section>
-        {% endif %}
-        {% if result %}
-            <section class="space-y-5 rounded-xl border-2 border-indigo-500/40 bg-gray-900 p-5 sm:p-7">
-                <h2 class="font-display text-2xl font-semibold text-white">📊 Resultado del procesamiento</h2>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <div class="rounded-lg border border-indigo-500/30 bg-slate-800 p-4">
-                        <p class="text-sm text-gray-400">📁 Directorio de salida</p>
-                        <p class="mt-1 break-words text-gray-100">{{ result.output_dir }}</p>
-                    </div>
-                    <div class="rounded-lg border border-indigo-500/30 bg-slate-800 p-4">
-                        <p class="text-sm text-gray-400">🎵 Total de pistas</p>
-                        <p class="mt-1 text-2xl font-bold text-indigo-300">{{ result.total_tracks }}</p>
-                    </div>
-                    <div class="rounded-lg border border-violet-500/30 bg-slate-800 p-4">
-                        <p class="text-sm text-gray-400">📂 Directorios de salida</p>
-                        <p class="mt-1 text-2xl font-bold text-violet-300">{{ result.total_directories }}</p>
-                    </div>
-                    <div class="rounded-lg border border-green-500/30 bg-slate-800 p-4">
-                        <p class="text-sm text-gray-400">✅ Pistas completadas</p>
-                        <p class="mt-1 text-2xl font-bold text-green-300">{{ result.processed_tracks }}</p>
-                    </div>
-                    <div class="rounded-lg border border-red-500/30 bg-slate-800 p-4">
-                        <p class="text-sm text-gray-400">❌ Pistas fallidas</p>
-                        <p class="mt-1 text-2xl font-bold text-red-300">{{ result.failed_tracks }}</p>
-                    </div>
-                </div>
-                <h3 class="font-display text-lg font-semibold text-white">🎼 Detalle de las pistas</h3>
-                <ul class="space-y-3">
-                    {% for track in result.tracks %}
-                        <li class="rounded-lg border border-white/10 bg-slate-800/70 p-4">
-                            <p class="font-bold text-white">{{ track.source_path.name }}</p>
-                            <p class="mt-1 text-sm text-gray-400">Estado: {{ track.status.value }}</p>
-                            {% if track.output_path %}
-                                <p class="mt-2 break-words text-sm text-indigo-300">📁 Archivo generado: {{ track.output_path }}</p>
-                            {% endif %}
-                            {% if track.error_message %}
-                                <p role="alert" class="mt-2 text-sm text-red-400">⚠️ {{ track.error_message }}</p>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                </ul>
-            </section>
-        {% endif %}
     </section>
 {% endblock %}
 {% block extra_scripts %}
     {{ block.super }}
     <script src="{% static 'file_browser/js/browser.js' %}" defer></script>
-    <script src="{% static 'video_music_web/js/file_picker.js' %}" defer></script>
+    <script src="{% static 'video_music_web/js/file_picker.js' %}?v=2" defer></script>
 {% endblock %}

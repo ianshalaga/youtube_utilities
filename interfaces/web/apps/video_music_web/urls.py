@@ -11,6 +11,11 @@ urlpatterns = [
         name="job_progress",
     ),
     path(
+        "jobs/<str:job_id>/results/",
+        views.JobResultView.as_view(),
+        name="job_result",
+    ),
+    path(
         "jobs/<str:job_id>/status/",
         views.JobStatusView.as_view(),
         name="job_status",

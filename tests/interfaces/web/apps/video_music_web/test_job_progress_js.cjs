@@ -55,7 +55,7 @@ async function flushPromises() {
   }
 }
 
-function createResponse(status = "running") {
+function createResponse(status = "running", tracks = []) {
   return {
     ok: true,
     async json() {
@@ -70,16 +70,51 @@ function createResponse(status = "running") {
           total_tracks: 0,
           running_tracks: 0,
           failed_tracks: 0,
-          tracks: [],
+          tracks,
         },
       };
     },
   };
 }
 
+class FakeNode {
+  constructor(tagName, textContent = "") {
+    this.tagName = tagName;
+    this.children = [];
+    this.className = "";
+    this.id = "";
+    this._textContent = textContent;
+  }
+
+  get textContent() {
+    return (
+      this._textContent +
+      this.children.map((child) => child.textContent).join("")
+    );
+  }
+
+  set textContent(value) {
+    this._textContent = String(value);
+    this.children = [];
+  }
+
+  append(...nodes) {
+    this.children.push(...nodes);
+  }
+
+  replaceChildren(...nodes) {
+    this.children = nodes;
+  }
+
+  after() {}
+
+  replaceWith() {}
+}
+
 function createHarness(fetchImplementation) {
   const clock = createClock();
   const elements = new Map();
+  const createdNodes = [];
 
   for (const id of [
     "job-status",
@@ -99,7 +134,12 @@ function createHarness(fetchImplementation) {
   elements.set("track-list", null);
   elements.set("no-tracks", null);
 
-  const config = { dataset: { statusUrl: "/jobs/job-123/status/" } };
+  const config = {
+    dataset: {
+      statusUrl: "/jobs/job-123/status/",
+      resultUrl: "/video-music/jobs/job-123/results/",
+    },
+  };
   const location = {
     origin: "http://localhost",
     assignedUrl: null,
@@ -116,6 +156,17 @@ function createHarness(fetchImplementation) {
     getElementById(id) {
       return id === "job-progress-config" ? config : elements.get(id) ?? null;
     },
+    createElement(tagName) {
+      const node = new FakeNode(tagName);
+      createdNodes.push(node);
+      return node;
+    },
+    createTextNode(text) {
+      return new FakeNode("#text", text);
+    },
+    createDocumentFragment() {
+      return new FakeNode("#fragment");
+    },
   };
 
   vm.runInNewContext(script, {
@@ -127,7 +178,7 @@ function createHarness(fetchImplementation) {
     window,
   });
 
-  return { clock, elements, location };
+  return { clock, elements, location, createdNodes };
 }
 
 test("does not start another request while the current request is pending", async () => {
@@ -158,6 +209,51 @@ test("does not start another request while the current request is pending", asyn
 
   assert.equal(requestCount, 2);
   assert.equal(maxActiveRequests, 1);
+});
+
+test("renders Spanish colored states and moves completed tracks last", async () => {
+  const tracks = [
+    { name: "completada", status: "completed", message: "Completada" },
+    { name: "pendiente", status: "pending", message: "Pendiente" },
+    { name: "fallida", status: "failed", message: "Fallida" },
+    {
+      name: "activa",
+      status: "running",
+      message: "Duración detectada: 00:01:17.200",
+      duration: "00:01:17.200",
+    },
+  ];
+  const harness = createHarness(() =>
+    Promise.resolve(createResponse("running", tracks)),
+  );
+
+  await flushPromises();
+
+  const list = harness.createdNodes.find((node) => node.tagName === "ul");
+  const renderedTracks = list.children[0].children;
+
+  assert.deepEqual(
+    renderedTracks.map((item) => item.children[0].textContent),
+    [
+      "⏳ Pendiente | pendiente",
+      "❌ Fallida | fallida",
+      "🔄 En procesamiento | activa | 00:01:17.200",
+      "✅ Completada | completada",
+    ],
+  );
+  assert.deepEqual(
+    renderedTracks.map((item) => item.children[0].className),
+    ["flex flex-wrap items-center gap-2 text-sm font-semibold text-gray-400",
+      "flex flex-wrap items-center gap-2 text-sm font-semibold text-red-300",
+      "flex flex-wrap items-center gap-2 text-sm font-semibold text-blue-300",
+      "flex flex-wrap items-center gap-2 text-sm font-semibold text-green-300"],
+  );
+  assert.ok(
+    renderedTracks.every(
+      (item) => !/pending|running|completed|failed/.test(item.textContent),
+    ),
+  );
+  assert.equal(renderedTracks[2].children.length, 1);
 });
 
 test("aborts a timed out request and retries with an increased delay", async () => {
@@ -258,7 +354,7 @@ test("stops polling after the job reaches a terminal status", async () => {
   assert.equal(requestCount, 1);
   assert.equal(
     harness.location.assignedUrl,
-    "http://localhost/video-music/?job_id=job-123",
+    "/video-music/jobs/job-123/results/",
   );
 
   await harness.clock.advance(60000);

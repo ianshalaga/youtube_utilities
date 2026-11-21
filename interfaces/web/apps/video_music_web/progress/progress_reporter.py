@@ -22,6 +22,7 @@ class WebVideoMusicProgressReporter(VideoMusicProgressReporter):
         video_path: Path,
         audios_dir: Path,
         output_dir: Path,
+        audio_files: list[Path],
         total_tracks: int,
         max_items_per_dir: int | None,
     ) -> None:
@@ -30,6 +31,7 @@ class WebVideoMusicProgressReporter(VideoMusicProgressReporter):
             video_path=video_path,
             audios_dir=audios_dir,
             output_dir=output_dir,
+            audio_files=audio_files,
             total_tracks=total_tracks,
             max_items_per_dir=max_items_per_dir,
         )
