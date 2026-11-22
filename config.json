@@ -37,8 +37,8 @@
   "apps": {
     "video_music": {
       "max_items_per_dir": 15,
-      "default_audios_dir": "D:\\@Seyfer\\Proyectos\\@YouTube\\OST\\02 In Progress\\Super Smash Bros\\01 Super Smash Bros - 1999\\03 Originals & Remixes UST",
-      "default_video_path": "D:\\@Seyfer\\Proyectos\\@YouTube\\OST\\02 In Progress\\Super Smash Bros\\01 Super Smash Bros - 1999\\03 Originals & Remixes UST\\images\\video.mp4",
+      "default_audios_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/01 Super Smash Bros - 1999/03 Originals & Remixes UST",
+      "default_video_path": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/01 Super Smash Bros - 1999/03 Originals & Remixes UST/images/video.mp4",
       "default_output_dir": "videos"
     },
     "video_joiner": {

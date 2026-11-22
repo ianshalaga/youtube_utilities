@@ -41,7 +41,7 @@ class VideoMusicForm(forms.Form):
                 "El directorio de audios no existe o no es un directorio."
             )
 
-        return value
+        return path.as_posix()
 
     def clean_video_path(self) -> str:
         value = self.cleaned_data["video_path"]
@@ -52,4 +52,8 @@ class VideoMusicForm(forms.Form):
                 "El vídeo base no existe o no es un archivo."
             )
 
-        return value
+        return path.as_posix()
+
+    def clean_output_dir(self) -> str:
+        value = self.cleaned_data["output_dir"]
+        return Path(value).as_posix()

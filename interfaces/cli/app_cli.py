@@ -249,6 +249,23 @@ def run_youtube_video_manager(config: ConfigManager) -> None:
         youtube_session.close()
 
 
+def run_web(
+    host: str = "127.0.0.1",
+    port: int = 8000,
+    open_browser: bool = True,
+) -> None:
+    """
+    Inicia el servidor web local y abre la aplicación en el navegador predeterminado.
+    """
+    from interfaces.web.launcher import launch_web_server
+
+    launch_web_server(
+        host=host,
+        port=port,
+        open_browser=open_browser,
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     """
     Construye el parser principal del CLI.
@@ -270,7 +287,25 @@ def build_parser() -> argparse.ArgumentParser:
             "ranking",
             "midi_mapper",
             "youtube_video_manager",
+            "web",
         ],
+    )
+
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Dirección de enlace para el servidor web (por defecto: 127.0.0.1).",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Puerto TCP para el servidor web (por defecto: 8000).",
+    )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="No abrir automáticamente el navegador web.",
     )
 
     return parser
@@ -294,6 +329,11 @@ def main() -> None:
         "load_legacy": run_load_legacy,
         "ranking": lambda: run_ranking(config),
         "youtube_video_manager": lambda: run_youtube_video_manager(config),
+        "web": lambda: run_web(
+            host=getattr(args, "host", "127.0.0.1"),
+            port=getattr(args, "port", 8000),
+            open_browser=not getattr(args, "no_browser", False),
+        ),
     }
 
     commands[args.command]()

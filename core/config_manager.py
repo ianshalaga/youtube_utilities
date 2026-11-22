@@ -140,17 +140,17 @@ class ConfigManager:
         self,
         *,
         max_items_per_dir: int,
-        default_audios_dir: str,
-        default_video_path: str,
-        default_output_dir: str,
+        default_audios_dir: str | Path,
+        default_video_path: str | Path,
+        default_output_dir: str | Path,
     ) -> None:
         """Update and persist Video Music default settings."""
         settings = self._config["apps"]["video_music"]
 
         settings["max_items_per_dir"] = max_items_per_dir
-        settings["default_audios_dir"] = default_audios_dir
-        settings["default_video_path"] = default_video_path
-        settings["default_output_dir"] = default_output_dir
+        settings["default_audios_dir"] = Path(default_audios_dir).as_posix()
+        settings["default_video_path"] = Path(default_video_path).as_posix()
+        settings["default_output_dir"] = Path(default_output_dir).as_posix()
 
         self.save()
 

@@ -81,3 +81,44 @@ def test_run_youtube_video_manager_delegates_composition_and_closes_session(
     processor.list_jobs.assert_called_once_with()
     menu.select.assert_called_once_with([])
     session.close.assert_called_once_with()
+
+
+def test_run_web_delegates_to_launch_web_server(monkeypatch) -> None:
+    launch_mock = Mock()
+    monkeypatch.setattr("interfaces.web.launcher.launch_web_server", launch_mock)
+
+    app_cli.run_web(host="127.0.0.1", port=8000, open_browser=True)
+
+    launch_mock.assert_called_once_with(
+        host="127.0.0.1",
+        port=8000,
+        open_browser=True,
+    )
+
+
+def test_build_parser_accepts_web_command_with_custom_flags() -> None:
+    parser = app_cli.build_parser()
+    args = parser.parse_args(["web", "--host", "0.0.0.0", "--port", "9000", "--no-browser"])
+
+    assert args.command == "web"
+    assert args.host == "0.0.0.0"
+    assert args.port == 9000
+    assert args.no_browser is True
+
+
+def test_main_executes_web_command(monkeypatch) -> None:
+    run_web_mock = Mock()
+    monkeypatch.setattr(app_cli, "run_web", run_web_mock)
+    monkeypatch.setattr(app_cli, "ConfigManager", Mock())
+    monkeypatch.setattr(
+        "sys.argv",
+        ["app.py", "web", "--port", "8000"],
+    )
+
+    app_cli.main()
+
+    run_web_mock.assert_called_once_with(
+        host="127.0.0.1",
+        port=8000,
+        open_browser=True,
+    )

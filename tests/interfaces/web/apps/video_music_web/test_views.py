@@ -6,6 +6,7 @@ import json
 from django.http import Http404
 from django.test import RequestFactory
 
+from interfaces.web.apps.video_music_web.forms import VideoMusicForm
 from interfaces.web.apps.video_music_web.progress.job_progress import (
     ActiveVideoMusicJobError,
     VideoMusicJobRegistry,
@@ -145,6 +146,13 @@ def test_index_post_starts_background_job(
     assert args[1].video_path == video_path
     assert args[1].output_dir == audios_dir / "output"
     assert args[1].max_items_per_dir == 10
+
+    config_manager_class.return_value.update_video_music_defaults.assert_called_once_with(
+        max_items_per_dir=10,
+        default_audios_dir=audios_dir.as_posix(),
+        default_video_path=video_path.as_posix(),
+        default_output_dir="output",
+    )
 
 
 @patch("interfaces.web.apps.video_music_web.views.Thread")
@@ -452,3 +460,27 @@ def test_job_result_returns_404_for_unknown_job(request_factory):
 
     with pytest.raises(Http404):
         JobResultView.as_view()(request, job_id="unknown")
+
+
+def test_video_music_form_normalizes_paths_with_forward_slashes(tmp_path):
+    audios_dir = tmp_path / "audio"
+    audios_dir.mkdir()
+    video_path = tmp_path / "base.mkv"
+    video_path.touch()
+
+    form = VideoMusicForm(
+        data={
+            "max_items_per_dir": 10,
+            "audios_dir": str(audios_dir).replace("/", "\\"),
+            "video_path": str(video_path).replace("/", "\\"),
+            "output_dir": r"sub\videos",
+        }
+    )
+
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["audios_dir"] == audios_dir.as_posix()
+    assert "\\" not in form.cleaned_data["audios_dir"]
+    assert form.cleaned_data["video_path"] == video_path.as_posix()
+    assert "\\" not in form.cleaned_data["video_path"]
+    assert form.cleaned_data["output_dir"] == "sub/videos"
+    assert "\\" not in form.cleaned_data["output_dir"]
