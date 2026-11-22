@@ -199,3 +199,18 @@ token.json
 # Database
 *.db
 yvm.db
+
+# Temporary files
+.pytest-temp-quoted-thumbnail
+.pytest-temp-thumbnail-path
+.pytest-temp-thumbnail-path-fix
+.pytest-video-music-cli-pending
+.pytest-video-music-file-picker
+.pytest-video-music-file-picker-cache
+.pytest-video-music-file-picker-final
+.pytest-video-music-no-return
+.pytest-video-music-pending-names
+.pytest-video-music-pending-names-final
+.pytest-video-music-track-states
+
+
