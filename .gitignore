@@ -213,4 +213,8 @@ yvm.db
 .pytest-video-music-pending-names-final
 .pytest-video-music-track-states
 
+# Exported LLM contexts
+data/contexts/
+
+
 

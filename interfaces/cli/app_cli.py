@@ -266,6 +266,26 @@ def run_web(
     )
 
 
+def run_export_context(
+    target: str = "all",
+    *,
+    include_tests: bool = True,
+    output_format: str = "md",
+) -> None:
+    """
+    Exporta el contexto del proyecto o de una aplicación para modelos LLM.
+    """
+    from tools.export_context import ContextExporter
+
+    exporter = ContextExporter()
+    output_file = exporter.export(
+        target=target,
+        include_tests=include_tests,
+        output_format=output_format,
+    )
+    print(f"Contexto exportado exitosamente en: {output_file}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     """
     Construye el parser principal del CLI.
@@ -288,6 +308,7 @@ def build_parser() -> argparse.ArgumentParser:
             "midi_mapper",
             "youtube_video_manager",
             "web",
+            "export_context",
         ],
     )
 
@@ -306,6 +327,33 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-browser",
         action="store_true",
         help="No abrir automáticamente el navegador web.",
+    )
+
+    parser.add_argument(
+        "target",
+        nargs="?",
+        default="all",
+        choices=[
+            "all",
+            "video_music",
+            "video_joiner",
+            "youtube_video_manager",
+            "ranking_system",
+            "video_converter",
+            "web",
+        ],
+        help="Aplicación u objetivo para exportar contexto (por defecto: all).",
+    )
+    parser.add_argument(
+        "--no-tests",
+        action="store_true",
+        help="Excluye los archivos de pruebas del volcado de contexto.",
+    )
+    parser.add_argument(
+        "--format",
+        choices=["md", "txt"],
+        default="md",
+        help="Formato de exportación del contexto (md o txt, por defecto: md).",
     )
 
     return parser
@@ -333,6 +381,11 @@ def main() -> None:
             host=getattr(args, "host", "127.0.0.1"),
             port=getattr(args, "port", 8000),
             open_browser=not getattr(args, "no_browser", False),
+        ),
+        "export_context": lambda: run_export_context(
+            target=getattr(args, "target", "all"),
+            include_tests=not getattr(args, "no_tests", False),
+            output_format=getattr(args, "format", "md"),
         ),
     }
 

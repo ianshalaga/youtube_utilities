@@ -1,404 +1,392 @@
+"""
+Herramienta de exportación de contexto de código para modelos LLM.
+
+Permite generar un volcado estructurado en Markdown (.md) o texto (.txt)
+del contexto de una aplicación específica o del proyecto completo.
+"""
+
+from datetime import datetime
 import fnmatch
-import hashlib
-import json
 from pathlib import Path
 from typing import Iterable, Set
-from collections.abc import Iterable
 
 
-BASE_DIR = Path(__file__).resolve().parents[1]
+class ContextExporter:
+    """Exporta el código y estructura del proyecto optimizado para LLMs."""
 
-# BASE_DIR / <path>
-
-# -----------------------------------------------------------
-
-# VIDEO MUSIC
-
-VIDEO_MUSIC_CONTEXT = (
-    BASE_DIR / "app.py",
-    BASE_DIR / "config.json",
-    BASE_DIR / "core/config_manager.py",
-    BASE_DIR / "core/time_utils.py",
-    BASE_DIR / "applications/video_music",
-    BASE_DIR / "interfaces/cli",
-    BASE_DIR / "interfaces/web",
-    BASE_DIR / "domain/media",
-    BASE_DIR / "services/media",
-    BASE_DIR / "services/filesystem",
-    BASE_DIR / "services/system",
-)
-
-# -----------------------------------------------------------
-
-# VIDEO JOINER
-
-VIDEO_JOINER_CONTEXT = (
-    BASE_DIR / "app.py",
-    BASE_DIR / "config.json",
-    BASE_DIR / "core/config_manager.py",
-    BASE_DIR / "core/time_utils.py",
-    BASE_DIR / "interfaces/cli/app_cli.py",
-    BASE_DIR / "interfaces/web/apps/video_joiner_web/views.py",
-    BASE_DIR / "interfaces/web/apps/video_joiner_web/models.py",
-    BASE_DIR / "interfaces/web/apps/video_joiner_web/admin.py",
-    BASE_DIR / "interfaces/web/apps/video_joiner_web/tests.py",
-    BASE_DIR / "applications/video_joiner/processor.py",
-    BASE_DIR / "applications/video_joiner/routes.py",
-    BASE_DIR / "services/system/process_runner.py",
-    BASE_DIR / "services/media/ffprobe_provider.py",
-    BASE_DIR / "services/media/media_provider.py",
-    BASE_DIR / "services/media/discovery/media_discovery.py",
-    BASE_DIR / "services/media/video/mkvmerge_runner.py",
-    BASE_DIR / "services/media/video/compatibility_validator.py",
-    BASE_DIR / "services/media/video/joiner/partitioner.py",
-    BASE_DIR / "services/media/video/joiner/end_screen_selector.py",
-    BASE_DIR / "services/media/video/joiner/timestamp_file_builder.py",
-    BASE_DIR / "domain/media/base.py",
-    BASE_DIR / "domain/media/video/video_encoding.py",
-    BASE_DIR / "domain/media/video/video_signature.py",
-)
-
-# -----------------------------------------------------------
-
-# RANKING SYSTEM
-
-RANKING_SERVICES = BASE_DIR / "services/ranking"
-
-RANKING_SYSTEM_CONTEXT = (
-    # Services
-    RANKING_SERVICES / "storage",
-    RANKING_SERVICES / "filters.py",
-)
-
-# -----------------------------------------------------------
-
-# YOUTUBE VIDEO MANAGER
-
-YOUTUBE_APPLICATIONS = BASE_DIR / "applications/youtube_video_manager"
-YOUTUBE_DOMAIN = BASE_DIR / "domain/youtube"
-YOUTUBE_SERVICES = BASE_DIR / "services/youtube"
-YOUTUBE_TESTS_APPLICATIONS = BASE_DIR / "tests/applications/youtube_video_manager"
-YOUTUBE_TESTS_DOMAIN = BASE_DIR / "tests/domain/youtube"
-YOUTUBE_TESTS_SERVICES = BASE_DIR / "tests/services/youtube"
-YOUTUBE_TESTS_INTEGRATION = BASE_DIR / "tests/integration/youtube"
-
-YOUTUBE_VIDEO_MANAGER_CONTEXT = (
-    # Base
-    BASE_DIR / "app.py",
-    BASE_DIR / "interfaces/cli/app_cli.py",
-    # Config
-    BASE_DIR / "config/youtube/album_manifest.yaml",
-    BASE_DIR / "config.json",
-    BASE_DIR / "core/config_manager.py",
-    # Applications
-    YOUTUBE_APPLICATIONS / "processor.py",
-    # Domain
-    YOUTUBE_DOMAIN / "album_manifest.py",
-    YOUTUBE_DOMAIN / "album.py",
-    YOUTUBE_DOMAIN / "job_repository.py",
-    YOUTUBE_DOMAIN / "job.py",
-    YOUTUBE_DOMAIN / "operation.py",
-    YOUTUBE_DOMAIN / "publication_settings.py",
-    YOUTUBE_DOMAIN / "validation.py",
-    YOUTUBE_DOMAIN / "video_metadata.py",
-    YOUTUBE_DOMAIN / "video.py",
-    YOUTUBE_DOMAIN / "youtube_video.py",
-    # Services
-    YOUTUBE_SERVICES / "album_builder.py",
-    YOUTUBE_SERVICES / "operations_builder.py",
-    YOUTUBE_SERVICES / "planner.py",
-    YOUTUBE_SERVICES / "updater.py",
-    YOUTUBE_SERVICES / "youtube_discovery.py",
-    YOUTUBE_SERVICES / "album_manifest/album_manifest_validator.py",
-    YOUTUBE_SERVICES / "album_manifest/exceptions.py",
-    YOUTUBE_SERVICES / "album_manifest/yaml_mapper.py",
-    YOUTUBE_SERVICES / "album_manifest/yaml_parser.py",
-    YOUTUBE_SERVICES / "album_manifest/yaml_reader.py",
-    YOUTUBE_SERVICES / "api/client.py",
-    YOUTUBE_SERVICES / "api/methods.py",
-    YOUTUBE_SERVICES / "storage/base.py",
-    YOUTUBE_SERVICES / "storage/repository.py",
-    YOUTUBE_SERVICES / "storage/session.py",
-    YOUTUBE_SERVICES / "storage/mappers/job_mapper.py",
-    YOUTUBE_SERVICES / "storage/models/job.py",
-    YOUTUBE_SERVICES / "storage/models/operation.py",
-    YOUTUBE_SERVICES / "storage/models/video_metadata.py",
-    YOUTUBE_SERVICES / "storage/models/video.py",
-    # Test Applications
-    YOUTUBE_TESTS_APPLICATIONS / "test_processor.py",
-    # Tests Domain
-    YOUTUBE_TESTS_DOMAIN / "test_album_manifest.py",
-    YOUTUBE_TESTS_DOMAIN / "test_album.py",
-    YOUTUBE_TESTS_DOMAIN / "test_job.py",
-    YOUTUBE_TESTS_DOMAIN / "test_operation.py",
-    YOUTUBE_TESTS_DOMAIN / "test_publication_settings.py",
-    YOUTUBE_TESTS_DOMAIN / "test_validation.py",
-    YOUTUBE_TESTS_DOMAIN / "test_video_metadata.py",
-    YOUTUBE_TESTS_DOMAIN / "test_video.py",
-    YOUTUBE_TESTS_DOMAIN / "test_youtube_video.py",
-    # Test Services
-    YOUTUBE_TESTS_SERVICES / "test_album_builder.py",
-    YOUTUBE_TESTS_SERVICES / "test_operations_builder.py",
-    YOUTUBE_TESTS_SERVICES / "test_planner.py",
-    YOUTUBE_TESTS_SERVICES / "test_updater.py",
-    YOUTUBE_TESTS_SERVICES / "test_youtube_discovery.py",
-    YOUTUBE_TESTS_SERVICES / "album_manifest/test_album_manifest_validator.py",
-    YOUTUBE_TESTS_SERVICES / "album_manifest/test_yaml_reader.py",
-    YOUTUBE_TESTS_SERVICES / "api/test_client.py",
-    YOUTUBE_TESTS_SERVICES / "api/test_methods.py",
-    YOUTUBE_TESTS_SERVICES / "storage/test_schema.py",
-    YOUTUBE_TESTS_SERVICES / "storage/mappers/test_job_mapper.py",
-    # Test Integration
-    YOUTUBE_TESTS_INTEGRATION / "test_end_to_end_persistence.py",
-    YOUTUBE_TESTS_INTEGRATION / "test_real_youtube_discovery.py",
-    YOUTUBE_TESTS_INTEGRATION / "test_repository.py",
-)
-
-# -----------------------------------------------------------
-
-INPUT_PATHS = VIDEO_MUSIC_CONTEXT
-
-FILE_NAME = "video_music_context"
-
-# -----------------------------------------------------------
-
-OUTPUT_NAME = Path("tools") / f"{FILE_NAME}"
-
-# ============================================================
-# CONFIGURACIÓN DEFAULT (Python Projects)
-# ============================================================
-
-DEFAULT_EXCLUDED_DIRS = {
-    ".git",
-    ".hg",
-    ".svn",
-    ".idea",
-    ".vscode",
-    "__pycache__",
-    ".mypy_cache",
-    ".pytest_cache",
-    ".ruff_cache",
-    "venv",
-    ".venv",
-    "env",
-    ".env",
-    "node_modules",
-    "dist",
-    "build",
-    ".tox",
-}
-
-DEFAULT_EXTENSIONS = {
-    # Python
-    ".py",
-    ".md",
-    ".txt",
-    ".yml",
-    ".yaml",
-    ".toml",
-    ".json",
-    # HTML, CSS, JS
-    ".html",
-    ".css",
-    ".js",
-}
-
-DEFAULT_EXCLUDED_PATTERNS = {
-    "*.pyc",
-    "*.pyo",
-    "*.pyd",
-    "*~",
-    "*.min.py",
-    "*_test.py",
-    "test_*.py",
-}
-
-# ============================================================
-# FILTROS
-# ============================================================
-
-
-def should_exclude_dir(path: Path, excluded_dirs: Set[str]) -> bool:
-    return any(part in excluded_dirs for part in path.parts)
-
-
-def should_exclude_pattern(path: Path, patterns: Set[str]) -> bool:
-    return any(fnmatch.fnmatch(path.name, pattern) for pattern in patterns)
-
-
-# ============================================================
-# UTILIDADES
-# ============================================================
-
-def file_hash(path: Path) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(8192), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
-# ============================================================
-# COLECTOR DE ARCHIVOS
-# ============================================================
-
-def collect_from_inputs(
-    inputs: Iterable[Path],
-    extensions: Set[str],
-    excluded_dirs: Set[str],
-    excluded_patterns: Set[str],
-    strict: bool = False,
-) -> list[Path]:
-    files: set[Path] = set()
-
-    for input_path in inputs:
-        if not input_path.exists():
-            if strict:
-                raise FileNotFoundError(input_path)
-            continue
-
-        if input_path.is_file():
-            if (
-                input_path.suffix in extensions
-                and not should_exclude_dir(input_path, excluded_dirs)
-                and not should_exclude_pattern(input_path, excluded_patterns)
-            ):
-                files.add(input_path.resolve())
-
-        elif input_path.is_dir():
-            for path in input_path.rglob("*"):
-                if not path.is_file():
-                    continue
-                if should_exclude_dir(path, excluded_dirs):
-                    continue
-                if should_exclude_pattern(path, excluded_patterns):
-                    continue
-                if path.suffix in extensions:
-                    files.add(path.resolve())
-
-    return sorted(files)
-
-
-# ============================================================
-# ÁRBOL DE ESTRUCTURA
-# ============================================================
-
-def build_tree(files: Iterable[Path], base_dir: Path) -> str:
-    tree = {}
-
-    for file in files:
-        rel = file.relative_to(base_dir)
-        current = tree
-        for part in rel.parts:
-            current = current.setdefault(part, {})
-
-    def render(node, indent=0):
-        lines = []
-        for key in sorted(node):
-            lines.append("  " * indent + key)
-            lines.extend(render(node[key], indent + 1))
-        return lines
-
-    return "\n".join(render(tree))
-
-
-# ============================================================
-# EXPORT PRINCIPAL (TXT + JSON)
-# ============================================================
-
-def export_context(
-    base_dir: Path,
-    input_paths: Iterable[Path] | Path,
-    output_path: str,
-    extensions: Set[str] = None,
-    excluded_dirs: Set[str] = None,
-    excluded_patterns: Set[str] = None,
-    strict: bool = False,
-):
-    # --- NORMALIZACIÓN ---
-    if isinstance(input_paths, (Path, str)):
-        input_paths = (Path(input_paths),)
-
-    extensions = extensions or DEFAULT_EXTENSIONS
-    excluded_dirs = excluded_dirs or DEFAULT_EXCLUDED_DIRS
-    excluded_patterns = excluded_patterns or DEFAULT_EXCLUDED_PATTERNS
-
-    files = collect_from_inputs(
-        inputs=input_paths,
-        extensions=extensions,
-        excluded_dirs=excluded_dirs,
-        excluded_patterns=excluded_patterns,
-        strict=strict,
-    )
-
-    txt_path = Path(f"{output_path}.txt")
-    json_path = Path(f"{output_path}.json")
-
-    # =========================
-    # TXT
-    # =========================
-    with txt_path.open("w", encoding="utf-8") as out:
-        out.write("# GENERATED PROJECT CONTEXT\n")
-        out.write(f"# base_dir: {base_dir}\n")
-        out.write(f"# total_files: {len(files)}\n\n")
-
-        out.write("# PROJECT STRUCTURE\n\n")
-        out.write(build_tree(files, base_dir))
-        out.write("\n\n# FILES\n\n")
-
-        for file in files:
-            rel = file.relative_to(base_dir)
-            out.write("=" * 80 + "\n")
-            out.write(f"FILE: {rel}\n")
-            out.write("=" * 80 + "\n")
-            try:
-                out.write(file.read_text(encoding="utf-8"))
-            except UnicodeDecodeError:
-                out.write("[ERROR: Could not decode file]")
-            out.write("\n\n")
-
-    # =========================
-    # JSON
-    # =========================
-    json_payload = {
-        "base_dir": str(base_dir),
-        "extensions": sorted(extensions),
-        "excluded_dirs": sorted(excluded_dirs),
-        "excluded_patterns": sorted(excluded_patterns),
-        "total_files": len(files),
-        "files": [],
+    DEFAULT_EXCLUDED_DIRS = {
+        ".git",
+        ".hg",
+        ".svn",
+        ".idea",
+        ".vscode",
+        "__pycache__",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        "venv",
+        ".venv",
+        "env",
+        ".env",
+        "node_modules",
+        "dist",
+        "build",
+        ".tox",
+        "data",
+        "temp",
     }
 
-    for file in files:
-        rel = file.relative_to(base_dir)
-        try:
-            content = file.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            content = None
+    DEFAULT_EXTENSIONS = {
+        ".py",
+        ".md",
+        ".txt",
+        ".yml",
+        ".yaml",
+        ".toml",
+        ".json",
+        ".html",
+        ".css",
+        ".js",
+        ".sql",
+    }
 
-        json_payload["files"].append(
-            {
-                "path": str(rel),
-                "extension": file.suffix,
-                "size_bytes": file.stat().st_size,
-                "lines": content.count("\n") + 1 if content else None,
-                "sha256": file_hash(file),
-                "content": content,
-            }
+    DEFAULT_EXCLUDED_PATTERNS = {
+        "*.pyc",
+        "*.pyo",
+        "*.pyd",
+        "*~",
+        "*.min.py",
+        "*.sqlite3",
+        "*.db",
+        "package-lock.json",
+    }
+
+    LANGUAGE_MAP = {
+        ".py": "python",
+        ".js": "javascript",
+        ".html": "html",
+        ".css": "css",
+        ".json": "json",
+        ".yaml": "yaml",
+        ".yml": "yaml",
+        ".toml": "toml",
+        ".md": "markdown",
+        ".sql": "sql",
+        ".sh": "bash",
+        ".bat": "batch",
+        ".ps1": "powershell",
+    }
+
+    AVAILABLE_TARGETS = [
+        "all",
+        "video_music",
+        "video_joiner",
+        "youtube_video_manager",
+        "ranking_system",
+        "video_converter",
+        "web",
+    ]
+
+    def __init__(self, base_dir: Path | None = None) -> None:
+        self.base_dir = (base_dir or Path(__file__).resolve().parents[1]).resolve()
+        self.default_output_dir = self.base_dir / "data" / "contexts"
+
+    def get_available_targets(self) -> list[str]:
+        """Retorna la lista de aplicaciones y objetivos válidos."""
+        return list(self.AVAILABLE_TARGETS)
+
+    def _get_target_paths(self, target: str) -> tuple[Path, ...]:
+        """Obtiene las rutas asociadas a un objetivo o aplicación."""
+        common_core = (
+            self.base_dir / "config.json",
+            self.base_dir / "core/config_manager.py",
         )
 
-    with json_path.open("w", encoding="utf-8") as f:
-        json.dump(json_payload, f, indent=2, ensure_ascii=False)
+        catalog: dict[str, tuple[Path, ...]] = {
+            "all": (self.base_dir,),
+            "video_music": common_core + (
+                self.base_dir / "core/time_utils.py",
+                self.base_dir / "applications/video_music",
+                self.base_dir / "composition/video_music.py",
+                self.base_dir / "domain/media",
+                self.base_dir / "services/media",
+                self.base_dir / "services/filesystem",
+                self.base_dir / "services/system",
+                self.base_dir / "interfaces/cli/builders/video_music_input_builder.py",
+                self.base_dir / "interfaces/cli/presenters/video_music_result_presenter.py",
+                self.base_dir / "interfaces/web/apps/video_music_web",
+                self.base_dir / "interfaces/web/static/video_music_web",
+                self.base_dir / "tests/applications/video_music",
+                self.base_dir / "tests/composition/test_video_music.py",
+                self.base_dir / "tests/interfaces/cli/builders/test_video_music_input_builder.py",
+                self.base_dir / "tests/interfaces/cli/presenters/test_video_music_result_presenter.py",
+                self.base_dir / "tests/interfaces/web/apps/video_music_web",
+            ),
+            "video_joiner": common_core + (
+                self.base_dir / "core/time_utils.py",
+                self.base_dir / "applications/video_joiner",
+                self.base_dir / "domain/media",
+                self.base_dir / "services/media",
+                self.base_dir / "services/system",
+                self.base_dir / "interfaces/web/apps/video_joiner_web",
+                self.base_dir / "tests/applications/video_joiner",
+            ),
+            "youtube_video_manager": common_core + (
+                self.base_dir / "config/youtube",
+                self.base_dir / "applications/youtube_video_manager",
+                self.base_dir / "composition/youtube_video_manager.py",
+                self.base_dir / "domain/youtube",
+                self.base_dir / "services/youtube",
+                self.base_dir / "interfaces/cli/menus",
+                self.base_dir / "tests/applications/youtube_video_manager",
+                self.base_dir / "tests/composition/test_youtube_video_manager.py",
+                self.base_dir / "tests/domain/youtube",
+                self.base_dir / "tests/services/youtube",
+                self.base_dir / "tests/interfaces/cli/menus",
+                self.base_dir / "tests/integration/youtube",
+            ),
+            "ranking_system": common_core + (
+                self.base_dir / "applications/ranking_system",
+                self.base_dir / "domain/ranking",
+                self.base_dir / "services/ranking",
+            ),
+            "video_converter": common_core + (
+                self.base_dir / "services/media/video/converter.py",
+                self.base_dir / "interfaces/web/apps/audio_converter_web",
+            ),
+            "web": (
+                self.base_dir / "interfaces/web",
+                self.base_dir / "tests/interfaces/web",
+            ),
+        }
 
+        if target not in catalog:
+            valid = ", ".join(self.AVAILABLE_TARGETS)
+            raise ValueError(
+                f"Objetivo desconocido: '{target}'. Opciones válidas: {valid}"
+            )
 
-# ============================================================
-# CONFIGURACIÓN MANUAL
-# ============================================================
+        return catalog[target]
+
+    def _should_exclude_dir(self, path: Path, excluded_dirs: Set[str]) -> bool:
+        """Determina si un directorio debe ser ignorado."""
+        return any(part in excluded_dirs for part in path.parts)
+
+    def _should_exclude_pattern(self, path: Path, patterns: Set[str]) -> bool:
+        """Determina si el nombre de archivo coincide con algún patrón de exclusión."""
+        return any(fnmatch.fnmatch(path.name, pattern) for pattern in patterns)
+
+    def _collect_files(
+        self,
+        input_paths: Iterable[Path],
+        *,
+        include_tests: bool = True,
+        extensions: Set[str] | None = None,
+        excluded_dirs: Set[str] | None = None,
+        excluded_patterns: Set[str] | None = None,
+    ) -> list[Path]:
+        """Recolecta y filtra todos los archivos de código válidos."""
+        extensions = extensions or self.DEFAULT_EXTENSIONS
+        excluded_dirs = excluded_dirs or self.DEFAULT_EXCLUDED_DIRS
+        excluded_patterns = set(excluded_patterns or self.DEFAULT_EXCLUDED_PATTERNS)
+
+        if not include_tests:
+            excluded_patterns.update({"test_*.py", "*_test.py"})
+
+        collected: set[Path] = set()
+
+        for raw_path in input_paths:
+            path = raw_path.resolve() if not raw_path.is_absolute() else raw_path
+            if not path.exists():
+                continue
+
+            if not include_tests and "tests" in path.parts:
+                continue
+
+            if path.is_file():
+                if (
+                    path.suffix in extensions
+                    and not self._should_exclude_dir(path, excluded_dirs)
+                    and not self._should_exclude_pattern(path, excluded_patterns)
+                ):
+                    collected.add(path.resolve())
+            elif path.is_dir():
+                for item in path.rglob("*"):
+                    if not item.is_file():
+                        continue
+                    if not include_tests and "tests" in item.parts:
+                        continue
+                    if self._should_exclude_dir(item, excluded_dirs):
+                        continue
+                    if self._should_exclude_pattern(item, excluded_patterns):
+                        continue
+                    if item.suffix in extensions:
+                        collected.add(item.resolve())
+
+        return sorted(collected, key=lambda p: str(p.relative_to(self.base_dir)).lower())
+
+    def _build_tree(self, files: Iterable[Path]) -> str:
+        """Construye una representación en árbol de la estructura de archivos."""
+        tree: dict = {}
+
+        for file in files:
+            rel = file.relative_to(self.base_dir)
+            current = tree
+            for part in rel.parts:
+                current = current.setdefault(part, {})
+
+        def render(node: dict, indent: int = 0) -> list[str]:
+            lines = []
+            for key in sorted(node):
+                lines.append("  " * indent + key)
+                lines.extend(render(node[key], indent + 1))
+            return lines
+
+        return "\n".join(render(tree))
+
+    def _format_fenced_code(self, content: str, extension: str) -> str:
+        """Envuelve el contenido en un bloque cercado de Markdown sin colisiones."""
+        lang = self.LANGUAGE_MAP.get(extension, "")
+        fence = "```"
+        if "```" in content:
+            fence = "````"
+            while fence in content:
+                fence += "`"
+        return f"{fence}{lang}\n{content}\n{fence}"
+
+    def _generate_content(
+        self,
+        target: str,
+        files: list[Path],
+        output_format: str = "md",
+        timestamp: datetime | None = None,
+    ) -> str:
+        """Genera el texto completo del contexto para LLMs."""
+        ref_time = timestamp or datetime.now()
+        now_str = ref_time.strftime("%Y-%m-%d %H:%M:%S")
+        tree_str = self._build_tree(files)
+
+        lines: list[str] = [
+            f"# Context Snapshot: {target}",
+            f"- **Project**: YouTube Utilities",
+            f"- **Target**: {target}",
+            f"- **Generated At**: {now_str}",
+            f"- **Total Files**: {len(files)}",
+            f"- **Base Directory**: {self.base_dir.as_posix()}",
+            "",
+            "## Project Structure",
+            "",
+            "```text",
+            tree_str,
+            "```",
+            "",
+            "## Files Content",
+            "",
+        ]
+
+        for file in files:
+            rel_path = file.relative_to(self.base_dir).as_posix()
+            lines.append("---")
+            lines.append(f"### File: `{rel_path}`")
+            lines.append("")
+
+            try:
+                content = file.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                content = "[ERROR: No se pudo decodificar el archivo como UTF-8]"
+
+            if output_format == "md":
+                lines.append(self._format_fenced_code(content, file.suffix))
+            else:
+                lines.append(f"FILE: {rel_path}")
+                lines.append("=" * 80)
+                lines.append(content)
+
+            lines.append("")
+
+        return "\n".join(lines)
+
+    def export(
+        self,
+        target: str = "all",
+        output_dir: Path | None = None,
+        *,
+        include_tests: bool = True,
+        output_format: str = "md",
+        timestamp: datetime | None = None,
+    ) -> Path:
+        """
+        Ejecuta la recolección y exporta el contexto a un archivo en data/contexts.
+
+        Args:
+            target: Nombre de la aplicación u 'all' para todo el proyecto.
+            output_dir: Directorio de destino (por defecto data/contexts).
+            include_tests: Si es True, incluye archivos y directorios de pruebas.
+            output_format: 'md' (Markdown) o 'txt' (texto plano).
+            timestamp: Fecha/hora de referencia para nombrado y metadatos.
+
+        Returns:
+            Path del archivo exportado.
+        """
+        target = target.strip().lower()
+        target_paths = self._get_target_paths(target)
+
+        files = self._collect_files(
+            target_paths,
+            include_tests=include_tests,
+        )
+
+        out_dir = output_dir or self.default_output_dir
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        ref_time = timestamp or datetime.now()
+        date_id = ref_time.strftime("%Y%m%d_%H%M%S")
+        file_extension = "md" if output_format == "md" else "txt"
+        file_name = f"context_{target}_{date_id}.{file_extension}"
+        output_file = out_dir / file_name
+
+        payload = self._generate_content(
+            target=target,
+            files=files,
+            output_format=output_format,
+            timestamp=ref_time,
+        )
+
+        output_file.write_text(payload, encoding="utf-8")
+        return output_file
+
 
 if __name__ == "__main__":
-    export_context(
-        base_dir=BASE_DIR,
-        input_paths=INPUT_PATHS,
-        output_path=OUTPUT_NAME,
-        strict=True,
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Exporta el contexto del proyecto para modelos LLM.",
     )
+    parser.add_argument(
+        "target",
+        nargs="?",
+        default="all",
+        choices=ContextExporter.AVAILABLE_TARGETS,
+        help="Aplicación u objetivo a exportar (por defecto: all).",
+    )
+    parser.add_argument(
+        "--no-tests",
+        action="store_true",
+        help="Excluye los archivos de pruebas del volcado.",
+    )
+    parser.add_argument(
+        "--format",
+        choices=["md", "txt"],
+        default="md",
+        help="Formato de salida (md o txt, por defecto: md).",
+    )
+
+    args = parser.parse_args()
+
+    exporter = ContextExporter()
+    exported_path = exporter.export(
+        target=args.target,
+        include_tests=not args.no_tests,
+        output_format=args.format,
+    )
+    print(f"Contexto generado exitosamente en: {exported_path}")

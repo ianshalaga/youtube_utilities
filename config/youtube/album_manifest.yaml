@@ -1,56 +1,88 @@
-album: Super Smash Bros. | Nintendo 64 | Originals & Remixes UST
+album: Super Smash Bros. Melee | Originals & Remixes UST
 
-name_prefix: Super Smash Bros. OST
+name_prefix: Super Smash Bros. Melee OST
 
 videos:
-  - "01 Opening | Super Smash Bros."
-  - "02 How to Play | Super Smash Bros."
-  - "03 Character Data"
-  - "04 Menu | Super Smash Bros."
-  - "05 Fighter Selection | Super Smash Bros."
-  - "06 1P Game | Vs. Challenger"
-  - "07 Overworld Theme | The Legend of Zelda | 64"
-  - "08 Yoshi's Story | 64"
-  - "09 Main Theme | Star Fox 64 | 64"
-  - "10 Ground Theme | Super Mario Bros. | 64"
-  - "11 Main Theme | Pokémon Red & Pokémon Blue | 64"
-  - "12 Jungle Level | 64"
-  - "13 Gourmet Race | 64"
-  - "14 Brinstar | 64"
-  - "15 1P Game | Stage Results"
-  - "16 Meta Crystal"
-  - "17 Bonus Game | Super Smash Bros."
-  - "18 Bonus | Results"
-  - "19 Bonus Game | Fail"
-  - "20 Duel Zone"
-  - "21 1P Game | Vs. Master Hand"
-  - "22 Final Destination | Master Hand Approaches"
-  - "23 Final Destination | Super Smash Bros."
-  - "24 1P Game | Final Results"
-  - "25 1P Game | Ending"
-  - "26 Credits | Super Smash Bros."
-  - "27 Unlock"
-  - "28 Training Mode"
-  - "29 New Challenger Approaching!"
-  - "30 Victory | Super Mario Bros. | 64"
-  - "31 Victory | Yoshi | 64"
-  - "32 Victory | Donkey Kong | 64"
-  - "33 Victory | The Legend of Zelda | 64"
-  - "34 Victory | Metroid | 64"
-  - "35 Victory | Kirby | 64"
-  - "36 Victory | Star Fox | 64"
-  - "37 Victory | Pokémon | 64"
-  - "38 Victory | F-Zero | 64"
-  - "39 Victory | EarthBound | 64"
-  - "40 Vs. Results"
-  - "41 Continue"
-  - "42 Game Over"
-  - "43 Star Power"
-  - "44 Hammer | Super Smash Bros."
-  - "45 Fanfare | Unused"
-  - "46 Opening | Super Smash Bros. | Announcer"
-  - "47 Final Destination | Super Smash Bros. | No Intro"
-  - "Super Smash Bros. | Originals & Remixes UST"
+  - "01 Opening | Super Smash Bros. Melee"
+  - "02 Menu | Super Smash Bros. Melee"
+  - "03 How to Play | Super Smash Bros. Melee"
+  - "04 Classic | Intro"
+  - "05 Ground Theme | Super Mario Bros. | Melee"
+  - "06 Slide"
+  - "07 Athletic Theme | Super Mario World"
+  - "08 Yoshi's Story | Melee"
+  - "09 Ground Theme | Super Mario Bros. 3 | Melee"
+  - "10 Fever"
+  - "11 DK Rap"
+  - "12 Jungle Level | Melee"
+  - "13 Targets!"
+  - "14 Overworld Theme | The Legend of Zelda | Melee"
+  - "15 Temple Theme"
+  - "16 Saria's Theme"
+  - "17 Story 5 Meeting"
+  - "18 Gourmet Race | Melee"
+  - "19 Green Greens | Melee"
+  - "20 Star Fox Medley"
+  - "21 Main Theme | Star Fox 64 | Melee"
+  - "22 Ice Climber | Melee"
+  - "23 Trophies"
+  - "24 Good Fanfare | Unused"
+  - "25 Bad Fanfare | Unused"
+  - "26 Metal Battle"
+  - "27 Final Destination | Super Smash Bros. Melee"
+  - "28 Stage Clear 1"
+  - "29 Classic | Figurines | Melee"
+  - "30 Classic | Ending | Melee"
+  - "31 New Feature 1"
+  - "32 New Feature 2"
+  - "33 New Feature 3"
+  - "34 Trophy Obtained!"
+  - "35 Character Unlocked!"
+  - "36 Continue | Melee"
+  - "37 Game Over | Melee"
+  - "38 New Challenger!"
+  - "39 Menu 2 | Super Smash Bros. Melee"
+  - "40 Adventure Intro"
+  - "41 Battlefield | Super Smash Bros. Melee"
+  - "42 Brinstar + Samus Appearance Jingle + Title"
+  - "43 Brinstar Depths | Melee"
+  - "44 Warning Siren"
+  - "45 Main Theme | Pokémon Red & Pokémon Blue | Melee"
+  - "46 Pokémon Red + Pokémon Blue Medley"
+  - "47 Pokémon Gold + Pokémon Silver Medley"
+  - "48 Mute City | Melee"
+  - "49 Big Blue | Melee"
+  - "50 Mach Rider"
+  - "51 Bein' Friends"
+  - "52 Pollyanna | I Believe in You"
+  - "53 Fourside | Melee"
+  - "54 Flat Zone"
+  - "55 Multi-Man Melee"
+  - "56 Multi-Man Melee 2"
+  - "57 Giga Bowser"
+  - "58 Stage Clear 2"
+  - "59 Step 1 | Unused"
+  - "60 Step 2 | Unused"
+  - "61 Step 3 | Unused"
+  - "62 All-Star Intro"
+  - "63 Tournament"
+  - "64 Tournament 2"
+  - "65 Victory | Super Mario Bros. | Melee"
+  - "66 Victory | Yoshi | Melee"
+  - "67 Victory | Donkey Kong | Melee"
+  - "68 Victory | The Legend of Zelda | Melee"
+  - "69 Victory | Metroid | Melee"
+  - "70 Victory | Kirby | Melee"
+  - "71 Victory | Star Fox | Melee"
+  - "72 Victory | Pokémon | Melee"
+  - "73 Victory | F-Zero | Melee"
+  - "74 Victory | EarthBound | Melee"
+  - "75 Victory | Ice Climber | Melee"
+  - "76 Victory | Fire Emblem | Melee"
+  - "77 Victory | Game & Watch | Melee"
+  - "78 Retro Mix"
+  - "79 Opening | Super Smash Bros. Melee | Announcer"
+  - "Super Smash Bros. Melee | Originals & Remixes UST"
 
 description: |
   🎮 SUPER SMASH BROS. | 1999
@@ -67,6 +99,7 @@ description: |
   📀 Smashing…Live! Live Orchestra Music | https://www.youtube.com/playlist?list=PL90QAKwVH1t73TIlig1YCkvq4IhqlFx5w
   📀 Smashing…Live! | https://www.youtube.com/playlist?list=PLAmCrfj--0FQ
   📀 Gamerip Tracks | https://www.youtube.com/playlist?list=PL90QAKwVH1t4MHYzfjWaH16J-h0sDNIhp
+  📀 Originals & Remixes UST | https://www.youtube.com/playlist?list=PLXpmKzvMaoOg
   📀 Complete OST | https://www.youtube.com/playlist?list=PL90QAKwVH1t4rHPc-lWJX4RfXlhzmxgoW
 
   🎮 SUPER SMASH BROS. BRAWL | 2008
@@ -86,11 +119,12 @@ description: |
   📀 Originals & Remixes UST | https://www.youtube.com/playlist?list=PLabRd0AVLAQc
   📀 Complete OST | https://www.youtube.com/playlist?list=PLOw4WNnCHjic
 
-thumbnail: "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/01 Super Smash Bros - 1999/03 Originals & Remixes UST/images/miniatura1.png"
+
+thumbnail: "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/02 Super Smash Bros. Melee - 2001/04 Originals & Remixes UST/images/miniatura1.png"
 
 playlists:
-  - PLTp_xagVL_mg # Originals & Remixes UST
-  - PL90QAKwVH1t7_ReZq1nHr9ihqV69sXa5R # Complete OST
+  - PLXpmKzvMaoOg # Originals & Remixes UST
+  - PL90QAKwVH1t4rHPc-lWJX4RfXlhzmxgoW # Complete OST
 
 made_for_kids: false
 contains_synthetic_media: false
@@ -102,6 +136,6 @@ game: game # not used
 
 publication:
   # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS
-  first_publish_at: "2026-11-19T22:00:00" # PENDING
+  first_publish_at: "2026-11-23T20:00:00" # PENDING
   timezone: "Europe/Paris"
   interval_days: 1
