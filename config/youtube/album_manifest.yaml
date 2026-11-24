@@ -136,6 +136,6 @@ game: game # not used
 
 publication:
   # Fecha en formato ISO 8601: YYYY-MM-DDTHH:MM:SS
-  first_publish_at: "2026-11-23T20:00:00" # PENDING
+  first_publish_at: "2026-11-25T05:00:00"
   timezone: "Europe/Paris"
   interval_days: 1

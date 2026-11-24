@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
-    <section class="space-y-6">
+    <section class="home-section">
         <header>
-            <p class="max-w-2xl text-lg leading-relaxed text-gray-400">
+            <p class="home-description">
                 📝 Centro de herramientas para crear, transformar y gestionar contenido multimedia para YouTube.
             </p>
         </header>
-        <section aria-label="Aplicaciones disponibles" class="space-y-5">
-            <div class="flex items-center gap-3">
-                <span class="h-7 w-1 rounded-full bg-red-500"></span>
-                <h2 class="py-2 font-display text-xl font-semibold text-white sm:text-2xl">🧰 Aplicaciones</h2>
+        <section aria-label="Aplicaciones disponibles" class="home-apps-section">
+            <div class="section-heading">
+                <span class="section-indicator"></span>
+                <h2 class="section-title">🧰 Aplicaciones</h2>
             </div>
-            <div class="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="card-grid">
                 {% for application in applications %}
                     {% include "home/application_card.html" %}
                 {% empty %}
-                    <div class="col-span-full rounded-xl border-2 border-red-500/40 bg-gray-900 p-8 text-center">
-                        <p class="text-2xl" role="img" aria-label="Sin aplicaciones">📭</p>
-                        <p class="mt-3 font-display text-lg text-white">No hay aplicaciones disponibles</p>
-                        <p class="mt-2 text-gray-400">Las herramientas aparecerán aquí cuando estén disponibles.</p>
+                    <div class="card-empty-state">
+                        <p class="card-empty-icon" role="img" aria-label="Sin aplicaciones">📭</p>
+                        <p class="card-empty-title">No hay aplicaciones disponibles</p>
+                        <p class="card-empty-text">Las herramientas aparecerán aquí cuando estén disponibles.</p>
                     </div>
                 {% endfor %}
             </div>

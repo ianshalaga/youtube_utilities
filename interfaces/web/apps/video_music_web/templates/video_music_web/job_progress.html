@@ -2,28 +2,28 @@
 {% load static %}
 {% block title %}⏳ Progreso de Video Music | YouTube Utilities{% endblock %}
 {% block content %}
-    <section class="space-y-8">
-        <header class="space-y-3">
-            <h1 class="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">⏳ Progreso de Video Music</h1>
-            <p class="max-w-3xl text-lg leading-relaxed text-gray-400">
+    <section class="page-container">
+        <header class="page-header">
+            <h1 class="page-title">⏳ Progreso de Video Music</h1>
+            <p class="page-description">
                 Sigue la generación de tus vídeos y consulta el estado de cada pista en tiempo real.
             </p>
         </header>
-        <section class="space-y-4 rounded-xl border-2 border-red-500/40 bg-gray-900 p-5 sm:p-7">
-            <h2 class="font-display text-xl font-semibold text-white">🎮 Información del trabajo</h2>
-            <p class="break-all text-sm text-gray-400">
-                <strong class="text-gray-200">Identificador:</strong>
+        <section class="panel">
+            <h2 class="panel-title">🎮 Información del trabajo</h2>
+            <p class="job-meta-item">
+                <strong class="job-meta-label">Identificador:</strong>
                 {{ job.job_id }}
             </p>
-            <p class="text-gray-300">
-                <strong class="text-gray-200">Estado:</strong>
+            <p class="job-meta-status-row">
+                <strong class="job-meta-label">Estado:</strong>
                 <span id="job-status"
-                      class="ml-1 inline-flex rounded-full border px-3 py-1 text-sm font-bold
-                             {% if job.status == 'queued' %}border-gray-500/40 bg-gray-950/50 text-gray-300
-                             {% elif job.status == 'running' %}border-blue-500/40 bg-blue-950/50 text-blue-300
-                             {% elif job.status == 'completed' %}border-green-500/40 bg-green-950/50 text-green-300
-                             {% elif job.status == 'failed' %}border-red-500/40 bg-red-950/50 text-red-300
-                             {% else %}border-gray-500/40 bg-gray-950/50 text-gray-300{% endif %}">
+                      class="status-badge
+                             {% if job.status == 'queued' %}status-badge-espera
+                             {% elif job.status == 'running' %}status-badge-proceso
+                             {% elif job.status == 'completed' %}status-badge-exito
+                             {% elif job.status == 'failed' %}status-badge-error
+                             {% else %}status-badge-espera{% endif %}">
                     {% if job.status == "queued" %}⏳ En espera
                     {% elif job.status == "running" %}🔄 En procesamiento
                     {% elif job.status == "completed" %}✅ Completado
@@ -31,85 +31,85 @@
                     {% else %}ℹ️ Estado desconocido{% endif %}
                 </span>
             </p>
-            <p id="job-message" class="leading-relaxed text-gray-300">{{ job.message }}</p>
+            <p id="job-message" class="job-message">{{ job.message }}</p>
             {% if job.error_message %}
                 <div id="job-error"
                      role="alert"
-                     class="rounded-lg border border-red-500/40 bg-red-950/30 p-4 text-red-200">
+                     class="alert-error">
                     ⚠️ <strong>Error:</strong>
                     <p class="whitespace-pre-wrap break-words">{{ job.error_message }}</p>
                 </div>
             {% endif %}
         </section>
-        <section class="space-y-5">
-            <h2 class="font-display text-xl font-semibold text-white">📊 Progreso</h2>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div class="rounded-xl border-2 border-indigo-500/40 bg-gray-900 p-5">
-                    <p class="text-sm text-gray-400">📁 Directorio actual</p>
-                    <p class="mt-2 text-2xl font-bold text-indigo-300">
+        <section class="section-group">
+            <h2 class="panel-title">📊 Progreso</h2>
+            <div class="stats-grid-progress">
+                <div class="stat-card stat-card-indigo">
+                    <p class="stat-label">📁 Directorio actual</p>
+                    <p class="stat-value-indigo">
                         <span id="current-directory">{{ job.current_directory }}</span>
-                        <span class="text-gray-500">/</span>
+                        <span class="stat-separator">/</span>
                         <span id="total-directories">{{ job.total_directories }}</span>
                     </p>
                 </div>
-                <div class="rounded-xl border-2 border-green-500/40 bg-gray-900 p-5">
-                    <p class="text-sm text-gray-400">✅ Pistas completadas</p>
-                    <p class="mt-2 text-2xl font-bold text-green-300">
+                <div class="stat-card stat-card-green">
+                    <p class="stat-label">✅ Pistas completadas</p>
+                    <p class="stat-value-green">
                         <span id="completed-tracks">{{ job.completed_tracks }}</span>
-                        <span class="text-gray-500">/</span>
+                        <span class="stat-separator">/</span>
                         <span id="total-tracks">{{ job.total_tracks }}</span>
                     </p>
                 </div>
-                <div class="rounded-xl border-2 border-violet-500/40 bg-gray-900 p-5">
-                    <p class="text-sm text-gray-400">🎵 En procesamiento</p>
-                    <p id="running-tracks" class="mt-2 text-2xl font-bold text-violet-300">{{ job.running_tracks }}</p>
+                <div class="stat-card stat-card-violet">
+                    <p class="stat-label">🎵 En procesamiento</p>
+                    <p id="running-tracks" class="stat-value-violet">{{ job.running_tracks }}</p>
                 </div>
-                <div class="rounded-xl border-2 border-red-500/40 bg-gray-900 p-5">
-                    <p class="text-sm text-gray-400">❌ Pistas fallidas</p>
-                    <p id="failed-tracks" class="mt-2 text-2xl font-bold text-red-300">{{ job.failed_tracks }}</p>
+                <div class="stat-card stat-card-red">
+                    <p class="stat-label">❌ Pistas fallidas</p>
+                    <p id="failed-tracks" class="stat-value-red">{{ job.failed_tracks }}</p>
                 </div>
             </div>
         </section>
-        <section class="space-y-4 rounded-xl border-2 border-red-500/40 bg-gray-900 p-5 sm:p-7">
-            <h2 class="font-display text-xl font-semibold text-white">🎼 Detalle de las pistas</h2>
+        <section class="panel">
+            <h2 class="panel-title">🎼 Detalle de las pistas</h2>
             {% if job.tracks %}
-                <ul id="track-list" class="space-y-3">
+                <ul id="track-list" class="track-list">
                     {% for track in job.tracks %}
-                        <li class="rounded-lg border border-white/10 bg-slate-800/70 p-4">
-                                <div class="flex flex-wrap items-center gap-2 text-sm font-semibold
-                                      {% if track.status == 'pending' %}text-gray-400
-                                      {% elif track.status == 'running' %}text-blue-300
-                                      {% elif track.status == 'completed' %}text-green-300
-                                      {% elif track.status == 'failed' %}text-red-300
-                                      {% else %}text-gray-400{% endif %}">
+                        <li class="track-card">
+                                <div class="track-status-header
+                                      {% if track.status == 'pending' %}track-status-pendiente
+                                      {% elif track.status == 'running' %}track-status-proceso
+                                      {% elif track.status == 'completed' %}track-status-exito
+                                      {% elif track.status == 'failed' %}track-status-error
+                                      {% else %}track-status-pendiente{% endif %}">
                                     {% if track.status == "pending" %}⏳ Pendiente
                                     {% elif track.status == "running" %}🔄 En procesamiento
                                     {% elif track.status == "completed" %}✅ Completada
                                     {% elif track.status == "failed" %}❌ Fallida
                                     {% else %}ℹ️ Estado desconocido{% endif %}
-                                    <span class="text-gray-500">|</span>
-                                    <strong class="text-white">{{ track.name|default:"Pista"|escape }}</strong>
+                                    <span class="track-separator">|</span>
+                                    <strong class="track-title">{{ track.name|default:"Pista"|escape }}</strong>
                                 </div>
                                 {% if track.message != "Pendiente" and track.message != "Procesando" and track.message != "Completada" and track.message != "Fallida" %}
                                     {% if not track.duration %}
-                                        <p class="mt-1 text-sm text-gray-400">{{ track.message }}</p>
+                                        <p class="track-message">{{ track.message }}</p>
                                     {% elif track.message|slice:":19" != "Duración detectada:" %}
-                                        <p class="mt-1 text-sm text-gray-400">{{ track.message }}</p>
+                                        <p class="track-message">{{ track.message }}</p>
                                     {% endif %}
                                 {% endif %}
                                 {% if track.duration %}
-                                    <span class="text-indigo-300">|</span>
-                                    <span class="text-indigo-300">{{ track.duration }}</span>
+                                    <span class="track-meta">|</span>
+                                    <span class="track-meta">{{ track.duration }}</span>
                                 {% endif %}
                                 {% if track.error_message %}
-                                    <p role="alert" class="mt-2 text-sm text-red-400">⚠️ {{ track.error_message }}</p>
+                                    <p role="alert" class="track-error">⚠️ {{ track.error_message }}</p>
                                 {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
                 <p id="no-tracks"
-                   class="rounded-lg border border-white/10 bg-slate-800/70 p-4 text-gray-400">
+                   class="track-empty">
                     🎵 Todavía no hay pistas registradas.
                 </p>
             {% endif %}

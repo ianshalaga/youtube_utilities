@@ -22,33 +22,33 @@
     queued: {
       label: "En espera",
       emoji: "⏳",
-      color: "border-gray-500/40 bg-gray-950/50 text-gray-300",
+      className: "status-badge-espera",
     },
     running: {
       label: "En procesamiento",
       emoji: "🔄",
-      color: "border-blue-500/40 bg-blue-950/50 text-blue-300",
+      className: "status-badge-proceso",
     },
     completed: {
       label: "Completado",
       emoji: "✅",
-      color: "border-green-500/40 bg-green-950/50 text-green-300",
+      className: "status-badge-exito",
     },
     failed: {
       label: "Fallido",
       emoji: "❌",
-      color: "border-red-500/40 bg-red-950/50 text-red-300",
+      className: "status-badge-error",
     },
   };
   const trackStatusPresentation = {
-    pending: { label: "Pendiente", emoji: "⏳", color: "text-gray-400" },
+    pending: { label: "Pendiente", emoji: "⏳", className: "track-status-pendiente" },
     running: {
       label: "En procesamiento",
       emoji: "🔄",
-      color: "text-blue-300",
+      className: "track-status-proceso",
     },
-    completed: { label: "Completada", emoji: "✅", color: "text-green-300" },
-    failed: { label: "Fallida", emoji: "❌", color: "text-red-300" },
+    completed: { label: "Completada", emoji: "✅", className: "track-status-exito" },
+    failed: { label: "Fallida", emoji: "❌", className: "track-status-error" },
   };
   const defaultTrackMessages = {
     pending: "Pendiente",
@@ -77,6 +77,7 @@
     if (!elements.trackList) {
       const list = document.createElement("ul");
       list.id = "track-list";
+      list.className = "track-list";
       elements.noTracks?.replaceWith(list);
       elements.trackList = list;
       elements.noTracks = null;
@@ -91,21 +92,27 @@
 
     for (const track of orderedTracks) {
       const item = document.createElement("li");
+      item.className = "track-card";
       const name = document.createElement("strong");
       const presentation = trackStatusPresentation[track.status] || {
         label: "Estado desconocido",
         emoji: "ℹ️",
-        color: "text-gray-400",
+        className: "track-status-pending",
       };
       const status = document.createElement("div");
 
       name.textContent = track.name || "Pista";
-      name.className = "text-white";
+      name.className = "track-title";
       status.className =
-        `flex flex-wrap items-center gap-2 text-sm font-semibold ${presentation.color}`;
+        `track-status-header ${presentation.className}`;
       status.textContent = `${presentation.emoji} ${presentation.label}`;
+      const separator = document.createElement("span");
+      separator.className = "track-separator";
+      separator.textContent = "|";
       status.append(
-        document.createTextNode(" | "),
+        document.createTextNode(" "),
+        separator,
+        document.createTextNode(" "),
         name,
       );
       item.append(status);
@@ -116,16 +123,21 @@
         (!track.duration || !track.message.startsWith("Duración detectada:"))
       ) {
         const activity = document.createElement("p");
-        activity.className = "mt-1 text-sm text-gray-400";
+        activity.className = "track-message";
         activity.textContent = track.message;
         item.append(activity);
       }
 
       if (track.duration) {
+        const durSeparator = document.createElement("span");
+        durSeparator.className = "track-meta";
+        durSeparator.textContent = "|";
         status.append(
-          document.createTextNode(" | "),
+          document.createTextNode(" "),
+          durSeparator,
+          document.createTextNode(" "),
           Object.assign(document.createElement("span"), {
-            className: "text-indigo-300",
+            className: "track-meta",
             textContent: track.duration,
           }),
         );
@@ -133,7 +145,7 @@
 
       if (track.error_message) {
         const error = document.createElement("p");
-        error.className = "mt-1 text-sm text-red-400";
+        error.className = "track-error";
         error.textContent = `Error: ${track.error_message}`;
         item.append(error);
       }
@@ -148,11 +160,11 @@
     const status = jobStatusPresentation[job.status] || {
       label: "Estado desconocido",
       emoji: "ℹ️",
-      color: "border-gray-500/40 bg-gray-950/50 text-gray-300",
+      className: "status-badge-queued",
     };
     setText(elements.status, `${status.emoji} ${status.label}`);
     elements.status.className =
-      `ml-1 inline-flex rounded-full border px-3 py-1 text-sm font-bold ${status.color}`;
+      `status-badge ${status.className}`;
     setText(elements.message, job.message);
     setText(elements.currentDirectory, job.current_directory);
     setText(elements.totalDirectories, job.total_directories);
@@ -163,23 +175,25 @@
 
     if (job.error_message) {
       if (!elements.error) {
-        const error = document.createElement("p");
+        const error = document.createElement("div");
         error.id = "job-error";
-        error.className = "whitespace-pre-wrap break-words";
+        error.className = "alert-error";
         const label = document.createElement("strong");
         label.textContent = "Error:";
-        error.append(label, document.createTextNode(" "));
-        error.append(document.createTextNode(job.error_message));
+        const errorText = document.createElement("p");
+        errorText.className = "whitespace-pre-wrap break-words";
+        errorText.textContent = job.error_message;
+        error.append(document.createTextNode("⚠️ "), label, errorText);
         elements.message.after(error);
         elements.error = error;
       } else {
         elements.error.replaceChildren();
         const label = document.createElement("strong");
         label.textContent = "Error:";
-        elements.error.append(
-          label,
-          document.createTextNode(` ${job.error_message}`),
-        );
+        const errorText = document.createElement("p");
+        errorText.className = "whitespace-pre-wrap break-words";
+        errorText.textContent = job.error_message;
+        elements.error.append(document.createTextNode("⚠️ "), label, errorText);
       }
     }
 
