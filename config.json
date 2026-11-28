@@ -43,9 +43,9 @@
     },
     "video_joiner": {
       "max_items_per_dir": 15,
-      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Super Smash Bros/04 Super Smash Bros. for Nintendo 3DS - Wii U - 2014/03 Harmony of Heroes - Final Smash/videos",
+      "default_videos_dir": "D:/@Seyfer/Proyectos/@YouTube/OST/02 In Progress/Soulcalibur/01 Soul Edge - 1995/02 Soul Edge - Arranged OST - 2009/videos",
       "default_output_dir": "compilation",
-      "default_video_name": "Super Smash Bros. - Harmony of Heroes - Final Smash",
+      "default_video_name": "Soul Edge - Arranged OST - 2009",
       "default_target_duration": 36000,
       "default_end_screens_dir": null,
       "default_random_end_screen": true,
