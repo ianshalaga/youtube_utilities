@@ -21,3 +21,9 @@ class JobModel(Base):
         back_populates="job",
         cascade="all, delete-orphan",
     )
+
+    videos = relationship(
+        "VideoModel",
+        back_populates="job",
+        cascade="all, delete-orphan",
+    )

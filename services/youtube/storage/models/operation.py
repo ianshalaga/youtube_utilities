@@ -42,4 +42,6 @@ class OperationModel(Base):
     data = relationship(
         "VideoMetadataModel",
         uselist=False,
+        cascade="all, delete-orphan",
+        single_parent=True,
     )

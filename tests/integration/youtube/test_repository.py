@@ -14,7 +14,12 @@ from domain.youtube.video_metadata import VideoMetadata
 
 from services.youtube.storage.base import Base
 from services.youtube.storage.mappers.job_mapper import JobMapper
-from services.youtube.storage.models import JobModel, OperationModel
+from services.youtube.storage.models import (
+    JobModel,
+    OperationModel,
+    VideoMetadataModel,
+    VideoModel,
+)
 from services.youtube.storage.repository import YouTubeJobRepository
 from services.youtube.console import YouTubeConsole
 from services.youtube.updater import Updater
@@ -208,6 +213,23 @@ def test_saving_completed_job_removes_it_from_persistence(repository, session):
 
     assert session.query(JobModel).count() == 0
     assert repository.find_by_id(job.id) is None
+
+
+def test_completed_job_removes_its_videos_and_metadata(repository, session):
+    job = create_job(status=JobStatus.CREATED)
+    repository.save(job)
+    job.start()
+    for operation in job.operations:
+        operation.start()
+        operation.complete()
+    job.complete()
+
+    repository.save(job)
+
+    assert session.query(JobModel).count() == 0
+    assert session.query(OperationModel).count() == 0
+    assert session.query(VideoModel).count() == 0
+    assert session.query(VideoMetadataModel).count() == 0
 
 
 def test_retry_updates_existing_job_without_inserting_duplicate(

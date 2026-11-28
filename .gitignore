@@ -197,8 +197,7 @@ client_secret.json
 token.json
 
 # Database
-*.db
-yvm.db
+*.backup
 
 # Temporary files
 .pytest-temp-quoted-thumbnail

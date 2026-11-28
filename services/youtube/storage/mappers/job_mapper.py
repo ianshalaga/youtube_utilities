@@ -30,7 +30,7 @@ class JobMapper:
         videos_by_id: dict[str, VideoModel] = {}
 
         job_model.operations = [
-            self._operation_to_model(operation, videos_by_id)
+            self._operation_to_model(operation, videos_by_id, job_model)
             for operation in job.operations
         ]
 
@@ -48,7 +48,7 @@ class JobMapper:
         }
 
         job_model.operations = [
-            self._operation_to_model(operation, videos_by_id)
+            self._operation_to_model(operation, videos_by_id, job_model)
             for operation in job.operations
         ]
 
@@ -99,6 +99,7 @@ class JobMapper:
         self,
         operation: Operation,
         videos_by_id: dict[str, VideoModel],
+        job_model: JobModel,
     ) -> OperationModel:
         operation_model = OperationModel(
             operation_type=operation.operation_type.value,
@@ -108,7 +109,7 @@ class JobMapper:
         video = videos_by_id.get(operation.video.video_id)
         
         if video is None:
-            video = self._video_to_model(operation.video)
+            video = self._video_to_model(operation.video, job_model)
             videos_by_id[operation.video.video_id] = video
 
         operation_model.video = video
@@ -147,8 +148,13 @@ class JobMapper:
 
         return operation
 
-    def _video_to_model(self, video: Video) -> VideoModel:
+    def _video_to_model(
+        self,
+        video: Video,
+        job_model: JobModel,
+    ) -> VideoModel:
         return VideoModel(
+            job=job_model,
             video_id=video.video_id,
             position=video.position,
             video_type=video.video_type.value,
